@@ -378,7 +378,25 @@
   .calc-acoes{ white-space:nowrap; text-align:center; }
   .roll-btn{ cursor:pointer; font-size:14px; margin-right:5px; user-select:none; vertical-align:middle; }
   .roll-btn:hover{ filter:brightness(1.15); }
+  /* ===================== BARRA DE STATUS (sempre visível) ===================== */
+  .status-bar{ max-width:950px; margin:0 auto 14px auto; display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px;
+    background:var(--bar-bg); color:#fff; border-radius:12px; padding:9px 16px; box-shadow:var(--shadow-sm); }
+  .st-item{ display:flex; align-items:center; gap:6px; font-family:var(--font-body); }
+  .st-lbl{ font-family:var(--font-display); font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:0.4px; opacity:0.9; }
+  .st-num{ width:46px; text-align:center; font-weight:700; font-size:13px; padding:3px 4px !important; background:#fff !important; color:var(--ink) !important; border:none !important; border-radius:6px; }
+  .st-sep{ opacity:0.7; font-weight:700; }
+  .st-tot{ font-weight:800; font-size:14px; min-width:22px; text-align:center; }
+  .st-munic{ flex:1; min-width:160px; }
+  .st-municoes{ font-size:12px; font-weight:600; }
+  .st-municoes b{ font-weight:800; }
+  .st-dano{ margin-left:auto; }
+  .st-dano-in{ width:52px; text-align:center; font-weight:700; font-size:13px; padding:3px 4px !important; background:#fff !important; color:var(--ink) !important; border:none !important; border-radius:6px; }
+  .st-ok{ font-family:var(--font-body); font-weight:700; font-size:11px; border:none; border-radius:999px; padding:4px 12px; cursor:pointer; background:#00AD67; color:#fff; }
+  .st-ok:hover{ filter:brightness(1.08); }
 </style>
+  <!-- ===== NUVEM (Supabase): para ativar, descomente as 2 linhas abaixo e veja o GUIA ===== -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> -->
+  <!-- <script src="supabase-config.js"></script> -->
 </head>
 <body>
 
@@ -390,6 +408,13 @@
   <button class="tab-btn" data-tab="inventario">Inventário</button>
   <button class="tab-btn" data-tab="jutsus">Jutsus</button>
   <button class="tab-btn" data-tab="bd">Banco de Dados</button>
+</div>
+
+<div class="status-bar" id="status_bar">
+  <div class="st-item"><span class="st-lbl">Vida</span><input class="st-num campo-vida" type="text"><span class="st-sep">/</span><span class="st-tot" id="st_vida_total">0</span></div>
+  <div class="st-item"><span class="st-lbl">Chakra</span><input class="st-num campo-chakra" type="text"><span class="st-sep">/</span><span class="st-tot" id="st_chakra_total">0</span></div>
+  <div class="st-item st-munic"><span class="st-lbl">Munições</span><span class="st-municoes" id="st_municoes">—</span></div>
+  <div class="st-item st-dano"><span class="st-lbl">Dano recebido</span><input class="st-dano-in" id="st_dano_in" type="text" placeholder="0"><button class="st-ok" id="st_dano_ok">OK</button></div>
 </div>
 
 <div class="tab-content active" id="tab-ficha">
@@ -439,13 +464,13 @@
       <div class="bar">Vitalidade</div>
       <div class="resource-box">
         <div class="tot-line"><span>Vitalidade Total:</span><input id="in_vit_total" class="auto" data-calc="vit" title="Calculado: 10 + 3x Vigor + 5x Nível da Campanha. Digite para sobrescrever; limpe para voltar ao automático." value=""></div>
-        <input class="atual-input" id="in_vit_atual" value="">
+        <input class="atual-input campo-vida" id="in_vit_atual" value="">
         <div class="atual-cap">Vitalidade Atual</div>
       </div>
       <div class="bar">Chakra</div>
       <div class="resource-box">
         <div class="tot-line"><span>Chakra Total:</span><input id="in_chakra_total" class="auto" data-calc="chakra" title="Calculado: 10 + 3x Espírito. Digite para sobrescrever; limpe para voltar ao automático." value=""></div>
-        <input class="atual-input" id="in_chakra_atual" value="">
+        <input class="atual-input campo-chakra" id="in_chakra_atual" value="">
         <div class="atual-cap">Chakra Atual</div>
       </div>
     </div>
@@ -664,6 +689,46 @@
 
 <script>
 /* ===================================================================
+   PONTE COM A NUVEM (Supabase) — DESATIVADA por padrão.
+   A ficha funciona normalmente offline (localStorage) enquanto NUVEM_ATIVA = false.
+   Para ligar a nuvem (veja o GUIA):
+     1) descomente as 2 linhas <script> do Supabase no <head>;
+     2) crie o supabase-config.js com sua URL e chave anon;
+     3) troque NUVEM_ATIVA para true.
+   =================================================================== */
+const NUVEM_ATIVA = false;                                   // <-- vira true quando o Supabase estiver configurado
+const FICHA_ID = new URLSearchParams(location.search).get("id");
+let _nuvemTimer = null;
+
+async function carregarDaNuvem(){
+  try{
+    const { data: sess } = await sb.auth.getSession();
+    if(!sess.session){ location.href = "login.html"; return false; }
+    if(!FICHA_ID){ location.href = "home.html"; return false; }
+    const { data, error } = await sb.from("fichas").select("dados").eq("id", FICHA_ID).single();
+    if(error){ alert("Erro ao carregar a ficha: " + error.message); location.href = "home.html"; return false; }
+    const d = data.dados || {};
+    if(d.estado) localStorage.setItem("sns_ficha_estado_v1", JSON.stringify(d.estado));
+    if(d.db)     localStorage.setItem("sns_ficha_db_v1", JSON.stringify(d.db));
+    return true;
+  }catch(e){ console.error(e); alert("Falha ao conectar na nuvem."); return false; }
+}
+function salvarNaNuvem(){
+  if(!NUVEM_ATIVA || typeof sb === "undefined" || !FICHA_ID) return;
+  clearTimeout(_nuvemTimer);
+  _nuvemTimer = setTimeout(async () => {
+    let estado = null, db = null;
+    try{ estado = JSON.parse(localStorage.getItem("sns_ficha_estado_v1") || "null"); }catch(e){}
+    try{ db     = JSON.parse(localStorage.getItem("sns_ficha_db_v1") || "null"); }catch(e){}
+    const dados = { estado, db, foto: (db && db.foto) || "" };
+    try{ await sb.from("fichas").update({ dados, atualizado_em: new Date().toISOString() }).eq("id", FICHA_ID); }
+    catch(e){ console.error(e); }
+  }, 1200);
+}
+
+/* ===== A ficha inteira roda dentro desta função, para poder esperar a nuvem ===== */
+function iniciarFicha(){
+/* ===================================================================
    BANCO DE DADOS CENTRAL (editável) + AUTOMAÇÃO + SELETORES
    Fórmulas: Livro Básico 4.1b. Revisões: Guia Avançado do Shinobi (10 Anos).
    Armas/Armaduras: Livro Básico, Tabelas de Equipamentos (pág. 137-139).
@@ -857,6 +922,7 @@ function setStatus(txt){ const el = document.getElementById("bd_status"); if(el)
 function persist(){
   try{ localStorage.setItem(DB_KEY, JSON.stringify(DB)); setStatus("Salvo neste navegador."); }
   catch(e){ setStatus("Não foi possível salvar localmente. Use Exportar JSON."); }
+  if(typeof salvarNaNuvem === "function") salvarNaNuvem();
 }
 
 /* ===== ATRIBUTOS, HABILIDADES DE COMBATE, PERÍCIAS ===== */
@@ -1134,11 +1200,20 @@ function recalc(){
   const bonus = bonusDasAptidoes();
   periTotais = {};
   document.querySelectorAll(".per-row").forEach(row => {
-    const pts = num(row.querySelector(".pr-pontos").value);
+    const nome = row.dataset.peri;
+    const pontosEl = row.querySelector(".pr-pontos");
+    if(nome.indexOf("Venefício") !== -1){
+      if(attrVal("Espírito") < 6){ if(pontosEl){ pontosEl.value = ""; pontosEl.disabled = true; pontosEl.title = "Requer Espírito 6 ou mais"; } }
+      else if(pontosEl){ pontosEl.disabled = false; pontosEl.title = ""; }
+    }
+    const pts = num(pontosEl.value);
     const outro = num(row.querySelector(".pr-outro").value);
-    const total = pts + metadeCima(attrVal(CODE2ATTR[row.dataset.attr])) + outro;
+    const treinadaSo = nome.indexOf("*") !== -1;   // perícias com * só existem se treinadas
+    let total;
+    if(treinadaSo && pts <= 0) total = 0;
+    else total = pts + metadeCima(attrVal(CODE2ATTR[row.dataset.attr])) + outro;
     row.querySelector(".pr-total").value = total;
-    periTotais[row.dataset.peri] = total;
+    periTotais[nome] = total;
   });
   let esqTotal = 0;
   document.querySelectorAll(".hc-row").forEach(row => {
@@ -1199,20 +1274,27 @@ function recalc(){
   const esp = attrVal("Espírito");
   document.querySelectorAll("#calc_jutsu_rows tr").forEach(tr => {
     const nvEl = tr.querySelector(".cj-nv"); if(!nvEl) return;
-    const dbase = num(nvEl.value) + metadeCima(esp);
+    const dbase = Math.max(0, num(nvEl.value) + metadeCima(esp));
     const poder = tr.dataset.poder || "";
     const elem = (DB.elementos[poder] && num(DB.elementos[poder].bonusDano)) || 0;
     const dur = tr.querySelector(".cj-dureza"); if(dur) dur.value = dbase;
     const del = tr.querySelector(".cj-delem"); if(del) del.value = elem;
     const db = tr.querySelector(".cj-dbase"); if(db) db.value = dbase;
   });
-  /* Arma: Dano Base = atributo de dano (Força, ou Destreza p/ disparo) + dano da arma */
+  /* Arma: Dano Base = ½ atributo (arred. p/ cima) + dano da arma; nunca negativo (Básico p.257) */
   document.querySelectorAll("#calc_armado_rows tr").forEach(tr => {
     const dbEl = tr.querySelector(".ca-dbase"); if(!dbEl) return;
     const danoEl = tr.querySelector(".ca-dano");
     const atr = tr.dataset.atrdano || "Força";
-    dbEl.value = attrVal(atr) + num(danoEl ? danoEl.value : 0);
+    dbEl.value = Math.max(0, metadeCima(attrVal(atr)) + num(danoEl ? danoEl.value : 0));
   });
+
+  /* Barra de status: totais de Vida/Chakra + munições */
+  const vitTot = document.querySelector('.auto[data-calc="vit"]');
+  const chaTot = document.querySelector('.auto[data-calc="chakra"]');
+  const svt = document.getElementById("st_vida_total"); if(svt && vitTot) svt.textContent = vitTot.value;
+  const sct = document.getElementById("st_chakra_total"); if(sct && chaTot) sct.textContent = chaTot.value;
+  atualizarMunicoes();
 }
 
 document.addEventListener("input", (e) => {
@@ -1344,6 +1426,7 @@ function adicionarLinhaArmado(raw, jid){
   const tr = document.createElement("tr");
   if(jid) tr.dataset.jid = jid;
   tr.dataset.atrdano = (raw.classe === "Disparo") ? "Destreza" : "Força";
+  tr.dataset.classe = raw.classe || "";
   tr.appendChild(celInput(raw.nome||""));     // Nome
   const cD = celInput(raw.dano||""); cD.querySelector("input").className = "ca-dano"; tr.appendChild(cD);  // Dano
   const cB1 = celInput(""); cB1.querySelector("input").className = "ca-bonus"; tr.appendChild(cB1);  // Bônus de Dano (manual)
@@ -1375,6 +1458,7 @@ function adicionarEquipamento(it){
   const tbody = document.getElementById("inv_rows");
   const tr = document.createElement("tr");
   tr.dataset.jid = jid;
+  tr.dataset.classe = raw.classe || "";
   const anot = (it._kind === "arma")
     ? ("Dano " + (raw.dano||"") + (raw.tipo ? " · " + raw.tipo : ""))
     : ("Absorção " + (raw.absorcao||"") + (raw.penalidade && raw.penalidade !== "---" ? " · Pen. " + raw.penalidade : ""));
@@ -1486,6 +1570,11 @@ function bdCalcHtml(){
     ['Reação de Esquiva', 'Esquiva + '+ccNum('reacaoConst'), 'Básico p.20'],
     ['Deslocamento', ccNum('deslocBase')+'m + Agilidade ÷ '+ccNum('deslocDiv')+' (arred. p/ cima)', 'Básico p.20'],
     ['Testes Sociais', 'Carisma/Manipulação + ½ (atributo ou perícia) (arred. p/ cima)', 'Básico p.53-55'],
+    ['Dano Base — Ataque Corporal', '(Força ÷ 2, arred. p/ cima) + Dano da Arma', 'Básico p.257'],
+    ['Dano Base — Ataque à Distância Armado', '(Destreza ÷ 2, arred. p/ cima) + Dano da Arma', 'Básico p.257'],
+    ['Dano Base — Ninpou / Elementos', '(Espírito ÷ 2, arred. p/ cima) + Nível usado do Poder', 'Básico p.257 / 91'],
+    ['Dano Base — mínimo', '0 — nunca fica negativo, mesmo com redutores', 'Básico p.257'],
+    ['Dano Final', 'Dano Base × Grau de Dano (rolagem 2d8, grau 1 a 4)', 'Básico p.257'],
     ['Pontos de Atributo', ccNum('ptsAtrPorNC')+' × NC '+ccNum('ptsAtrBase'), 'Básico p.27/30'],
     ['Pontos de Perícia', ccNum('ptsPerPorNC')+' × NC '+ccNum('ptsPerBase'), 'Básico p.27/30'],
     ['Pontos de Poder', ccNum('ptsPodPorNC')+' × NC '+ccNum('ptsPodBase'), 'Básico p.27/30'],
@@ -1663,6 +1752,18 @@ function rolarDano(tr, tipo){
       ? ("🎲 " + nome + ": 2d8 = " + a + " + " + b + " = " + soma + " → Falha!")
       : ("🎲 " + nome + ": 2d8 = " + a + " + " + b + " = " + soma + " → Grau " + g + " → Dano " + (total*g) + "  (" + total + " × " + g + ")");
   }
+  /* consumo ao usar: chakra do jutsu; munição do arremesso */
+  if(tipo === "jutsu"){
+    let custo = valDe(tr, ".cj-custo"); if(custo <= 0) custo = valDe(tr, ".cj-nv");
+    if(custo > 0) ajustarChakra(-custo);
+  } else {
+    const classe = tr.dataset.classe || "";
+    if(classe === "Arremesso" || classe === "Munição"){
+      const jid = tr.dataset.jid;
+      const inv = jid ? document.querySelector('#inv_rows tr[data-jid="'+jid+'"]') : null;
+      if(inv){ const q = inv.querySelectorAll("input")[1]; if(q){ q.value = Math.max(0, num(q.value) - 1); atualizarMunicoes(); agendarSalvar(); } }
+    }
+  }
 }
 function celAcoesCalc(tipo, comDelete){
   const td = document.createElement("td");
@@ -1675,6 +1776,43 @@ document.addEventListener("click", (e) => {
   const rb = e.target.closest(".roll-btn");
   if(rb){ const tr = rb.closest("tr"); if(tr) rolarDano(tr, rb.dataset.tipo); }
 });
+
+/* ---- Barra de status: Vida/Chakra espelhados, munições e dano recebido ---- */
+function setTodos(cls, val){ document.querySelectorAll("."+cls).forEach(el => { el.value = val; }); }
+function ajustarChakra(delta){
+  const el = document.querySelector(".campo-chakra"); if(!el) return;
+  setTodos("campo-chakra", String(num(el.value) + delta));
+  agendarSalvar();
+}
+function atualizarMunicoes(){
+  const cont = document.getElementById("st_municoes"); if(!cont) return;
+  const itens = [];
+  document.querySelectorAll("#inv_rows tr").forEach(tr => {
+    const cl = tr.dataset.classe || "";
+    if(cl !== "Arremesso" && cl !== "Munição") return;
+    const ins = tr.querySelectorAll("input");
+    const nome = ins[0] ? ins[0].value : "";
+    const qtd = ins[1] ? ins[1].value : "";
+    if(nome) itens.push(escapeHtml(nome) + ": <b>" + escapeHtml(qtd || "0") + "</b>");
+  });
+  cont.innerHTML = itens.length ? itens.join(" &nbsp;·&nbsp; ") : "—";
+}
+document.addEventListener("input", (e) => {
+  const t = e.target; if(!t.classList) return;
+  if(t.classList.contains("campo-vida")) document.querySelectorAll(".campo-vida").forEach(el => { if(el !== t) el.value = t.value; });
+  if(t.classList.contains("campo-chakra")) document.querySelectorAll(".campo-chakra").forEach(el => { if(el !== t) el.value = t.value; });
+});
+(function(){
+  const ok = document.getElementById("st_dano_ok"), inp = document.getElementById("st_dano_in");
+  if(!ok || !inp) return;
+  ok.addEventListener("click", () => {
+    const dano = num(inp.value);
+    if(dano > 0){ const vida = document.querySelector(".campo-vida"); if(vida) setTodos("campo-vida", String(num(vida.value) - dano)); }
+    inp.value = "";
+    agendarSalvar();
+  });
+  inp.addEventListener("keydown", (e) => { if(e.key === "Enter") ok.click(); });
+})();
 
 /* ===================================================================
    PERSISTÊNCIA DA FICHA — salva tudo no navegador; sobrevive a F5/fechar
@@ -1717,7 +1855,7 @@ function salvarEstado(){
   }catch(e){}
 }
 let _saveTimer = null;
-function agendarSalvar(){ clearTimeout(_saveTimer); _saveTimer = setTimeout(salvarEstado, 400); }
+function agendarSalvar(){ clearTimeout(_saveTimer); _saveTimer = setTimeout(salvarEstado, 400); if(typeof salvarNaNuvem === "function") salvarNaNuvem(); }
 function restaurarEstado(){
   let raw; try{ raw = localStorage.getItem(ESTADO_KEY); }catch(e){ return; }
   if(!raw) return;
@@ -1776,7 +1914,17 @@ recalc();
   aplicar();
 })();
 
-</script>
+}
 
+/* ===== BOOTSTRAP: com nuvem ativa, carrega os dados antes de montar; senão, monta na hora ===== */
+(async function(){
+  if(NUVEM_ATIVA && typeof sb !== "undefined"){
+    const ok = await carregarDaNuvem();
+    if(!ok) return;              // redirecionado para login/home
+  }
+  iniciarFicha();
+})();
+
+</script>
 </body>
 </html>
