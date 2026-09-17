@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Ficha SnS — Layout Fiel ao PDF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1a1a;
+    --bar-bg:#1c1c1e;
+    --bg:#ffffff;
+    --page-bg:#eef0f3;
+    --gray-light:#f6f7f8;
+    --gray-mid:#e4e5e7;
+    --gray-text:#8b8d92;
+    --border:#e3e4e7;
+    --border-strong:#d3d5d9;
+    --input-bg:#f5f6f7;
+    --input-border:#e2e3e6;
+    --shadow: 0 1px 3px rgba(20,20,25,0.06), 0 8px 20px rgba(20,20,25,0.05);
+    --shadow-sm: 0 1px 2px rgba(20,20,25,0.05);
+    --radius:14px;
+    --radius-sm:8px;
+    --font-display:'Barlow Condensed', Arial, sans-serif;
+    --font-body:'Inter', Arial, sans-serif;
+  }
+  * { box-sizing:border-box; }
+  html, body{ width:100%; overflow-x:hidden; }
+  body{
+    font-family: var(--font-body);
+    background: var(--page-bg);
+    margin:0; padding:0;
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ===================== ESCALA PROPORCIONAL RESPONSIVA =====================
+     O "palco" (stage) mantem a largura nativa de 950px com todos os tamanhos
+     e espacamentos originais. O JS calcula um fator de escala com base na
+     largura da tela e aplica transform:scale(), de modo que a ficha inteira
+     encolhe no celular e cresce na TV, sempre preservando as proporcoes. */
+  .scaler-outer{ position:relative; width:100%; overflow:hidden; }
+  .scaler-inner{
+    position:absolute; top:0; left:50%;
+    width:950px;
+    transform-origin: top center;
+    transform: translateX(-50%) scale(1);
+    padding-bottom:8px;
+  }
+  .page{
+    width: 950px;
+    margin: 0 auto 32px auto;
+    background: var(--bg);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    padding: 28px 30px 24px 30px;
+    position: relative;
+  }
+  .bar{
+    background: var(--bar-bg); color:#fff;
+    font-family: var(--font-display);
+    font-weight:700; font-size:15px; letter-spacing:0.6px; text-transform:uppercase;
+    text-align:center; padding:8px 10px;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  }
+  .box{ border:1px solid var(--border); border-radius:0 0 var(--radius-sm) var(--radius-sm); }
+  .blank-line{ border-bottom:1px solid var(--border-strong); flex:1; height:16px; }
+
+  /* ---- tratamento padrão de todo input/textarea dentro da ficha ---- */
+  .page input, .page textarea{
+    border:1px solid var(--input-border); background:var(--input-bg); border-radius:7px;
+    font-family: var(--font-body); color:var(--ink);
+    padding:4px 8px; transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .page input:focus, .page textarea:focus{
+    outline:none; border-color:#b8bac0; background:#fff;
+    box-shadow: 0 0 0 3px rgba(20,20,25,0.06);
+  }
+  .field-input{ font-size:13px; width:100%; }
+  label.cap{ font-size:10px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; color:var(--ink); }
+
+  /* ===================== CABEÇALHO ===================== */
+  .header-row{ display:flex; gap:16px; margin-bottom:10px; align-items:stretch; }
+  .header-left{ flex:0 0 46%; }
+  .portrait-logo-row{ display:flex; gap:14px; align-items:flex-start; margin-bottom:10px; }
+  .portrait-wrap{ display:flex; flex-direction:column; align-items:center; gap:6px; flex-shrink:0; }
+  .portrait-box{
+    width:150px; height:150px; border-radius:16px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; overflow:hidden; background:var(--gray-light);
+    box-shadow: var(--shadow-sm); border:1px solid var(--border);
+  }
+  .portrait-box img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .foto-btn{ font-family:var(--font-body); font-size:10.5px; font-weight:600; color:var(--gray-text); background:var(--gray-light); border:1px solid var(--border); border-radius:999px; padding:4px 12px; cursor:pointer; }
+  .foto-btn:hover{ color:var(--ink); }
+  .title-logo{
+    font-family: var(--font-display); font-weight:800; font-size:26px; letter-spacing:0.3px;
+    line-height:1.05; text-transform:uppercase; color:var(--ink); padding-top:6px;
+  }
+  .title-logo .sub{ display:block; font-family:var(--font-body); font-size:11.5px; font-weight:600; letter-spacing:1px; margin-top:4px; color:var(--gray-text); text-transform:none; }
+  .name-box{ border:1px solid var(--border); border-radius:var(--radius-sm); height:56px; padding:4px 10px; box-shadow:var(--shadow-sm); }
+  .name-box input{ width:100%; height:100%; border:none !important; background:transparent !important; font-size:22px; font-weight:700; font-family:var(--font-body); box-shadow:none !important; padding:0 4px; }
+  .name-cap{ font-size:11px; font-weight:700; letter-spacing:0.6px; text-transform:uppercase; margin-top:6px; color:var(--gray-text); }
+
+  .header-right{ flex:1; border:1px solid var(--border); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm); overflow:hidden; display:flex; flex-direction:column; }
+  .hr-row{ display:flex; flex:1; }
+  .hr-row + .hr-row{ border-top:1px solid var(--border); }
+  .hr-cell{ flex:1; padding:7px 12px; display:flex; flex-direction:column; justify-content:center; }
+  .hr-cell + .hr-cell{ border-left:1px solid var(--border); }
+  .hr-cell label{ display:block; margin-bottom:6px; font-size:10px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; margin-bottom:8px; color:var(--gray-text); }
+  .hr-cell input{ width:100%; font-size:13px; }
+
+  /* ===================== ATRIBUTOS ===================== */
+  .attrs-row{ display:flex; justify-content:space-between; gap:10px; margin:12px 0 16px 0; }
+  .attr-badge{
+    flex:1; border:1px solid var(--border); border-radius:var(--radius-sm);
+    padding:10px 4px 12px 4px; text-align:center; background:var(--gray-light);
+    box-shadow: var(--shadow-sm);
+  }
+  .attr-badge .attr-name{ font-family:var(--font-display); font-size:12px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; display:block; margin-bottom:6px; color:var(--ink); }
+  .attr-badge svg{ width:32px; height:32px; stroke:#a7a9ae; fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; margin-bottom:6px; }
+  .attr-badge input{
+    width:46px; text-align:center; font-size:19px; font-weight:700; font-family:var(--font-display);
+  }
+
+  /* ===================== LINHA 3 ===================== */
+  .row3{ display:flex; gap:16px; align-items:flex-start; }
+  .col-left{ flex:0 0 37%; min-width:0; display:flex; flex-direction:column; }
+  .col-right{ flex:1; min-width:0; display:flex; flex-direction:column; }
+
+  .resource-box{ border:1px solid var(--border); border-top:none; border-radius:0 0 var(--radius-sm) var(--radius-sm); box-shadow:var(--shadow-sm); padding:10px 12px 22px 12px; position:relative; min-height:96px; margin-bottom:14px; }
+  .resource-box .tot-line{ display:flex; align-items:center; gap:8px; font-size:11px; font-weight:700; text-transform:uppercase; margin-bottom:6px; color:var(--gray-text); }
+  .resource-box .tot-line input{ width:64px; font-size:13px; text-align:center; font-weight:600; color:var(--ink); }
+  .resource-box .atual-cap{ position:absolute; bottom:8px; left:0; right:0; text-align:center; font-size:10px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; color:var(--gray-text); }
+  .resource-box .atual-input{ position:absolute; bottom:24px; left:50%; transform:translateX(-50%); width:64px; text-align:center; font-family:var(--font-display); font-weight:700; font-size:16px; }
+
+  .stats-combate-box{ border:1px solid var(--border); border-top:none; border-radius:0 0 var(--radius-sm) var(--radius-sm); box-shadow:var(--shadow-sm); display:flex; }
+  .stats-combate-cell{ flex:1; min-width:0; padding:9px 10px; text-align:center; }
+  .stats-combate-cell + .stats-combate-cell{ border-left:1px solid var(--border); }
+  .stats-combate-cell .sc-name{ font-family:var(--font-display); font-size:15px; font-weight:700; text-transform:uppercase; }
+  .stats-combate-cell .sc-cap{ font-size:8.5px; color:var(--gray-text); font-weight:600; text-transform:uppercase; display:block; margin:2px 0 6px 0; }
+  .stats-combate-cell input{ width:74%; text-align:center; font-size:14px; font-weight:600; }
+
+  .row3b{ display:flex; gap:12px; margin-top:12px; }
+  .armaduras-box{ flex:0 0 34%; min-width:0; border:1px solid var(--border); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm); overflow:hidden; }
+  .armaduras-box .bar{ display:flex; align-items:center; justify-content:center; gap:6px; border-radius:var(--radius-sm) var(--radius-sm) 0 0; }
+  .armaduras-box .ab-row{ display:flex; align-items:center; gap:8px; padding:8px 12px; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--gray-text); }
+  .armaduras-box .ab-row + .ab-row{ border-top:1px solid var(--border); }
+  .armaduras-box .ab-row input{ flex:1; }
+
+  .social-box{ flex:1; min-width:0; border:1px solid var(--border); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm); overflow:hidden; }
+  .social-cols{ display:flex; }
+  .social-col{ flex:1; min-width:0; }
+  .social-col + .social-col{ border-left:1px solid var(--border); }
+  .social-col-head{ text-align:center; font-family:var(--font-display); font-weight:700; font-size:13.5px; text-transform:uppercase; padding:6px; border-bottom:1px solid var(--border); background:var(--gray-light); }
+  .social-item{ display:flex; align-items:center; gap:8px; padding:6px 10px; font-size:11px; font-weight:600; text-transform:uppercase; color:var(--gray-text); }
+  .social-item + .social-item{ border-top:1px solid var(--border); }
+  .social-item .eq{ font-weight:700; color:var(--border-strong); }
+  .social-item input{ width:38px; flex:0 0 38px; text-align:center; }
+  .social-item > span:first-child{ flex:1 1 auto; min-width:0; overflow-wrap:anywhere; }
+
+  /* ===================== HABILIDADES DE COMBATE ===================== */
+  .hc-table{ border:1px solid var(--border); border-top:none; border-radius:0 0 var(--radius-sm) var(--radius-sm); box-shadow:var(--shadow-sm); padding-bottom:4px; }
+  .hc-caption{ display:flex; font-size:9px; font-weight:700; text-transform:uppercase; color:var(--gray-text); padding:6px 12px 0 12px; justify-content:flex-end; gap:50px; }
+  .hc-row{ display:flex; align-items:center; gap:8px; padding:6px 12px; font-size:11.5px; font-weight:700; text-transform:uppercase; }
+  .hc-row + .hc-row{ border-top:1px solid var(--border); }
+  .hc-row .hc-name{ flex:1 1 130px; min-width:0; color:var(--ink); }
+  .hc-row .eq{ font-weight:700; color:var(--border-strong); }
+  .hc-row input.base{ width:40px; text-align:center; font-weight:700; }
+  .hc-row .attr-tag{ flex:0 0 auto; padding:0 4px; text-align:center; color:var(--gray-text); font-size:10px; }
+  .hc-row input.outro{ width:46px; text-align:center; }
+
+  /* ===================== PERICIAS GERAIS ===================== */
+  .per-table{ border:1px solid var(--border); border-top:none; border-radius:0 0 var(--radius-sm) var(--radius-sm); box-shadow:var(--shadow-sm); overflow:hidden; padding-bottom:4px; }
+  .per-head{ display:flex; font-size:9px; font-weight:700; text-transform:uppercase; color:var(--gray-text); padding:6px 12px; border-bottom:1px solid var(--border); background:var(--gray-light); }
+  .per-head .ph-name{ flex:1; }
+  .per-head .ph-col{ width:110px; text-align:center; }
+  .per-row{ display:flex; align-items:center; font-size:11px; font-weight:600; text-transform:uppercase; padding:4px 12px; color:var(--ink); }
+  .per-row:nth-child(even){ background: var(--gray-light); }
+  .per-row .pr-name{ flex:1; }
+  .per-row .pr-col{ width:110px; display:flex; align-items:center; justify-content:center; gap:4px; }
+  .per-row input.pr-total{ width:36px; text-align:center; font-weight:700; }
+  .per-row .pr-eq{ font-weight:700; color:var(--border-strong); }
+  .per-row input.pr-pontos{ width:30px; text-align:center; }
+  .per-row .pr-attr{ width:28px; text-align:center; color:var(--gray-text); font-size:9px; }
+  .per-row input.pr-outro{ width:30px; text-align:center; }
+
+  /* ===================== ANOTACOES ===================== */
+  .anot-box{ border:1px solid var(--border); border-top:none; border-radius:0 0 var(--radius-sm) var(--radius-sm); box-shadow:var(--shadow-sm); flex:1; min-height:260px; position:relative; overflow:hidden; }
+  .anot-box textarea{ width:100%; height:100%; min-height:258px; border:none !important; resize:vertical; font-size:12.5px; padding:10px; background:transparent !important; position:relative; z-index:1; box-shadow:none !important; }
+  .anot-cloud{ position:absolute; bottom:-10px; left:-10px; width:150px; height:110px; opacity:0.08; z-index:0; }
+
+  .footer-logo{ text-align:right; font-family:var(--font-display); font-weight:700; font-size:21px; text-transform:uppercase; margin-top:14px; letter-spacing:0.5px; color:var(--gray-text); }
+
+  /* ===================== TABELA GENERICA DE DADOS (pagina 2) ===================== */
+  .dtable{ width:100%; table-layout:fixed; border-collapse:separate; border-spacing:0; border:1px solid var(--border); border-top:none; border-radius:0 0 var(--radius-sm) var(--radius-sm); box-shadow:var(--shadow-sm); overflow:hidden; }
+  .dtable th{ word-break:break-word; }
+  .dtable th{ border-bottom:1px solid var(--border); background:var(--gray-light); font-size:9.5px; font-weight:700; text-transform:uppercase; padding:7px 10px; text-align:left; color:var(--gray-text); }
+  .dtable td{ border-bottom:1px solid var(--border); border-right:1px solid var(--border); padding:4px 8px; height:26px; }
+  .dtable td:last-child{ border-right:none; }
+  .dtable tr:last-child td{ border-bottom:none; }
+  .dtable td input{ width:100%; border:none !important; background:transparent !important; font-size:12px; box-shadow:none !important; }
+  .dtable td.grat{ color:#b7b9bd; font-weight:700; font-size:10px; text-transform:uppercase; padding-left:10px; }
+
+  .bar-icon{ display:flex; align-items:center; justify-content:center; gap:7px; }
+  .bar-icon svg{ width:16px; height:16px; stroke:#fff; fill:none; stroke-width:1.8; }
+
+  /* pilulas com icone + caixa de valor */
+  .pill-stat{ display:flex; align-items:center; background:var(--bar-bg); border-radius:999px; margin-bottom:12px; padding:5px; box-shadow:var(--shadow-sm); }
+  .pill-stat .pill-icon{
+    width:34px; height:34px; border-radius:50%; background:#fff; color:var(--ink);
+    display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; flex-shrink:0;
+  }
+  .pill-stat .pill-label{ color:#fff; font-family:var(--font-display); font-weight:700; font-size:15px; text-transform:uppercase; margin-left:12px; flex:1; }
+  .pill-stat input{ width:90px; background:#fff !important; border:none !important; margin-right:6px; border-radius:999px; padding:5px 12px; font-size:13px; text-align:center; box-shadow:none !important; }
+
+  .rect-stat{ display:flex; align-items:center; background:var(--bar-bg); margin-bottom:12px; border-radius:var(--radius-sm); box-shadow:var(--shadow-sm); }
+  .rect-stat .rect-label{ color:#fff; font-family:var(--font-display); font-weight:700; font-size:14px; text-transform:uppercase; padding:9px 14px; flex:1; }
+  .rect-stat input{ width:90px; margin:5px; font-size:13px; text-align:center; background:#fff !important; border:none !important; box-shadow:none !important; }
+
+  .row2col{ display:flex; gap:16px; align-items:flex-start; margin-top:16px; }
+
+  /* rolagem 2d8 */
+  .d8-box{ border:1px solid var(--border); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm); overflow:hidden; flex:0 0 27%; }
+  .d8-box .bar{ border-radius:0; }
+  .d8-row{ display:flex; }
+  .d8-cell{ flex:1; text-align:center; font-size:11px; font-weight:700; padding:6px 2px; border:1px solid rgba(0,0,0,0.06); }
+  .d8-cell.c23{ background:#f3c9c4; }
+  .d8-cell.c48, .d8-cell.c911{ background:#f7e2ae; }
+  .d8-cell.c1214, .d8-cell.c1516{ background:#c6e3bd; }
+  .d8-cell.lbl{ background:#fff; font-size:9px; color:var(--gray-text); }
+
+  /* ===================== PAGINA 3: CARDS DE JUTSU ===================== */
+  .jutsu-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:16px; }
+  .jutsu-card{ border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; box-shadow:var(--shadow-sm); }
+  .jutsu-field{ font-size:11px; font-weight:700; text-transform:uppercase; margin-bottom:6px; display:flex; align-items:baseline; gap:5px; color:var(--gray-text); }
+  .jutsu-field input{ font-family:var(--font-body); font-size:11px; font-weight:500; text-transform:none; flex:1; min-width:0; color:var(--ink); padding:2px 6px; }
+  .jutsu-field .half{ width:50%; }
+  .jutsu-desc-bar{ background:var(--bar-bg); color:#fff; text-align:center; font-family:var(--font-display); font-weight:700; font-size:11.5px; text-transform:uppercase; padding:5px; margin:9px -14px 0 -14px; border-radius:0; letter-spacing:0.4px; }
+  .jutsu-desc-lines{ padding:8px 0; }
+  .jutsu-desc-lines textarea{
+    width:100%; height:130px; border:none !important; background:
+      repeating-linear-gradient(to bottom, transparent, transparent 17px, var(--border-strong) 18px) !important;
+    font-size:11px; line-height:18px; resize:vertical; box-shadow:none !important; padding:2px;
+  }
+
+  /* ===================== NAVEGACAO EM ABAS ===================== */
+  .tabs-nav{ max-width:950px; margin:28px auto 18px auto; display:flex; gap:8px; padding:0 2px; }
+  .tabs-nav button{
+    font-family: var(--font-display); font-weight:700; font-size:16px; letter-spacing:0.4px;
+    padding:9px 22px; cursor:pointer; background:#fff; color:var(--gray-text);
+    border:1px solid var(--border); border-radius:999px; box-shadow:var(--shadow-sm);
+    transition: background .15s, color .15s;
+  }
+  .tabs-nav button.active{ background:var(--bar-bg); color:#fff; border-color:var(--bar-bg); }
+  .tabs-nav button:hover:not(.active){ background:var(--gray-light); color:var(--ink); }
+  .tab-content{ display:none; }
+  .tab-content.active{ display:block; }
+
+  /* ===================== BOTOES DE ADICIONAR / REMOVER LINHA ===================== */
+  .btn-add-row{
+    font-family:var(--font-body); font-weight:600; font-size:12.5px;
+    background:var(--gray-light); color:var(--ink); border:1px solid var(--border-strong);
+    border-radius:999px; padding:7px 16px; cursor:pointer; margin-top:10px;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .btn-add-row:hover{ background:var(--gray-mid); }
+  .del-cell{ width:30px; text-align:center; padding:0 !important; }
+  .del-row-btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:20px; height:20px; border-radius:50%; background:var(--gray-light); color:#b23b32;
+    font-weight:800; font-size:13px; cursor:pointer; line-height:1; user-select:none;
+  }
+  .del-row-btn:hover{ background:#fbdedb; }
+  .dtable th.del-th{ background:var(--gray-light); width:34px; }
+
+  .jutsu-card{ position:relative; }
+  .jutsu-del-btn{
+    position:absolute; top:8px; right:8px; width:22px; height:22px; border-radius:50%;
+    background:var(--gray-light); color:#b23b32; font-weight:800; font-size:13px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:2;
+  }
+  .jutsu-del-btn:hover{ background:#fbdedb; }
+  /* ===================== CAMPOS CALCULADOS / AUTOMAÇÃO ===================== */
+  /* total somente-leitura (HC e Perícias): valor derivado de base/pontos + atributo + outro */
+  .calc-ro{ background:#eef3fb !important; color:#1a1a1a !important; font-weight:700 !important; cursor:default; }
+  /* campos auto (vit, chakra, iniciativa, etc.): calculados, mas o jogador pode sobrescrever */
+  input.auto{ background:#eef3fb; }
+  input.auto[data-over="1"]{ background:#fff; }
+  /* total das Habilidades de Combate, exibido antes do "=" */
+  .hc-row .hc-total{
+    flex:0 0 auto; min-width:26px; text-align:center; font-weight:800; font-size:13px;
+    color:#0f4c9c; background:#eef3fb; border:1px solid var(--border); border-radius:6px; padding:1px 6px;
+  }
+  /* valor de Carisma/Manipulação no cabeçalho social */
+  .soc-attr{ width:34px; text-align:center; font-size:12px; font-weight:700; padding:2px 4px !important; margin-left:4px; }
+
+  /* ===================== MODAL SELETOR (poderes / aptidões) ===================== */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(18,20,24,0.55); z-index:9999;
+    display:none; align-items:center; justify-content:center; padding:18px;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal-card{
+    background:#fff; width:100%; max-width:560px; max-height:88vh; display:flex; flex-direction:column;
+    border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden;
+  }
+  .modal-head{ background:var(--bar-bg); color:#fff; font-family:var(--font-display); font-weight:700; font-size:17px; text-transform:uppercase; letter-spacing:0.5px; padding:14px 18px; }
+  .modal-body{ padding:14px 18px; overflow-y:auto; }
+  .modal-search{ width:100%; font-size:14px; padding:9px 12px !important; margin-bottom:10px; }
+  .modal-select{ width:100%; font-size:14px; padding:9px 12px !important; margin-bottom:12px; background:var(--input-bg); }
+  .modal-desc{
+    border:1px solid var(--border); border-radius:10px; background:var(--gray-light);
+    padding:12px 14px; font-size:13px; line-height:1.5; color:#2a2c31; min-height:90px;
+  }
+  .modal-desc .md-title{ font-family:var(--font-display); font-weight:700; font-size:15px; text-transform:uppercase; color:var(--ink); display:block; margin-bottom:2px; }
+  .modal-desc .md-meta{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; color:var(--gray-text); display:block; margin-bottom:8px; }
+  .modal-desc .md-rev{ display:inline-block; background:#0f4c9c; color:#fff; font-size:9.5px; font-weight:700; text-transform:uppercase; padding:2px 7px; border-radius:999px; margin-left:6px; letter-spacing:0.4px; }
+  .modal-foot{ display:flex; justify-content:flex-end; gap:10px; padding:12px 18px; border-top:1px solid var(--border); }
+  .modal-btn{
+    font-family:var(--font-body); font-weight:600; font-size:14px; border-radius:999px;
+    padding:9px 22px; cursor:pointer; border:1px solid var(--border-strong); background:var(--gray-light); color:var(--ink);
+  }
+  .modal-btn.primary{ background:var(--bar-bg); color:#fff; border-color:var(--bar-bg); }
+  .modal-btn:disabled{ opacity:0.45; cursor:not-allowed; }
+  /* ===================== ABA BANCO DE DADOS ===================== */
+  .bd-intro{ font-size:12.5px; color:#4a4c52; line-height:1.5; margin:6px 2px 14px 2px; }
+  .bd-toolbar{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:18px; }
+  .bd-status{ font-size:11.5px; color:var(--gray-text); font-weight:600; }
+  .bd-section{ margin-bottom:26px; }
+  .bd-section > .bar{ border-radius:var(--radius-sm) var(--radius-sm) 0 0; }
+  .bd-table-wrap{ overflow-x:auto; }
+  .bd-table{ width:100%; table-layout:fixed; border-collapse:separate; border-spacing:0; border:1px solid var(--border); border-top:none; box-shadow:var(--shadow-sm); }
+  .bd-table th{ background:var(--gray-light); font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; color:var(--gray-text); padding:7px 8px; text-align:left; border-bottom:1px solid var(--border); border-right:1px solid var(--border); }
+  .bd-table th:last-child{ border-right:none; }
+  .bd-table td{ border-bottom:1px solid var(--border); border-right:1px solid var(--border); padding:0; vertical-align:top; }
+  .bd-table td:last-child{ border-right:none; }
+  .bd-table tr:last-child td{ border-bottom:none; }
+  .bd-table td textarea, .bd-table td input{
+    width:100%; border:none !important; background:transparent !important; box-shadow:none !important;
+    font-family:var(--font-body); font-size:12px; padding:6px 8px !important; resize:vertical; color:var(--ink);
+  }
+  .bd-table td textarea{ min-height:34px; line-height:1.4; }
+  .bd-table td input:focus, .bd-table td textarea:focus{ background:#fff !important; outline:2px solid #cfe0f5; outline-offset:-2px; }
+  .bd-table td.bd-flag{ text-align:center; }
+  .bd-table td.bd-del{ text-align:center; width:34px; }
+  .bd-add{ margin-top:10px; }
+  .bd-count{ font-size:11px; color:var(--gray-text); font-weight:600; margin-left:8px; }
+  /* seção de cálculos (referência, somente leitura) */
+  .bd-calc{ display:grid; grid-template-columns:1fr; gap:0; border:1px solid var(--border); border-top:none; box-shadow:var(--shadow-sm); }
+  .bd-calc .bd-calc-row{ display:flex; gap:12px; align-items:center; padding:8px 12px; font-size:12.5px; }
+  .bd-calc .bd-calc-row + .bd-calc-row{ border-top:1px solid var(--border); }
+  .bd-calc .bd-calc-row:nth-child(even){ background:var(--gray-light); }
+  .bd-calc .cc-nome{ flex:0 0 200px; font-weight:700; color:var(--ink); }
+  .bd-calc .cc-formula{ flex:1; color:#333; }
+  .bd-calc .cc-num{ width:52px; text-align:center; font-weight:700; padding:4px 6px !important; }
+  .bd-calc .cc-fonte{ flex:0 0 128px; text-align:right; font-size:10px; color:var(--gray-text); text-transform:uppercase; letter-spacing:0.3px; }
+  /* ---- controles de efeito no card de Jutsu ---- */
+  .jutsu-field select.jutsu-poder{
+    flex:1; min-width:0; font-family:var(--font-body); font-size:11px; font-weight:600;
+    padding:3px 4px; border:1px solid var(--input-border); background:var(--input-bg);
+    border-radius:7px; color:var(--ink);
+  }
+  .jutsu-efeito-btn{
+    width:100%; margin:2px 0 9px 0; font-family:var(--font-body); font-weight:600; font-size:11px;
+    background:var(--bar-bg); color:#fff; border:none; border-radius:999px; padding:6px 10px; cursor:pointer;
+  }
+  .jutsu-efeito-btn:hover{ opacity:0.9; }
+  .bd-siglas{ border:1px solid var(--border); border-top:none; box-shadow:var(--shadow-sm); padding:10px 14px; }
+  .bd-sigla-linha{ font-size:12px; color:#333; line-height:1.7; }
+  .bd-sigla-linha b{ color:var(--ink); }
+  .pt-counter{ font-family:var(--font-body); font-weight:600; font-size:10px; text-transform:none; letter-spacing:0; opacity:0.85; margin-left:6px; white-space:nowrap; }
+  .pt-counter.pt-over{ color:#ff9b9b; opacity:1; }
+  .pt-counter.pt-ok{ color:#8ff0b0; opacity:1; }
+  .d8-cell.hit{ outline:2px solid var(--ink); outline-offset:-2px; font-weight:800; }
+  .d8-result{ padding:8px 10px; font-size:11px; font-weight:600; color:var(--ink); border:1px solid var(--border); border-top:none; background:var(--gray-light); line-height:1.4; }
+  .calc-acoes{ white-space:nowrap; text-align:center; }
+  .roll-btn{ cursor:pointer; font-size:14px; margin-right:5px; user-select:none; vertical-align:middle; }
+  .roll-btn:hover{ filter:brightness(1.15); }
+</style>
+</head>
+<body>
+
+<div class="scaler-outer" id="scaler">
+<div class="scaler-inner" id="stage">
+
+<div class="tabs-nav">
+  <button class="tab-btn active" data-tab="ficha">Ficha</button>
+  <button class="tab-btn" data-tab="inventario">Inventário</button>
+  <button class="tab-btn" data-tab="jutsus">Jutsus</button>
+  <button class="tab-btn" data-tab="bd">Banco de Dados</button>
+</div>
+
+<div class="tab-content active" id="tab-ficha">
+
+<div class="page" id="page1">
+
+  <!-- CABECALHO -->
+  <div class="header-row">
+    <div class="header-left">
+      <div class="portrait-logo-row">
+        <div class="portrait-wrap">
+          <div class="portrait-box"><img id="foto_img" src="data:image/jpeg;base64,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" alt="Retrato do personagem"></div>
+          <button type="button" class="foto-btn" id="foto_btn">Trocar foto</button>
+          <input type="file" id="foto_input" accept="image/*" style="display:none">
+        </div>
+        <div class="title-logo">Shinobi no Sho<span class="sub">Ficha de Personagem</span></div>
+      </div>
+      <div class="name-box"><input type="text" id="in_nome" value=""></div>
+      <div class="name-cap">Nome do Personagem</div>
+    </div>
+    <div class="header-right">
+      <div class="hr-row">
+        <div class="hr-cell"><label>Clã</label><input class="field-input" id="in_cla" value=""></div>
+        <div class="hr-cell"><label>Nível Shinobi</label><input class="field-input" id="in_patente" value=""></div>
+        <div class="hr-cell"><label>Nível da Campanha</label><input class="field-input" id="in_nc" value="7"></div>
+      </div>
+      <div class="hr-row">
+        <div class="hr-cell"><label>Idade</label><input class="field-input" id="in_idade" value=""></div>
+        <div class="hr-cell"><label>Gênero</label><input class="field-input" id="in_genero" value=""></div>
+        <div class="hr-cell"><label>Vila de Origem</label><input class="field-input" id="in_vila_origem" value=""></div>
+      </div>
+      <div class="hr-row">
+        <div class="hr-cell"><label>Vila Atuante</label><input class="field-input" id="in_vila_atuante" value=""></div>
+        <div class="hr-cell"><label>Tendência</label><input class="field-input" id="in_tendencia" value=""></div>
+        <div class="hr-cell"><label>Altura &amp; Peso</label><input class="field-input" id="in_altura_peso" value=""></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ATRIBUTOS -->
+  <div class="bar">Atributos <span class="pt-counter" id="pt_atr"></span></div>
+  <div class="attrs-row" id="attrs_row"></div>
+
+  <!-- LINHA 3 -->
+  <div class="row3">
+    <div class="col-left">
+      <div class="bar">Vitalidade</div>
+      <div class="resource-box">
+        <div class="tot-line"><span>Vitalidade Total:</span><input id="in_vit_total" class="auto" data-calc="vit" title="Calculado: 10 + 3x Vigor + 5x Nível da Campanha. Digite para sobrescrever; limpe para voltar ao automático." value=""></div>
+        <input class="atual-input" id="in_vit_atual" value="">
+        <div class="atual-cap">Vitalidade Atual</div>
+      </div>
+      <div class="bar">Chakra</div>
+      <div class="resource-box">
+        <div class="tot-line"><span>Chakra Total:</span><input id="in_chakra_total" class="auto" data-calc="chakra" title="Calculado: 10 + 3x Espírito. Digite para sobrescrever; limpe para voltar ao automático." value=""></div>
+        <input class="atual-input" id="in_chakra_atual" value="">
+        <div class="atual-cap">Chakra Atual</div>
+      </div>
+    </div>
+
+    <div class="col-right">
+      <div class="bar">Estatísticas de Combate</div>
+      <div class="stats-combate-box">
+        <div class="stats-combate-cell">
+          <span class="sc-name">Iniciativa</span>
+          <span class="sc-cap">PRO + AGI</span>
+          <input class="auto" data-calc="iniciativa" title="Calculado: Prontidão + Agilidade. Digite para sobrescrever; limpe para voltar ao automático." value="">
+        </div>
+        <div class="stats-combate-cell">
+          <span class="sc-name">Reação de Esquiva</span>
+          <span class="sc-cap">ESQ + 9</span>
+          <input id="in_reacao_esquiva" class="auto" data-calc="reacao" title="Calculado: Esquiva + 9. Digite para sobrescrever; limpe para voltar ao automático." value="">
+        </div>
+        <div class="stats-combate-cell">
+          <span class="sc-name">Deslocamento</span>
+          <span class="sc-cap">10m + AGI/2</span>
+          <input id="in_deslocamento" class="auto" data-calc="desloc" title="Calculado: 10m + Agilidade/2 (arredondado para cima). Digite para sobrescrever; limpe para voltar ao automático." value="">
+        </div>
+      </div>
+
+      <div class="row3b">
+        <div class="armaduras-box">
+          <div class="bar">
+            <svg width="18" height="18" viewBox="0 0 24 24" style="stroke:#fff;fill:none;stroke-width:2.2;vertical-align:-4px;"><path d="M12 3 L19 6 L19 12 Q19 18 12 21 Q5 18 5 12 L5 6 Z"/></svg>
+            Armaduras
+          </div>
+          <div class="ab-row"><span>Dureza</span><input></div>
+          <div class="ab-row"><span>Absorção</span><input></div>
+        </div>
+        <div class="social-box">
+          <div class="bar">Atributos Sociais <span class="pt-counter" id="pt_soc"></span></div>
+          <div class="social-cols">
+            <div class="social-col">
+              <div class="social-col-head" title="Carisma">CAR <input class="soc-attr" data-socattr="Carisma" value="0"></div>
+              <div class="social-item"><span>Atuação</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Atuação"></div>
+              <div class="social-item"><span>Barganhar</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Barganhar"></div>
+              <div class="social-item"><span>*Obter Informações</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Obter Informações"></div>
+            </div>
+            <div class="social-col">
+              <div class="social-col-head" title="Manipulação">MAN <input class="soc-attr" data-socattr="Manipulação" value="0"></div>
+              <div class="social-item"><span>Intimidar</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Intimidar"></div>
+              <div class="social-item"><span>Blefar</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Blefar"></div>
+              <div class="social-item"><span>Mudar Atitude</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Mudar Atitude"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LINHA 4: HABILIDADES DE COMBATE | PERICIAS GERAIS -->
+  <div class="row3" style="margin-top:12px; align-items:stretch;">
+    <div class="col-left">
+      <div class="bar">Habilidades de Combate</div>
+      <div class="hc-table" id="hc_table">
+        <div class="hc-caption"><span>Base</span><span>Outro</span></div>
+      </div>
+
+      <div class="bar" style="margin-top:12px;">Anotações</div>
+      <div class="anot-box">
+        <svg class="anot-cloud" viewBox="0 0 100 70"><path d="M10 55 Q0 55 0 45 Q0 35 10 35 Q10 22 25 22 Q30 10 45 10 Q60 10 63 22 Q78 22 78 37 Q90 37 90 47 Q90 55 80 55 Z" fill="none" stroke="#999" stroke-width="1.5"/></svg>
+        <textarea id="in_anotacoes"></textarea>
+      </div>
+    </div>
+
+    <div class="col-right">
+      <div class="bar">Perícias Gerais <span class="pt-counter" id="pt_per"></span></div>
+      <div class="per-table">
+        <div class="per-head"><span class="ph-name"></span><span class="ph-col">Total</span><span class="ph-col">Pontos | 1/2 Atrib | Outro</span></div>
+        <div id="per_rows"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-logo">Shinobi no Sho</div>
+</div>
+
+</div>
+
+<!-- ================= ABA INVENTARIO (Inventario + Poderes + Aptidoes + Calculadoras, como na pagina 2 original) ================= -->
+<div class="tab-content" id="tab-inventario">
+<div class="page" id="page_inventario">
+
+  <div class="bar bar-icon">
+    <svg viewBox="0 0 24 24"><path d="M8 8V6a4 4 0 0 1 8 0v2M5 8h14l1 13H4z"/><path d="M9 8v3M15 8v3"/></svg>
+    Inventário
+  </div>
+  <table class="dtable">
+    <tr><th style="width:16%;">Nome</th><th style="width:14%;">Quantidade</th><th style="width:18%;">Compartimentos</th><th>Anotações</th><th class="del-th"></th></tr>
+    <tbody id="inv_rows"></tbody>
+  </table>
+  <button class="btn-add-row" data-catalogo="equipamentos" data-add="inv_rows">+ Escolher equipamento</button>
+
+  <div class="row2col" style="margin-top:14px;">
+    <div style="flex:1;">
+      <div class="bar">Poderes <span class="pt-counter" id="pt_pod"></span></div>
+      <table class="dtable">
+        <tr><th style="width:24%;">Poder</th><th style="width:14%;">Nível</th><th>Efeitos</th><th class="del-th"></th></tr>
+        <tbody id="poderes_rows"></tbody>
+      </table>
+      <button class="btn-add-row" data-catalogo="poderes" data-add="poderes_rows">+ Escolher poder</button>
+    </div>
+    <div style="flex:0 0 260px;">
+      <div class="pill-stat">
+        <span class="pill-icon">KG</span>
+        <span class="pill-label">Comp. Usados</span>
+        <input value="0">
+      </div>
+      <div class="pill-stat">
+        <span class="pill-icon">¥</span>
+        <span class="pill-label">Ryos</span>
+        <input value="">
+      </div>
+      <div style="height:14px;"></div>
+      <div class="rect-stat"><span class="rect-label">Pontos de Poder</span><input id="in_pontos_poder" readonly value=""></div>
+      <div class="rect-stat"><span class="rect-label">Pontos de Poder Gastos</span><input id="in_pontos_poder_gastos" readonly value=""></div>
+    </div>
+  </div>
+
+  <div class="bar" style="margin-top:14px;">Aptidões</div>
+  <table class="dtable">
+    <tr><th style="width:10%;">Pts. Gastos</th><th style="width:18%;">Nome</th><th>Descrição / Benefícios</th><th style="width:12%;">Bônus em</th><th style="width:8%;">Valor</th><th class="del-th"></th></tr>
+    <tbody id="apt_rows"></tbody>
+  </table>
+  <button class="btn-add-row" id="btn_add_apt" data-catalogo="aptidoes">+ Escolher aptidão</button>
+
+  <div class="bar" style="margin-top:14px;">Calculadora de Dano - Jutsus com Dano Comum do Poder</div>
+  <table class="dtable">
+    <tr><th>Jutsu</th><th>Custo</th><th>Nv. Usado do Poder</th><th>Dureza</th><th>Dano Elemental</th><th>Bônus de Dano</th><th>Dano Base</th><th class="del-th" style="width:56px;"></th></tr>
+    <tbody id="calc_jutsu_rows"></tbody>
+  </table>
+  <button class="btn-add-row" data-add="calc_jutsu_rows" data-cols="7">+ Adicionar linha</button>
+
+  <div class="row2col" style="margin-top:14px; align-items:stretch;">
+    <div class="d8-box">
+      <div class="bar" style="font-size:11px;">Rolagem no 2d8</div>
+      <div class="d8-row">
+        <div class="d8-cell c23" data-grau="0">2-3</div><div class="d8-cell c48" data-grau="1">4-8</div><div class="d8-cell c911" data-grau="2">9-11</div><div class="d8-cell c1214" data-grau="3">12-14</div><div class="d8-cell c1516" data-grau="4">15-16</div>
+      </div>
+      <div class="bar" style="font-size:10px;">Grau de Dano</div>
+      <div class="d8-row">
+        <div class="d8-cell lbl" data-grau="0">Falha</div><div class="d8-cell lbl" data-grau="1">Grau 1</div><div class="d8-cell lbl" data-grau="2">Grau 2</div><div class="d8-cell lbl" data-grau="3">Grau 3</div><div class="d8-cell lbl" data-grau="4">Grau 4</div>
+      </div>
+      <div class="d8-result" id="d8_result">Clique no 🎲 de uma linha de dano para rolar.</div>
+    </div>
+    <div style="flex:1;">
+      <div class="bar">Calculadora de Dano — Ataques Armados / Desarmado</div>
+      <table class="dtable">
+        <tr><th>Nome</th><th>Dano</th><th>Bônus de Dano</th><th>Alcance</th><th>Crítico</th><th>Dureza</th><th>Dano Base</th><th class="del-th" style="width:56px;"></th></tr>
+        <tbody id="calc_armado_rows"></tbody>
+      </table>
+      <button class="btn-add-row" data-add="calc_armado_rows" data-cols="7">+ Adicionar linha</button>
+    </div>
+  </div>
+
+  <div class="footer-logo" style="margin-top:14px;">Shinobi no Sho</div>
+</div>
+</div>
+
+<!-- ================= ABA JUTSUS ================= -->
+<div class="tab-content" id="tab-jutsus">
+<div class="page" id="page3">
+  <div class="bar" style="border-radius:999px; font-size:20px; padding:10px;">Jutsus</div>
+  <div class="jutsu-grid" id="jutsu_grid"></div>
+  <button class="btn-add-row" id="btn_add_jutsu" style="margin-top:16px;">+ Adicionar Jutsu</button>
+  <div class="footer-logo" style="margin-top:14px;">Shinobi no Sho</div>
+</div>
+</div>
+
+<!-- ================= ABA BANCO DE DADOS ================= -->
+<div class="tab-content" id="tab-bd">
+<div class="page" id="page_bd">
+  <div class="bar bar-icon">
+    <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
+    Banco de Dados
+  </div>
+  <div class="bd-intro">
+    Fonte central de dados da ficha. Os seletores de Poderes e Aptidões e os cálculos puxam daqui.
+    Edite livremente: as mudanças valem na hora e ficam salvas neste navegador. Use Exportar/Importar
+    para guardar ou compartilhar sua versão.
+  </div>
+  <div class="bd-toolbar">
+    <button class="modal-btn" id="bd_exportar">Exportar JSON</button>
+    <button class="modal-btn" id="bd_importar">Importar JSON</button>
+    <input type="file" id="bd_arquivo" accept="application/json,.json" style="display:none">
+    <button class="modal-btn" id="bd_restaurar">Restaurar padrão</button>
+    <span class="bd-status" id="bd_status"></span>
+  </div>
+  <div id="bd_root"></div>
+  <div class="footer-logo" style="margin-top:14px;">Shinobi no Sho</div>
+</div>
+</div>
+
+</div><!-- /stage -->
+</div><!-- /scaler -->
+
+<!-- ================= MODAL SELETOR (poderes / aptidões) ================= -->
+<div class="modal-overlay" id="seletor_overlay">
+  <div class="modal-card">
+    <div class="modal-head" id="seletor_titulo">Escolher</div>
+    <div class="modal-body">
+      <input class="modal-search" id="seletor_busca" type="text" placeholder="Buscar...">
+      <select class="modal-select" id="seletor_lista" size="8"></select>
+      <div class="modal-desc" id="seletor_desc"><span class="md-meta">Selecione um item para ver a descrição.</span></div>
+    </div>
+    <div class="modal-foot">
+      <button class="modal-btn" id="seletor_cancelar">Cancelar</button>
+      <button class="modal-btn primary" id="seletor_ok" disabled>Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================================================================
+   BANCO DE DADOS CENTRAL (editável) + AUTOMAÇÃO + SELETORES
+   Fórmulas: Livro Básico 4.1b. Revisões: Guia Avançado do Shinobi (10 Anos).
+   Armas/Armaduras: Livro Básico, Tabelas de Equipamentos (pág. 137-139).
+   =================================================================== */
+
+const SEED_DB = {
+  foto: "",
+  calc: {
+    vitBase:10, vitVigor:3, vitNC:5,
+    chakraBase:10, chakraEsp:3,
+    hcBase:3,
+    reacaoConst:9,
+    deslocBase:10, deslocDiv:2,
+    ptsAtrPorNC:6, ptsAtrBase:-12,
+    ptsPerPorNC:4, ptsPerBase:-8,
+    ptsPodPorNC:2, ptsPodBase:-4,
+    aptidoesGratis:3
+  },
+  aptidoes: [
+    {nome:"Acuidade", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Use Combate Corporal com o atributo Destreza.", revisado:false},
+    {nome:"Ambidestria", tipo:"Combate", prereq:"Combate Corporal 12 ou Combate à Distância 12 (só p/ armas de fogo).", restricao:"Só para armas que podem ser empunhadas (não vale para armas naturais/desarmado). Armas diferentes em cada mão precisam do mesmo atributo de dano e mesma margem de crítico.", beneficio:"Ataque com armas duplas, em par ou uma arma leve em cada mão; some o dano de ambas no cálculo do ataque.", revisado:true},
+    {nome:"Ataque em Movimento", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Mova-se antes e depois de atacar.", revisado:false},
+    {nome:"Atirador", tipo:"Combate", prereq:"Destreza 12.", restricao:"Ao comprar, escolha entre arcos ou armas simples de arremesso.", beneficio:"+2 de dano com arcos, ou +3 de dano com armas simples de arremesso.", revisado:true},
+    {nome:"Bloqueio Ambidestro", tipo:"Combate", prereq:"", restricao:"", beneficio:"Melhore seu bloqueio ao usar ambidestria.", revisado:false},
+    {nome:"Combate Defensivo", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Reduza sua precisão corpo-a-corpo para melhorar a esquiva.", revisado:false},
+    {nome:"Crítico Aprimorado", tipo:"Combate", prereq:"", restricao:"", beneficio:"Aumente a chance de acerto crítico de seus ataques armados ou desarmados.", revisado:false},
+    {nome:"Dano Extra", tipo:"Combate", prereq:"", restricao:"", beneficio:"Aumente o dano de seus ataques que tenham dano de arma.", revisado:false},
+    {nome:"De Pé", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Levante-se como uma reação ou ação livre.", revisado:false},
+    {nome:"Diligente", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente e repita testes de Iniciativa.", alvo:"INI", valor:3, revisado:false},
+    {nome:"Especialista", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente sua precisão em combate desarmado ou armado.", revisado:false},
+    {nome:"Guerreiro", tipo:"Combate", prereq:"", restricao:"", beneficio:"Realize manobras especiais usando armas pesadas ou longas.", revisado:false},
+    {nome:"Intuição", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente sua precisão em manobras de previsão (Ler Movimento).", alvo:"LM", valor:1, revisado:false},
+    {nome:"Lutador", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Realize manobras especiais desarmadas sem penalidade de precisão.", revisado:false},
+    {nome:"Lutar às Cegas", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Melhore seu combate sob escuridão e outras camuflagens.", revisado:false},
+    {nome:"Maestria", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente sua precisão no uso de técnicas.", revisado:false},
+    {nome:"Mestre dos Selos", tipo:"Combate", prereq:"", restricao:"", beneficio:"Realize selos de mão de forma rápida ou com uma única mão.", revisado:false},
+    {nome:"Mira Apurada", tipo:"Combate", prereq:"", restricao:"", beneficio:"Aumente sua precisão com armas de disparo.", revisado:false},
+    {nome:"Mobilidade", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Melhore sua esquiva contra ataques oportunos.", revisado:false},
+    {nome:"Oportunista", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Realize mais ataques oportunos na mesma rodada.", revisado:false},
+    {nome:"Ponto Cego", tipo:"Combate", prereq:"", restricao:"", beneficio:"Finte com uma ação de movimento.", revisado:false},
+    {nome:"Punho de Ferro", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente o dano de arma de seus ataques desarmados.", revisado:false},
+    {nome:"Reflexos", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente a precisão de sua Esquiva.", alvo:"ESQ", valor:1, revisado:false},
+    {nome:"Retirada Rápida", tipo:"Combate", prereq:"", restricao:"", beneficio:"Recue rapidamente do combate corpo-a-corpo sem sofrer ataque oportuno.", revisado:false},
+    {nome:"Rolamento", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente a redução do dano de queda dos testes de Acrobacia ou Atletismo.", revisado:false},
+    {nome:"Saque Rápido", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Saque e guarde armas com somente uma ação livre.", revisado:false},
+    {nome:"Tiro Longo", tipo:"Combate", prereq:"", restricao:"", beneficio:"Dobre o alcance de armas de disparo.", revisado:false},
+    {nome:"Tiro Preciso", tipo:"Combate", prereq:"", restricao:"", beneficio:"Seus ataques com armas de disparo ignoram cobertura e camuflagem parciais.", revisado:false},
+    {nome:"Trespassar", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Receba um ataque corporal extra quando derrotar um inimigo.", revisado:false},
+    {nome:"Usar Arma", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Você sabe usar a arma escolhida, sem penalidades.", revisado:false},
+    {nome:"Usar Armaduras Pesadas", tipo:"Combate", prereq:"", restricao:"", beneficio:"Você é capaz de usar armaduras pesadas.", revisado:false},
+    {nome:"Velocista", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente a distância máxima de seu deslocamento.", revisado:false}
+  ],
+  poderes: [
+    {nome:"Ninpou (Arte Ninja)", tipo:"Comum", prereq:"", restricao:"", descricao:"Domínio de uma arte ninja. Ao subir de nível ganha Efeitos (Canhão, Orbe, Barreira, Sopro Destrutivo...) que personalizam o poder. Dano base e Dureza = Nível usado + ½ Espírito (arred. p/ cima). Custo de chakra = nível do efeito usado.", revisado:false},
+    {nome:"Doton (Elemento Terra)", tipo:"Comum", prereq:"", restricao:"", descricao:"Ninpou do elemento Terra. Cria e manipula terra e rocha para atacar, erguer defesas e prender inimigos.", revisado:false},
+    {nome:"Fuuton (Elemento Vento)", tipo:"Comum", prereq:"", restricao:"", descricao:"Ninpou do elemento Vento. Lâminas e rajadas de ar cortantes, com bom alcance e mobilidade.", revisado:false},
+    {nome:"Katon (Elemento Fogo)", tipo:"Comum", prereq:"", restricao:"", descricao:"Ninpou do elemento Fogo. Alto poder ofensivo com bolas e sopros de fogo em área.", revisado:false},
+    {nome:"Raiton (Elemento Trovão)", tipo:"Comum", prereq:"", restricao:"", descricao:"Ninpou do elemento Trovão. Ataques rápidos e precisos de eletricidade, difíceis de esquivar.", revisado:false},
+    {nome:"Suiton (Elemento Água)", tipo:"Comum", prereq:"", restricao:"", descricao:"Ninpou do elemento Água. Versátil: dragões, prisões e paredes de água para atacar e bloquear técnicas.", revisado:false},
+    {nome:"Iryou Ninjutsu (Ninjutsu Médico)", tipo:"Comum", prereq:"", restricao:"", descricao:"Técnicas médicas: cura a Vitalidade de aliados, trata condições e, em níveis altos, realiza cirurgia com chakra.", revisado:false},
+    {nome:"Taijutsu", tipo:"Restrito", prereq:"", restricao:"Ver livro para regras completas.", descricao:"Combate corporal puro, sem uso de ninjutsu. Técnicas físicas avançadas (estilo Rock Lee / Might Guy).", revisado:false},
+    {nome:"Genjutsu", tipo:"Restrito", prereq:"", restricao:"Ver livro para pré-requisitos e regras completas.", descricao:"Ilusões que afetam os sentidos e a mente do alvo.", revisado:false},
+    {nome:"Kuchiyose (Invocação)", tipo:"Restrito", prereq:"", restricao:"Ver livro para regras completas.", descricao:"Invoca criaturas contratadas para lutar ao seu lado (sapos, cobras, lesmas etc.).", revisado:false},
+    {nome:"Hibon Ninpou (Arte Ninja Única)", tipo:"Restrito", prereq:"", restricao:"Ver livro para regras completas.", descricao:"Arte ninja secreta/única: versão personalizada de Ninpou com efeitos próprios.", revisado:false},
+    {nome:"Dokujutsu (Arte dos Venenos)", tipo:"Restrito", prereq:"Venefício 4; Químico (aptidão).", restricao:"Comprado como uma versão do Ninpou.", descricao:"Arte de usar venenos em combate (agulhas envenenadas, fumaça tóxica). Faz parte da grande revisão de Venefício.", revisado:true},
+    {nome:"Senjutsu (Técnica Eremita)", tipo:"Restrito", prereq:"", restricao:"", descricao:"Modo Sábio: absorve energia natural para ampliar força, técnicas e percepção.", revisado:true}
+  ],
+  armas: [
+    {nome:"Ataque Desarmado", categoria:"Simples", classe:"Base", preco:"---", dano:"+0", alcance:"---", critico:"15-16", comp:"---", tipo:"Esmagamento"},
+    {nome:"Espada Curta", categoria:"Simples", classe:"Leve", preco:"8 Ryos", dano:"+2", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
+    {nome:"Tantō", categoria:"Simples", classe:"Leve", preco:"10 Ryos", dano:"+2", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
+    {nome:"Tonfa (par)", categoria:"Simples", classe:"Leve", preco:"8 Ryos", dano:"+1/+1", alcance:"---", critico:"15-16", comp:"1 par/1 comp.", tipo:"Esmagamento"},
+    {nome:"Clava", categoria:"Simples", classe:"Mediana", preco:"---", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento"},
+    {nome:"Lança", categoria:"Simples", classe:"Mediana", preco:"2 Ryos", dano:"+3", alcance:"10m", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
+    {nome:"Maça", categoria:"Simples", classe:"Mediana", preco:"12 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento"},
+    {nome:"Ninja-tō", categoria:"Simples", classe:"Mediana", preco:"20 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
+    {nome:"Bastão (D)", categoria:"Simples", classe:"Longa", preco:"---", dano:"+2/+2", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento"},
+    {nome:"Pique", categoria:"Simples", classe:"Longa", preco:"2 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
+    {nome:"Tacape", categoria:"Simples", classe:"Pesada", preco:"---", dano:"+4", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento"},
+    {nome:"Senbon (CC/CD) (3)", categoria:"Simples", classe:"Arremesso", preco:"3 Ryos cada", dano:"+1", alcance:"20m", critico:"15-16", comp:"15 itens/1 comp.", tipo:"Perfuração"},
+    {nome:"Shuriken (3)", categoria:"Simples", classe:"Arremesso", preco:"3 Ryos cada", dano:"+1", alcance:"20m", critico:"15-16", comp:"18 itens/1 comp.", tipo:"Perfuração"},
+    {nome:"Kunai (CC/CD) (3)", categoria:"Simples", classe:"Arremesso", preco:"2 Ryos cada", dano:"+1", alcance:"15m", critico:"15-16", comp:"10 itens/1 comp.", tipo:"Perfuração"},
+    {nome:"Arco Curto", categoria:"Simples", classe:"Disparo", preco:"30 Ryos", dano:"+1", alcance:"25m", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
+    {nome:"Besta Leve", categoria:"Simples", classe:"Disparo", preco:"35 Ryos", dano:"+2", alcance:"25m", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
+    {nome:"Tarja Explosiva", categoria:"Simples", classe:"Explosivo", preco:"10 Ryos cada", dano:"4", alcance:"5m diâmetro", critico:"---", comp:"6 itens/1 comp.", tipo:"Fogo"},
+    {nome:"Bomba de Fumaça", categoria:"Simples", classe:"Explosivo", preco:"10 Ryos cada", dano:"---", alcance:"10m diâmetro", critico:"---", comp:"6 itens/1 comp.", tipo:"---"},
+    {nome:"Bomba Luminosa", categoria:"Simples", classe:"Explosivo", preco:"10 Ryos cada", dano:"---", alcance:"10m diâmetro", critico:"---", comp:"6 itens/1 comp.", tipo:"---"},
+    {nome:"Aian Nakkuru (par)", categoria:"Marcial", classe:"Leve", preco:"100 Ryos", dano:"+1/+1", alcance:"15m", critico:"15-16", comp:"1 par/1 comp.", tipo:"Corte"},
+    {nome:"Kousen (15m)", categoria:"Marcial", classe:"Leve", preco:"2 Ryos", dano:"---", alcance:"---", critico:"---", comp:"1 item/1 comp.", tipo:"---"},
+    {nome:"Nunchaku", categoria:"Marcial", classe:"Leve", preco:"2 Ryos", dano:"+2", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento"},
+    {nome:"Sai (par)", categoria:"Marcial", classe:"Leve", preco:"5 Ryos", dano:"+1/+1", alcance:"20m", critico:"15-16", comp:"1 par/1 comp.", tipo:"Perfuração"},
+    {nome:"Wakizashi", categoria:"Marcial", classe:"Leve", preco:"15 Ryos", dano:"+2", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
+    {nome:"Chicote", categoria:"Marcial", classe:"Mediana", preco:"1 Ryo", dano:"+0", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
+    {nome:"Chokutō", categoria:"Marcial", classe:"Mediana", preco:"20 Ryos", dano:"+4", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
+    {nome:"Cimitarra", categoria:"Marcial", classe:"Mediana", preco:"20 Ryos", dano:"+2", alcance:"---", critico:"14-15-16", comp:"1 item/1 comp.", tipo:"Corte"},
+    {nome:"Corrente com Cravos", categoria:"Marcial", classe:"Mediana", preco:"25 Ryos", dano:"+1", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
+    {nome:"Espada Longa", categoria:"Marcial", classe:"Mediana", preco:"15 Ryos", dano:"+4", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
+    {nome:"Florete", categoria:"Marcial", classe:"Mediana", preco:"20 Ryos", dano:"+2", alcance:"---", critico:"14-15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
+    {nome:"Katana", categoria:"Marcial", classe:"Mediana", preco:"20 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
+    {nome:"Machado", categoria:"Marcial", classe:"Mediana", preco:"10 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
+    {nome:"Martelo de Guerra", categoria:"Marcial", classe:"Mediana", preco:"12 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento"},
+    {nome:"Foice", categoria:"Marcial", classe:"Longa", preco:"18 Ryos", dano:"+4", alcance:"---", critico:"15-16", comp:"1 item/2 comp.", tipo:"Corte"},
+    {nome:"Leque Gigante", categoria:"Marcial", classe:"Longa", preco:"100 Ryos", dano:"+2", alcance:"---", critico:"15-16", comp:"1 item/2 comp.", tipo:"Esmagamento"},
+    {nome:"Espada de Duas Lâminas (D)", categoria:"Marcial", classe:"Pesada", preco:"100 Ryos", dano:"+2/+2", alcance:"---", critico:"15-16", comp:"1 item/2 comp.", tipo:"Corte"},
+    {nome:"Espada Grande", categoria:"Marcial", classe:"Pesada", preco:"20 Ryos", dano:"+5", alcance:"---", critico:"15-16", comp:"1 item/2 comp.", tipo:"Corte"},
+    {nome:"Machado Grande", categoria:"Marcial", classe:"Pesada", preco:"50 Ryos", dano:"+5 (+1)", alcance:"---", critico:"15-16", comp:"1 item/2 comp.", tipo:"Corte"},
+    {nome:"Fuuma Shuriken: Gigante", categoria:"Marcial", classe:"Arremesso", preco:"10 Ryos", dano:"+5", alcance:"20m", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
+    {nome:"Fuuma Shuriken: Lâmina Reta", categoria:"Marcial", classe:"Arremesso", preco:"15 Ryos", dano:"+3", alcance:"20m", critico:"15-16", comp:"2 itens/1 comp.", tipo:"Perfuração"},
+    {nome:"Fuuma Shuriken: Kage Fushä", categoria:"Marcial", classe:"Arremesso", preco:"20 Ryos", dano:"+2", alcance:"20m", critico:"14-15-16", comp:"2 itens/1 comp.", tipo:"Perfuração"},
+    {nome:"Arco Composto/Longo", categoria:"Marcial", classe:"Disparo", preco:"100 Ryos", dano:"+3", alcance:"10m +2m×Des", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
+    {nome:"Besta Pesada", categoria:"Marcial", classe:"Disparo", preco:"50 Ryos", dano:"+4", alcance:"35m", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
+    {nome:"Flechas para arcos (1)", categoria:"Marcial", classe:"Munição", preco:"1 Ryo cada", dano:"---", alcance:"---", critico:"---", comp:"20 itens/1 comp.", tipo:"---"},
+    {nome:"Virotes para bestas (1)", categoria:"Marcial", classe:"Munição", preco:"1 Ryo cada", dano:"---", alcance:"---", critico:"---", comp:"20 itens/1 comp.", tipo:"---"}
+  ],
+  armaduras: [
+    {nome:"Roupa Comum", tipo:"Leve", preco:"10 Ryos", absorcao:"+0", penalidade:"---", comp:"---"},
+    {nome:"Manopla", tipo:"Leve", preco:"5 Ryos", absorcao:"+0", penalidade:"---", comp:"---"},
+    {nome:"Colete Ninja", tipo:"Leve", preco:"100 Ryos", absorcao:"+0", penalidade:"---", comp:"+1 comp."},
+    {nome:"Colete Ninja Resistente", tipo:"Leve", preco:"150 Ryos", absorcao:"+10", penalidade:"---", comp:"–1 comp."},
+    {nome:"Armadura de Batalha", tipo:"Pesada", preco:"250 Ryos", absorcao:"+15", penalidade:"0 (-2)", comp:"–1 comp."},
+    {nome:"Armadura de Batalha Reforçada", tipo:"Pesada", preco:"600 Ryos", absorcao:"+20", penalidade:"–2 (-4)", comp:"–2 comp."}
+  ],
+  /* Efeitos do Ninpou (gerais) + exclusivos de cada elemento. Níveis/parâmetros
+     são estimativas do Livro Básico (Poderes, p.91-111); ajuste no BD conforme conferir. */
+  efeitos: [
+    {nome:"Canhão", poder:"Ninpou", nivel:1, custo:"1", dano:"padrão do poder", acao:"Padrão", alvo:"1 criatura", alcance:"", duracao:"Instantânea", descricao:"Ataque à distância básico do poder: dispara o elemento contra um alvo."},
+    {nome:"Orbe", poder:"Ninpou", nivel:2, custo:"= nível usado", dano:"padrão do poder", acao:"Padrão", alvo:"1 criatura", alcance:"", duracao:"Instantânea", descricao:"Concentra o poder em uma esfera disparada contra o alvo. Em Nv 7+ custa metade do chakra."},
+    {nome:"Raio", poder:"Ninpou", nivel:2, custo:"= nível usado", dano:"padrão do poder", acao:"Padrão", alvo:"1 criatura (linha)", alcance:"", duracao:"Instantânea", descricao:"Ataque em linha reta e rápido. Tem evoluções em níveis mais altos (Nv 5, Nv 8)."},
+    {nome:"Restringente", poder:"Ninpou", nivel:2, custo:"= nível usado", dano:"—", descricao:"Reduz o deslocamento/ação do alvo, prendendo-o parcialmente ao elemento."},
+    {nome:"Barreira", poder:"Ninpou", nivel:3, custo:"= nível usado", dano:"—", acao:"Padrão", alvo:"Pessoal/Área", alcance:"Pessoal", duracao:"Sustentada", descricao:"Cria uma barreira defensiva do elemento, com dureza baseada no poder."},
+    {nome:"Energizar", poder:"Ninpou", nivel:3, custo:"= nível usado", dano:"+ ao dano da arma", acao:"Padrão", alvo:"Arma", alcance:"Pessoal", duracao:"Sustentada", descricao:"Imbui uma arma com o elemento, somando dano elemental aos ataques."},
+    {nome:"Criar Arma", poder:"Ninpou", nivel:3, custo:"1 (criação)", dano:"conforme a arma", descricao:"Molda o elemento em uma arma utilizável."},
+    {nome:"Segurar", poder:"Ninpou", nivel:4, custo:"= nível usado", dano:"—", descricao:"Imobiliza o alvo com o elemento."},
+    {nome:"Coluna", poder:"Ninpou", nivel:4, custo:"= nível usado", dano:"padrão do poder", acao:"Padrão", alvo:"1 criatura", alcance:"", duracao:"Instantânea", descricao:"Ergue uma coluna do elemento que empurra ou atinge o alvo."},
+    {nome:"Flechas", poder:"Ninpou", nivel:4, custo:"= nível usado", dano:"padrão do poder", acao:"Padrão", alvo:"1+ criaturas", alcance:"", duracao:"Instantânea", descricao:"Dispara múltiplos projéteis do elemento."},
+    {nome:"Lança", poder:"Ninpou", nivel:4, custo:"= nível usado", dano:"padrão do poder", acao:"Padrão", alvo:"1 criatura", alcance:"", duracao:"Instantânea", descricao:"Projétil perfurante à distância."},
+    {nome:"Sopro Destrutivo", poder:"Ninpou", nivel:4, custo:"= nível usado", dano:"padrão do poder", acao:"Padrão", alvo:"Área (cone)", alcance:"", duracao:"Instantânea", descricao:"Ataque em cone/área à frente do usuário."},
+    {nome:"Ricochete", poder:"Ninpou", nivel:5, custo:"= nível usado", dano:"padrão do poder", acao:"Padrão", alvo:"1+ criaturas", alcance:"", duracao:"Instantânea", descricao:"O ataque salta entre múltiplos alvos. Em Nv 9, cada salto altera o dano."},
+    {nome:"Nuvem", poder:"Ninpou", nivel:5, custo:"= nível usado", dano:"ver texto", descricao:"Área persistente do elemento no ambiente (Nv 7 e Nv 10 aumentam duração/tamanho)."},
+    {nome:"Algemar", poder:"Ninpou", nivel:5, custo:"= nível usado", dano:"—", descricao:"Prende o alvo. Nv 8: duração sustentada. Nv 10: até 3 alvos próximos."},
+    {nome:"Míssil", poder:"Ninpou", nivel:6, custo:"= nível usado", dano:"alto", acao:"Padrão", alvo:"Área", alcance:"", duracao:"Instantânea", descricao:"Projétil teleguiado de alto impacto (evoluções em Nv 8 e Nv 10)."},
+    {nome:"Onda Explosiva", poder:"Ninpou", nivel:6, custo:"= nível usado", dano:"padrão do poder", acao:"Padrão", alvo:"Área", alcance:"", duracao:"Instantânea", descricao:"Explosão em área que causa dano e empurra os atingidos (teste de Vigor)."},
+    {nome:"Selar Chakra", poder:"Ninpou", nivel:7, custo:"= nível usado", dano:"—", descricao:"Sela temporariamente o chakra do alvo."},
+    {nome:"Imergir", poder:"Doton", nivel:2, custo:"= nível usado", dano:"—", descricao:"Funde-se à terra para se mover ou esconder (Nv 4: mover-se livremente no meio)."},
+    {nome:"Tremor", poder:"Doton", nivel:4, custo:"= nível usado", dano:"padrão do poder", descricao:"Sacode o solo em área, desequilibrando os alvos."},
+    {nome:"Petrificar", poder:"Doton", nivel:7, custo:"= nível usado", dano:"ver texto", descricao:"Endurece o alvo em pedra (Nv 10 amplia o efeito)."},
+    {nome:"Pele de Pedra", poder:"Doton", nivel:9, custo:"= nível usado", dano:"—", descricao:"Cobre o corpo com pedra, aumentando a dureza/absorção."},
+    {nome:"Golem", poder:"Doton", nivel:10, custo:"= nível usado", dano:"ver texto", descricao:"Cria um golem de terra que luta pelo usuário."},
+    {nome:"Venenoso", poder:"Fuuton", nivel:5, custo:"= nível usado", dano:"ver texto", descricao:"Impregna o vento com veneno/toxina."},
+    {nome:"Desequilibrar", poder:"Fuuton", nivel:6, custo:"= nível usado", dano:"—", descricao:"Rajadas de vento que tiram o equilíbrio do alvo."},
+    {nome:"Lâmina de Vento", poder:"Fuuton", nivel:10, custo:"= nível usado", dano:"alto", descricao:"Lâmina de ar extremamente cortante."},
+    {nome:"Inflamável", poder:"Katon", nivel:8, custo:"= nível usado", dano:"ver texto", descricao:"Torna a área/alvo inflamável, potencializando fogo."},
+    {nome:"Meteoros", poder:"Katon", nivel:8, custo:"= nível usado", dano:"alto", descricao:"Faz chover projéteis flamejantes em área."},
+    {nome:"Lâmina de Raios", poder:"Raiton", nivel:5, custo:"ver texto", dano:"ver texto", descricao:"Concentra eletricidade em uma lâmina. Nv 7: ignora dureza comum. Nv 9: bônus adicional."},
+    {nome:"Arma Elétrica", poder:"Raiton", nivel:8, custo:"= nível usado", dano:"ver texto", descricao:"Energiza uma arma; armas comuns que a bloqueiam podem ser destruídas."},
+    {nome:"Atordoar", poder:"Raiton", nivel:8, custo:"= nível usado", dano:"—", descricao:"Choque que atordoa o alvo por um curto período."},
+    {nome:"Paralisar", poder:"Raiton", nivel:9, custo:"= nível usado", dano:"—", descricao:"Descarga que paralisa o alvo."},
+    {nome:"Névoa", poder:"Suiton", nivel:5, custo:"= nível usado", dano:"—", descricao:"Cria névoa que reduz visibilidade na área."},
+    {nome:"Correnteza", poder:"Suiton", nivel:8, custo:"= nível usado", dano:"padrão do poder", descricao:"Corrente de água que arrasta os alvos."},
+    {nome:"Colisão de Ondas", poder:"Suiton", nivel:8, custo:"= nível usado", dano:"alto", descricao:"Ondas que colidem sobre o alvo (Nv 10 amplia)."},
+    {nome:"Prisão de Água", poder:"Suiton", nivel:9, custo:"= nível usado", dano:"—", descricao:"Aprisiona o alvo em uma esfera de água."}
+  ],
+  /* Config de cada elemento: quais efeitos gerais do Ninpou ele permite + modificador. */
+  elementos: {
+    "Doton":  {permitidos:["Canhão","Orbe","Raio","Restringente","Barreira","Energizar","Criar Arma","Segurar","Coluna","Flechas","Lança","Sopro Destrutivo","Ricochete","Nuvem","Algemar","Míssil","Onda Explosiva","Selar Chakra"], bonusDano:0, modificador:"Permite todos os efeitos de Ninpou."},
+    "Fuuton": {permitidos:["Canhão","Orbe","Barreira","Coluna","Flechas","Sopro Destrutivo","Raio","Nuvem","Energizar","Míssil","Onda Explosiva","Ricochete"], bonusDano:2, modificador:"Todo efeito Fuuton recebe +2 de dano base."},
+    "Katon":  {permitidos:["Canhão","Orbe","Flechas","Coluna","Sopro Destrutivo","Raio","Energizar","Míssil","Onda Explosiva","Ricochete"], bonusDano:2, modificador:"Todo efeito Katon recebe +2 de dano base."},
+    "Raiton": {permitidos:["Canhão","Orbe","Coluna","Flechas","Sopro Destrutivo","Raio","Energizar","Míssil","Onda Explosiva","Ricochete","Meteoros"], bonusDano:1, modificador:"Todo efeito Raiton recebe +1 de dano base. Não pode usar Algemar (eletricidade é imaterial)."},
+    "Suiton": {permitidos:["Canhão","Orbe","Raio","Restringente","Barreira","Energizar","Criar Arma","Segurar","Coluna","Flechas","Lança","Sopro Destrutivo","Ricochete","Nuvem","Algemar","Míssil","Onda Explosiva","Selar Chakra","Inflamável","Venenoso","Imergir"], bonusDano:0, modificador:"Permite todos os efeitos de Ninpou, além de Inflamável (Katon), Venenoso (Fuuton) e Imergir (Doton)."}
+  }
+};
+
+const DB_KEY = "sns_ficha_db_v1";
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function carregarDB(){
+  const base = clone(SEED_DB);
+  try{
+    const raw = localStorage.getItem(DB_KEY);
+    if(raw){
+      const s = JSON.parse(raw);
+      ["aptidoes","poderes","armas","armaduras","efeitos"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
+      if(s.calc) Object.assign(base.calc, s.calc);
+      if(s.elementos) Object.assign(base.elementos, s.elementos);
+      if(typeof s.foto === "string") base.foto = s.foto;
+    }
+  }catch(e){}
+  return base;
+}
+let DB = carregarDB();
+function setStatus(txt){ const el = document.getElementById("bd_status"); if(el) el.textContent = txt; }
+function persist(){
+  try{ localStorage.setItem(DB_KEY, JSON.stringify(DB)); setStatus("Salvo neste navegador."); }
+  catch(e){ setStatus("Não foi possível salvar localmente. Use Exportar JSON."); }
+}
+
+/* ===== ATRIBUTOS, HABILIDADES DE COMBATE, PERÍCIAS ===== */
+const ATTR_ICONS = {
+  "Força": '<rect x="2" y="9" width="3.5" height="6" rx="1"/><rect x="18.5" y="9" width="3.5" height="6" rx="1"/><line x1="5.5" y1="12" x2="18.5" y2="12"/>',
+  "Destreza": '<path d="M12,2 L14.47,9.53 L22,12 L14.47,14.47 L12,22 L9.53,14.47 L2,12 L9.53,9.53 Z" stroke-linejoin="round"/>',
+  "Agilidade": '<line x1="3" y1="7" x2="15" y2="7"/><line x1="3" y1="12" x2="20" y2="12"/><line x1="3" y1="17" x2="11" y2="17"/>',
+  "Percepção": '<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="3"/>',
+  "Inteligência": '<path d="M9 18h6M10 21h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2.3h6c0-1.1.4-1.8 1-2.3A7 7 0 0 0 12 2z"/>',
+  "Vigor": '<path d="M12 21s-8-4.5-10-10A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 10 5c-2 5.5-10 10-10 10z"/>',
+  "Espírito": '<path d="M12 12c0-3 2-5 5-5s5 2 5 5-2 5-5 5c-2 0-3.5-1-3.5-2.8 0-1.2.8-2 2-2s1.8.7 1.8 1.6"/>'
+};
+const ATTR_VALUES = {"Força":"","Destreza":"","Agilidade":"","Percepção":"","Inteligência":"","Vigor":"","Espírito":""};
+const CODE2ATTR = {AGI:"Agilidade", INT:"Inteligência", FOR:"Força", DES:"Destreza", PER:"Percepção"};
+const SIGLAS = {
+  "Força":"FOR", "Destreza":"DES", "Agilidade":"AGI", "Percepção":"PER",
+  "Inteligência":"INT", "Vigor":"VIG", "Espírito":"ESP",
+  "Combate Corporal":"CC", "Combate à Distância":"CD", "Esquiva":"ESQ", "Ler Movimento":"LM",
+  "Iniciativa":"INI", "Reação de Esquiva":"REA", "Deslocamento":"DESL",
+  "Vitalidade":"VIT", "Chakra":"CHA", "Carisma":"CAR", "Manipulação":"MAN"
+};
+
+const attrsRow = document.getElementById("attrs_row");
+Object.keys(ATTR_ICONS).forEach(nome => {
+  const div = document.createElement("div");
+  div.className = "attr-badge";
+  div.innerHTML = '<span class="attr-name" title="' + nome + '">' + (SIGLAS[nome]||nome) + '</span>' +
+    '<svg viewBox="0 0 24 24">' + ATTR_ICONS[nome] + '</svg><br>' +
+    '<input type="text" class="attr-val" data-attr="' + nome + '" value="' + ATTR_VALUES[nome] + '">';
+  attrsRow.appendChild(div);
+});
+
+const HC_DEFS = [
+  {full:"Combate Corporal", cod:"CC", attr:"Força"},
+  {full:"Combate à Distância", cod:"CD", attr:"Destreza"},
+  {full:"Esquiva", cod:"ESQ", attr:"Agilidade"},
+  {full:"Ler Movimento", cod:"LM", attr:"Percepção"}
+];
+const hcTable = document.getElementById("hc_table");
+HC_DEFS.forEach(h => {
+  const div = document.createElement("div");
+  div.className = "hc-row";
+  div.dataset.cod = h.cod;
+  div.dataset.attr = h.attr;
+  div.innerHTML = '<span class="hc-name" title="' + h.full + '">' + h.cod + '</span>' +
+    '<span class="hc-total" title="Total = Base + ' + (SIGLAS[h.attr]||h.attr) + ' + Outro">0</span>' +
+    '<span class="eq">=</span>' +
+    '<input class="base" value="' + DB.calc.hcBase + '"><span>+</span>' +
+    '<span class="attr-tag" title="' + h.attr + '">' + (SIGLAS[h.attr]||h.attr) + '</span><span>+</span>' +
+    '<input class="outro" value="0">';
+  hcTable.appendChild(div);
+});
+
+const PERICIAS = [
+  {nome:"Acrobacia", attr:"AGI"}, {nome:"Arte", attr:"INT"}, {nome:"Atletismo", attr:"FOR"},
+  {nome:"Ciências Naturais", attr:"INT"}, {nome:"Concentração", attr:"INT"}, {nome:"Cultura", attr:"INT"},
+  {nome:"Disfarce", attr:"PER"}, {nome:"Escapar", attr:"DES"}, {nome:"Furtividade", attr:"AGI"},
+  {nome:"*Lidar com Animais", attr:"PER"}, {nome:"*Mecanismo", attr:"INT"}, {nome:"*Medicina", attr:"INT"},
+  {nome:"*Ocultismo", attr:"INT"}, {nome:"Prestidigitação", attr:"DES"}, {nome:"Procurar", attr:"PER"},
+  {nome:"Prontidão", attr:"AGI"}, {nome:"Rastrear", attr:"PER"}, {nome:"**Venefício", attr:"INT"}
+];
+const perRows = document.getElementById("per_rows");
+PERICIAS.forEach(p => {
+  const div = document.createElement("div");
+  div.className = "per-row";
+  div.dataset.peri = p.nome;
+  div.dataset.attr = p.attr;
+  div.innerHTML = '<span class="pr-name">' + p.nome + '</span>' +
+    '<span class="pr-col"><input class="pr-total calc-ro" readonly tabindex="-1"></span>' +
+    '<span class="pr-col"><span class="pr-eq">=</span><input class="pr-pontos"><span>+</span><span class="pr-attr">' + p.attr + '</span><span>+</span><input class="pr-outro"></span>';
+  perRows.appendChild(div);
+});
+
+function criarLinhaTabela(nCols){
+  const tr = document.createElement("tr");
+  for (let c = 0; c < nCols; c++){
+    const td = document.createElement("td");
+    td.innerHTML = '<input type="text">';
+    tr.appendChild(td);
+  }
+  const tdDel = document.createElement("td");
+  tdDel.className = "del-cell";
+  tdDel.innerHTML = '<span class="del-row-btn" title="Remover linha">×</span>';
+  tr.appendChild(tdDel);
+  return tr;
+}
+function addBlankRows(tbodyId, nCols, nRows){
+  const tbody = document.getElementById(tbodyId);
+  for (let r = 0; r < nRows; r++) tbody.appendChild(criarLinhaTabela(nCols));
+}
+let idSeq = 1;
+adicionarLinhaDesarmado();  /* 1ª linha fixa da Calculadora de Dano armado */
+
+document.querySelectorAll(".btn-add-row[data-add]:not([data-catalogo])").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const tbody = document.getElementById(btn.dataset.add);
+    tbody.appendChild(criarLinhaTabela(parseInt(btn.dataset.cols)));
+  });
+});
+
+/* Aptidões: tabela em coluna única, preenchida pelo seletor (começa vazia).
+   Colunas: Pts. Gastos | Nome | Descrição/Benefícios | Bônus em | Valor */
+
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("del-row-btn")){
+    const tr = e.target.closest("tr");
+    const jid = tr.dataset.jid;
+    tr.remove();
+    if (jid) document.querySelectorAll('tr[data-jid="'+jid+'"]').forEach(r => r.remove());
+    recalc();
+  }
+  if (e.target.classList.contains("jutsu-del-btn")){
+    const card = e.target.closest(".jutsu-card");
+    const jid = card.dataset.jid;
+    card.remove();
+    if (jid) document.querySelectorAll('tr[data-jid="'+jid+'"]').forEach(r => r.remove());
+    recalc();
+  }
+});
+
+const POWERS_WITH_EFFECTS = ["Ninpou","Doton","Fuuton","Katon","Raiton","Suiton"];
+function criarJutsuCard(jid){
+  const card = document.createElement("div");
+  card.className = "jutsu-card";
+  if(jid) card.dataset.jid = jid;
+  const opts = '<option value="">— Poder —</option>' + POWERS_WITH_EFFECTS.map(p => '<option value="'+p+'">'+p+'</option>').join('');
+  card.innerHTML =
+    '<span class="jutsu-del-btn" title="Remover jutsu">×</span>' +
+    '<div class="jutsu-field"><span>Poder:</span><select class="jutsu-poder">'+opts+'</select><span>Nv:</span><input class="jutsu-nivel-poder" style="width:38px;flex:none;"></div>' +
+    '<button class="jutsu-efeito-btn" type="button">+ Puxar efeito do poder</button>' +
+    '<div class="jutsu-field"><span>Nome:</span><input class="jf-nome"></div>' +
+    '<div class="jutsu-field"><span>Ação:</span><input class="half jf-acao"><span>Nível:</span><input class="jf-nivel" style="width:40px;flex:none;"></div>' +
+    '<div class="jutsu-field"><span>Alvo:</span><input class="half jf-alvo"><span>Dano:</span><input class="jf-dano"></div>' +
+    '<div class="jutsu-field"><span>Alcance:</span><input class="jf-alcance"></div>' +
+    '<div class="jutsu-field"><span>Duração:</span><input class="jf-duracao"></div>' +
+    '<div class="jutsu-field"><span>Efeitos:</span><input class="jf-efeitos"></div>' +
+    '<div class="jutsu-field"><span>Custo de Chakra:</span><input class="jf-custo"></div>' +
+    '<div class="jutsu-desc-bar">Descrição</div>' +
+    '<div class="jutsu-desc-lines"><textarea class="jf-desc"></textarea></div>';
+  return card;
+}
+function criarLinhaCalcJutsu(jid){
+  const tbody = document.getElementById("calc_jutsu_rows");
+  const tr = document.createElement("tr");
+  if(jid) tr.dataset.jid = jid;
+  const cj = celInput(""); cj.querySelector("input").className = "cj-jutsu"; tr.appendChild(cj);   // Jutsu
+  const cc = celInput(""); cc.querySelector("input").className = "cj-custo"; tr.appendChild(cc);   // Custo
+  const cn = celInput(""); cn.querySelector("input").className = "cj-nv"; tr.appendChild(cn);      // Nv. Usado do Poder
+  const cd = celInput(""); cd.querySelector("input").className = "cj-dureza calc-ro"; cd.querySelector("input").readOnly = true; tr.appendChild(cd);  // Dureza
+  const ce = celInput(""); ce.querySelector("input").className = "cj-delem calc-ro"; ce.querySelector("input").readOnly = true; tr.appendChild(ce);   // Dano Elemental
+  const cbo = celInput(""); cbo.querySelector("input").className = "cj-bonus"; tr.appendChild(cbo);  // Bônus de Dano (manual)
+  const cb = celInput(""); cb.querySelector("input").className = "cj-dbase calc-ro"; cb.querySelector("input").readOnly = true; tr.appendChild(cb);   // Dano Base
+  tr.appendChild(celAcoesCalc("jutsu", true));
+  tbody.appendChild(tr);
+}
+function adicionarJutsu(){
+  const jid = "jt" + (idSeq++);
+  document.getElementById("jutsu_grid").appendChild(criarJutsuCard(jid));
+  criarLinhaCalcJutsu(jid);
+}
+document.getElementById("btn_add_jutsu").addEventListener("click", adicionarJutsu);
+
+/* efeitos disponíveis para um poder até um nível */
+function efeitosDisponiveis(poder, nivelStr){
+  const n = String(nivelStr).trim() === "" ? 99 : num(nivelStr);
+  if(!poder) return DB.efeitos.filter(e => num(e.nivel) <= n);
+  if(poder === "Ninpou") return DB.efeitos.filter(e => e.poder === "Ninpou" && num(e.nivel) <= n);
+  const cfg = DB.elementos[poder] || {permitidos:[]};
+  const permit = cfg.permitidos || [];
+  return DB.efeitos.filter(e => num(e.nivel) <= n && (e.poder === poder || permit.includes(e.nome)));
+}
+function syncJutsuCalc(card){
+  const jid = card.dataset.jid; if(!jid) return;
+  const row = document.querySelector('#calc_jutsu_rows tr[data-jid="'+jid+'"]'); if(!row) return;
+  const nome = card.querySelector(".jf-nome"), custo = card.querySelector(".jf-custo"), nv = card.querySelector(".jutsu-nivel-poder"), poder = card.querySelector(".jutsu-poder");
+  const cj = row.querySelector(".cj-jutsu"); if(cj && nome) cj.value = nome.value;
+  const cc = row.querySelector(".cj-custo"); if(cc && custo) cc.value = custo.value;
+  const cn = row.querySelector(".cj-nv"); if(cn && nv) cn.value = nv.value;
+  if(poder) row.dataset.poder = poder.value;
+  recalc();
+}
+function preencherEfeitoNoJutsu(card, it){
+  const set = (sel, val) => { const el = card.querySelector(sel); if(el && val != null && val !== "") el.value = val; };
+  set(".jf-nome", it.nome);
+  set(".jf-efeitos", it.nome);
+  set(".jf-nivel", it.nivel);
+  set(".jf-dano", it.dano);
+  set(".jf-custo", it.custo);
+  set(".jf-acao", it.acao);
+  set(".jf-alvo", it.alvo);
+  set(".jf-alcance", it.alcance);
+  set(".jf-duracao", it.duracao);
+  const desc = card.querySelector(".jf-desc"); if(desc) desc.value = it.descricao || "";
+  syncJutsuCalc(card);
+}
+document.getElementById("jutsu_grid").addEventListener("input", (e) => {
+  const card = e.target.closest(".jutsu-card"); if(card) syncJutsuCalc(card);
+});
+document.getElementById("jutsu_grid").addEventListener("click", (e) => {
+  const btn = e.target.closest(".jutsu-efeito-btn");
+  if(!btn) return;
+  const card = btn.closest(".jutsu-card");
+  const poder = card.querySelector(".jutsu-poder").value;
+  const nivel = card.querySelector(".jutsu-nivel-poder").value;
+  const itens = efeitosDisponiveis(poder, nivel);
+  const titulo = poder ? ("Efeitos: " + poder + (String(nivel).trim() ? " (até Nv " + nivel + ")" : "")) : "Escolher Efeito";
+  abrirSeletor(titulo, itens, (it) => preencherEfeitoNoJutsu(card, it));
+});
+
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+  });
+});
+
+/* ===== AUTOMAÇÃO DE CÁLCULOS (usa DB.calc) ===== */
+function num(v){ if(v==null) return 0; const n = parseFloat(String(v).replace(",", ".")); return isNaN(n) ? 0 : n; }
+function metadeCima(x){ return Math.ceil(x/2); }
+function attrVal(nome){ const el = document.querySelector('.attr-val[data-attr="'+nome+'"]'); return el ? num(el.value) : 0; }
+function socAttr(nome){ const el = document.querySelector('.soc-attr[data-socattr="'+nome+'"]'); return el ? num(el.value) : 0; }
+function semAcento(s){ return String(s==null?"":s).normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
+function normalizaAlvo(s){
+  const k = semAcento(s).trim().toLowerCase();
+  const map = {
+    "cc":"CC","combate corporal":"CC",
+    "cd":"CD","combate a distancia":"CD",
+    "esq":"ESQ","esquiva":"ESQ",
+    "lm":"LM","ler movimento":"LM","ler movimentos":"LM",
+    "iniciativa":"iniciativa","ini":"iniciativa",
+    "reacao":"reacao","reacao de esquiva":"reacao","rea":"reacao",
+    "deslocamento":"desloc","desloc":"desloc","desl":"desloc",
+    "vitalidade":"vit","vit":"vit",
+    "chakra":"chakra","cha":"chakra"
+  };
+  return map[k] || null;
+}
+/* soma os bônus estruturados das aptidões que o personagem tem na grade */
+function bonusDasAptidoes(){
+  const bonus = {};
+  document.querySelectorAll("#apt_rows tr").forEach(tr => {
+    const alvoEl = tr.querySelector(".apt-alvo");
+    const valEl = tr.querySelector(".apt-valor");
+    if(!alvoEl || !valEl || String(valEl.value).trim() === "") return;
+    const alvo = normalizaAlvo(alvoEl.value);
+    if(alvo) bonus[alvo] = (bonus[alvo]||0) + num(valEl.value);
+  });
+  return bonus;
+}
+
+const SOCIAIS = {
+  "Atuação":            {base:"Carisma",     meio:{tipo:"peri", nome:"Arte"}},
+  "Barganhar":          {base:"Carisma",     meio:{tipo:"attr", nome:"Percepção"}},
+  "Obter Informações":  {base:"Carisma",     meio:{tipo:"attr", nome:"Inteligência"}},
+  "Intimidar":          {base:"Manipulação", meio:{tipo:"attr", nome:"Percepção"}},
+  "Blefar":             {base:"Manipulação", meio:{tipo:"attr", nome:"Inteligência"}},
+  "Mudar Atitude":      {base:"Manipulação", meio:{tipo:"attr", nome:"Percepção"}}
+};
+
+let periTotais = {};
+function setAuto(el, valor){ if(!el) return; if(el.dataset.over === "1") return; el.value = valor; }
+function setCounter(id, gasto, total, nota){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const rest = total - gasto;
+  el.textContent = gasto + " / " + total + " pts" + (nota ? " · " + nota : "");
+  el.classList.toggle("pt-over", gasto > total);
+  el.classList.toggle("pt-ok", gasto === total && total > 0);
+}
+
+function recalc(){
+  const c = DB.calc;
+  const bonus = bonusDasAptidoes();
+  periTotais = {};
+  document.querySelectorAll(".per-row").forEach(row => {
+    const pts = num(row.querySelector(".pr-pontos").value);
+    const outro = num(row.querySelector(".pr-outro").value);
+    const total = pts + metadeCima(attrVal(CODE2ATTR[row.dataset.attr])) + outro;
+    row.querySelector(".pr-total").value = total;
+    periTotais[row.dataset.peri] = total;
+  });
+  let esqTotal = 0;
+  document.querySelectorAll(".hc-row").forEach(row => {
+    const base = num(row.querySelector(".base").value);
+    const outro = num(row.querySelector(".outro").value);
+    const total = base + attrVal(row.dataset.attr) + outro + (bonus[row.dataset.cod] || 0);
+    row.querySelector(".hc-total").textContent = total;
+    if(row.dataset.cod === "ESQ") esqTotal = total;
+  });
+  const ncEl = document.getElementById("in_nc");
+  const NC = ncEl ? num(ncEl.value) : 0;
+  setAuto(document.querySelector('.auto[data-calc="vit"]'), c.vitBase + c.vitVigor*attrVal("Vigor") + c.vitNC*NC + (bonus.vit||0));
+  setAuto(document.querySelector('.auto[data-calc="chakra"]'), c.chakraBase + c.chakraEsp*attrVal("Espírito") + (bonus.chakra||0));
+  setAuto(document.querySelector('.auto[data-calc="iniciativa"]'), (periTotais["Prontidão"]||0) + attrVal("Agilidade") + (bonus.iniciativa||0));
+  setAuto(document.querySelector('.auto[data-calc="reacao"]'), esqTotal + c.reacaoConst + (bonus.reacao||0));
+  const desloc = document.querySelector('.auto[data-calc="desloc"]');
+  if(desloc && desloc.dataset.over !== "1"){ desloc.value = (c.deslocBase + Math.ceil(attrVal("Agilidade")/c.deslocDiv) + (bonus.desloc||0)) + "m"; }
+  document.querySelectorAll('.auto[data-social]').forEach(el => {
+    if(el.dataset.over === "1") return;
+    const def = SOCIAIS[el.dataset.social]; if(!def) return;
+    const baseV = socAttr(def.base);
+    const meioV = def.meio.tipo === "attr" ? attrVal(def.meio.nome) : (periTotais[def.meio.nome]||0);
+    el.value = baseV + metadeCima(meioV);
+  });
+
+  /* ---- Orçamento de pontos por Nível de Campanha (Básico p.27/30) ---- */
+  const min = Math.max(0, Math.ceil((NC - 4) / 2));
+  const orc = {
+    atr: Math.max(0, c.ptsAtrPorNC*NC + c.ptsAtrBase),
+    per: Math.max(0, c.ptsPerPorNC*NC + c.ptsPerBase),
+    pod: Math.max(0, c.ptsPodPorNC*NC + c.ptsPodBase),
+    soc: Math.max(2, 2*min),
+    min: min,
+    max: NC,
+    limitePP: Math.floor(NC/2)
+  };
+  let atrGasto = 0; document.querySelectorAll(".attr-val").forEach(i => atrGasto += num(i.value));
+  let perGasto = 0; document.querySelectorAll(".pr-pontos").forEach(i => perGasto += num(i.value));
+  let podGasto = 0;
+  document.querySelectorAll("#poderes_rows .pod-nivel").forEach(i => podGasto += num(i.value));
+  const gratis = num(c.aptidoesGratis) || 0;
+  document.querySelectorAll("#apt_rows tr").forEach((tr, i) => {
+    const p = (i < gratis) ? 0 : 2;
+    const el = tr.querySelector(".apt-pts"); if(el) el.value = p;
+    podGasto += p;
+  });
+  const socGasto = socAttr("Carisma") + socAttr("Manipulação");
+
+  setCounter("pt_atr", atrGasto, orc.atr, "mín " + orc.min + " · máx " + orc.max);
+  setCounter("pt_per", perGasto, orc.per, "máx " + orc.limitePP + "/perícia");
+  setCounter("pt_pod", podGasto, orc.pod, "máx " + orc.limitePP + "/poder · " + c.aptidoesGratis + " aptidões grátis");
+  setCounter("pt_soc", socGasto, orc.soc, "máx " + orc.limitePP);
+  const pp = document.getElementById("in_pontos_poder"); if(pp) pp.value = orc.pod;
+  const ppg = document.getElementById("in_pontos_poder_gastos"); if(ppg) ppg.value = podGasto;
+
+  /* ---- Calculadora de Dano (Básico p.85) ---- */
+  /* Jutsu: Dano Base = Dureza = Nível usado + ½ Espírito (arred. p/ cima); Dano Elemental = bônus do elemento */
+  const esp = attrVal("Espírito");
+  document.querySelectorAll("#calc_jutsu_rows tr").forEach(tr => {
+    const nvEl = tr.querySelector(".cj-nv"); if(!nvEl) return;
+    const dbase = num(nvEl.value) + metadeCima(esp);
+    const poder = tr.dataset.poder || "";
+    const elem = (DB.elementos[poder] && num(DB.elementos[poder].bonusDano)) || 0;
+    const dur = tr.querySelector(".cj-dureza"); if(dur) dur.value = dbase;
+    const del = tr.querySelector(".cj-delem"); if(del) del.value = elem;
+    const db = tr.querySelector(".cj-dbase"); if(db) db.value = dbase;
+  });
+  /* Arma: Dano Base = atributo de dano (Força, ou Destreza p/ disparo) + dano da arma */
+  document.querySelectorAll("#calc_armado_rows tr").forEach(tr => {
+    const dbEl = tr.querySelector(".ca-dbase"); if(!dbEl) return;
+    const danoEl = tr.querySelector(".ca-dano");
+    const atr = tr.dataset.atrdano || "Força";
+    dbEl.value = attrVal(atr) + num(danoEl ? danoEl.value : 0);
+  });
+}
+
+document.addEventListener("input", (e) => {
+  const t = e.target;
+  if(t.classList && t.classList.contains("auto")){
+    t.dataset.over = (String(t.value).trim() === "") ? "0" : "1";
+  }
+  recalc();
+});
+
+/* ===== SELETOR (lê do DB) ===== */
+function escapeHtml(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function escapeAttr(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+const overlay     = document.getElementById("seletor_overlay");
+const selTitulo   = document.getElementById("seletor_titulo");
+const selBusca    = document.getElementById("seletor_busca");
+const selLista    = document.getElementById("seletor_lista");
+const selDesc     = document.getElementById("seletor_desc");
+const selOk       = document.getElementById("seletor_ok");
+const selCancelar = document.getElementById("seletor_cancelar");
+let selItens = [], selCallback = null, selEscolhido = null;
+
+function corpoDe(it){ return it.beneficio || it.descricao || it.desc || ""; }
+function renderLista(filtro){
+  selLista.innerHTML = "";
+  const f = (filtro||"").toLowerCase();
+  selItens
+    .filter(it => it.nome.toLowerCase().includes(f) || (it.tipo||"").toLowerCase().includes(f))
+    .forEach(it => {
+      const opt = document.createElement("option");
+      opt.value = it.nome;
+      opt.textContent = it.nome + ((it.nivel !== undefined && it.nivel !== "") ? " (Nv " + it.nivel + ")" : "") + (it.revisado ? "  ★ revisado" : "");
+      selLista.appendChild(opt);
+    });
+}
+function acharItem(nome){ return selItens.find(it => it.nome === nome); }
+function mostrarDesc(it){
+  if(!it){ selDesc.innerHTML = '<span class="md-meta">Selecione um item para ver a descrição.</span>'; selOk.disabled = true; selEscolhido = null; return; }
+  selEscolhido = it; selOk.disabled = false;
+  let meta = it.tipo || "";
+  if(it.poder) meta += (meta ? " · " : "") + it.poder;
+  if(it.nivel !== undefined && it.nivel !== "") meta += (meta ? " · " : "") + "Nível " + it.nivel;
+  if(it.acao) meta += (meta ? " · " : "") + "Ação: " + it.acao;
+  if(it.alvo && (it.valor === undefined || it.valor === null || String(it.valor).trim() === "")) meta += (meta ? " · " : "") + "Alvo: " + it.alvo;
+  if(it.alcance) meta += (meta ? " · " : "") + "Alcance: " + it.alcance;
+  if(it.duracao) meta += (meta ? " · " : "") + "Duração: " + it.duracao;
+  if(it.prereq) meta += (meta ? " · " : "") + "Pré-req.: " + it.prereq;
+  if(it.restricao) meta += (meta ? " · " : "") + "Restrições: " + it.restricao;
+  if(it.dano) meta += (meta ? " · " : "") + "Dano: " + it.dano;
+  if(it.custo) meta += (meta ? " · " : "") + "Custo: " + it.custo;
+  if(it.alvo && it.valor != null && String(it.valor).trim() !== "") meta += (meta ? " · " : "") + "Bônus: " + (num(it.valor) >= 0 ? "+" : "") + it.valor + " em " + it.alvo;
+  selDesc.innerHTML =
+    '<span class="md-title">' + escapeHtml(it.nome) + (it.revisado ? '<span class="md-rev">Revisado · Guia</span>' : '') + '</span>' +
+    (meta ? '<span class="md-meta">' + escapeHtml(meta) + '</span>' : '') +
+    '<div>' + escapeHtml(corpoDe(it)) + '</div>';
+}
+function abrirSeletor(titulo, itens, callback){
+  selItens = itens.slice().sort((a,b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  selCallback = callback; selEscolhido = null;
+  selTitulo.textContent = titulo; selBusca.value = "";
+  renderLista(""); mostrarDesc(null);
+  overlay.classList.add("open");
+  setTimeout(() => selBusca.focus(), 30);
+}
+function fecharSeletor(){ overlay.classList.remove("open"); selCallback = null; }
+function confirmarSelecao(){ if(selEscolhido && selCallback) selCallback(selEscolhido); fecharSeletor(); }
+
+selBusca.addEventListener("input", () => renderLista(selBusca.value));
+selLista.addEventListener("change", () => mostrarDesc(acharItem(selLista.value)));
+selLista.addEventListener("dblclick", () => { if(selEscolhido) confirmarSelecao(); });
+selOk.addEventListener("click", confirmarSelecao);
+selCancelar.addEventListener("click", fecharSeletor);
+overlay.addEventListener("click", (e) => { if(e.target === overlay) fecharSeletor(); });
+document.addEventListener("keydown", (e) => { if(e.key === "Escape" && overlay.classList.contains("open")) fecharSeletor(); });
+
+function celInput(val){
+  const td = document.createElement("td");
+  const inp = document.createElement("input");
+  inp.type = "text"; if(val != null) inp.value = val;
+  td.appendChild(inp); return td;
+}
+function adicionarPoder(it){
+  const tbody = document.getElementById("poderes_rows");
+  const tr = document.createElement("tr");
+  tr.appendChild(celInput(it.nome));
+  const tdNivel = celInput(""); tdNivel.querySelector("input").className = "pod-nivel"; tr.appendChild(tdNivel);
+  tr.appendChild(celInput(corpoDe(it)));
+  const tdDel = document.createElement("td");
+  tdDel.className = "del-cell";
+  tdDel.innerHTML = '<span class="del-row-btn" title="Remover linha">×</span>';
+  tr.appendChild(tdDel);
+  tbody.appendChild(tr);
+  recalc();
+}
+function adicionarAptidao(it){
+  const tbody = document.getElementById("apt_rows");
+  const tr = document.createElement("tr");
+  tr.innerHTML =
+    '<td><input class="apt-pts" readonly tabindex="-1" value="0"></td>' +
+    '<td><input class="apt-nome" value="'+escapeAttr(it.nome)+'"></td>' +
+    '<td><input class="apt-desc" value="'+escapeAttr(corpoDe(it))+'"></td>' +
+    '<td><input class="apt-alvo" value="'+escapeAttr(it.alvo||"")+'"></td>' +
+    '<td><input class="apt-valor" value="'+escapeAttr(it.valor!=null?it.valor:"")+'"></td>' +
+    '<td class="del-cell"><span class="del-row-btn" title="Remover linha">×</span></td>';
+  tbody.appendChild(tr);
+  recalc();
+}
+/* monta a lista de equipamentos (armas + armaduras) para o seletor */
+function equipamentosParaSeletor(){
+  const lista = [];
+  DB.armas.forEach(a => lista.push({
+    nome: a.nome,
+    tipo: (a.classe||"") + (a.categoria ? " · " + a.categoria : ""),
+    dano: a.dano,
+    descricao: "Alcance: " + (a.alcance||"---") + " · Crítico: " + (a.critico||"---") + " · Tipo: " + (a.tipo||"---") + " · Comp.: " + (a.comp||"---") + (a.preco ? " · Preço: " + a.preco : ""),
+    _kind: "arma", _raw: a
+  }));
+  DB.armaduras.forEach(a => lista.push({
+    nome: a.nome,
+    tipo: "Armadura" + (a.tipo ? " · " + a.tipo : ""),
+    descricao: "Absorção: " + (a.absorcao||"---") + " · Penalidade: " + (a.penalidade||"---") + " · Comp.: " + (a.comp||"---") + (a.preco ? " · Preço: " + a.preco : ""),
+    _kind: "armadura", _raw: a
+  }));
+  return lista;
+}
+function adicionarLinhaArmado(raw, jid){
+  const tbody = document.getElementById("calc_armado_rows");
+  const tr = document.createElement("tr");
+  if(jid) tr.dataset.jid = jid;
+  tr.dataset.atrdano = (raw.classe === "Disparo") ? "Destreza" : "Força";
+  tr.appendChild(celInput(raw.nome||""));     // Nome
+  const cD = celInput(raw.dano||""); cD.querySelector("input").className = "ca-dano"; tr.appendChild(cD);  // Dano
+  const cB1 = celInput(""); cB1.querySelector("input").className = "ca-bonus"; tr.appendChild(cB1);  // Bônus de Dano (manual)
+  tr.appendChild(celInput(raw.alcance||""));  // Alcance
+  tr.appendChild(celInput(raw.critico||""));  // Crítico
+  tr.appendChild(celInput(""));               // Dureza (manual)
+  const cB = celInput(""); cB.querySelector("input").className = "ca-dbase calc-ro"; cB.querySelector("input").readOnly = true; tr.appendChild(cB);  // Dano Base
+  tr.appendChild(celAcoesCalc("armado", true));
+  tbody.appendChild(tr);
+}
+function adicionarLinhaDesarmado(){
+  const tbody = document.getElementById("calc_armado_rows");
+  const d = DB.armas.find(a => a.nome === "Ataque Desarmado") || {nome:"Ataque Desarmado", dano:"+0", alcance:"---", critico:"15-16"};
+  const tr = document.createElement("tr");
+  tr.dataset.atrdano = "Força";
+  tr.appendChild(celInput(d.nome));
+  const cD = celInput(d.dano||"+0"); cD.querySelector("input").className = "ca-dano"; tr.appendChild(cD);
+  const cB0 = celInput(""); cB0.querySelector("input").className = "ca-bonus"; tr.appendChild(cB0);  // Bônus de Dano
+  tr.appendChild(celInput(d.alcance||"---"));
+  tr.appendChild(celInput(d.critico||"15-16"));
+  tr.appendChild(celInput(""));               // Dureza
+  const cB = celInput(""); cB.querySelector("input").className = "ca-dbase calc-ro"; cB.querySelector("input").readOnly = true; tr.appendChild(cB);
+  tr.appendChild(celAcoesCalc("armado", false));  // sem excluir (linha fixa)
+  tbody.appendChild(tr);
+}
+function adicionarEquipamento(it){
+  const raw = it._raw || {};
+  const jid = "eq" + (idSeq++);
+  const tbody = document.getElementById("inv_rows");
+  const tr = document.createElement("tr");
+  tr.dataset.jid = jid;
+  const anot = (it._kind === "arma")
+    ? ("Dano " + (raw.dano||"") + (raw.tipo ? " · " + raw.tipo : ""))
+    : ("Absorção " + (raw.absorcao||"") + (raw.penalidade && raw.penalidade !== "---" ? " · Pen. " + raw.penalidade : ""));
+  tr.appendChild(celInput(it.nome));       // Nome
+  tr.appendChild(celInput("1"));           // Quantidade
+  tr.appendChild(celInput(raw.comp||""));  // Compartimentos
+  tr.appendChild(celInput(anot));          // Anotações
+  const tdDel = document.createElement("td"); tdDel.className = "del-cell";
+  tdDel.innerHTML = '<span class="del-row-btn" title="Remover linha">×</span>';
+  tr.appendChild(tdDel);
+  tbody.appendChild(tr);
+  if(it._kind === "arma") adicionarLinhaArmado(raw, jid);  // arma também entra na calculadora de dano
+  recalc();
+}
+document.querySelectorAll(".btn-add-row[data-catalogo]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const cat = btn.dataset.catalogo;
+    if(cat === "poderes")  abrirSeletor("Escolher Poder", DB.poderes, adicionarPoder);
+    if(cat === "aptidoes") abrirSeletor("Escolher Aptidão", DB.aptidoes, adicionarAptidao);
+    if(cat === "equipamentos") abrirSeletor("Escolher Equipamento", equipamentosParaSeletor(), adicionarEquipamento);
+  });
+});
+
+/* ===== ABA BANCO DE DADOS (tabelas editáveis) ===== */
+const BD_SCHEMAS = {
+  aptidoes: { titulo:"Aptidões", cols:[
+    {campo:"nome", rotulo:"Nome", w:"15%", tipo:"input"},
+    {campo:"tipo", rotulo:"Tipo", w:"9%", tipo:"input"},
+    {campo:"prereq", rotulo:"Pré-requisitos", w:"15%", tipo:"textarea"},
+    {campo:"restricao", rotulo:"Restrições", w:"14%", tipo:"textarea"},
+    {campo:"beneficio", rotulo:"Descrição / Benefícios", w:"auto", tipo:"textarea"},
+    {campo:"alvo", rotulo:"Bônus em", w:"11%", tipo:"input"},
+    {campo:"valor", rotulo:"Valor", w:"6%", tipo:"input"},
+    {campo:"revisado", rotulo:"Rev.", w:"42px", tipo:"check"}
+  ]},
+  poderes: { titulo:"Poderes", cols:[
+    {campo:"nome", rotulo:"Nome", w:"18%", tipo:"input"},
+    {campo:"tipo", rotulo:"Tipo", w:"10%", tipo:"input"},
+    {campo:"prereq", rotulo:"Pré-requisitos", w:"15%", tipo:"textarea"},
+    {campo:"restricao", rotulo:"Restrições", w:"14%", tipo:"textarea"},
+    {campo:"descricao", rotulo:"Descrição", w:"auto", tipo:"textarea"},
+    {campo:"revisado", rotulo:"Rev.", w:"42px", tipo:"check"}
+  ]},
+  efeitos: { titulo:"Efeitos", cols:[
+    {campo:"nome", rotulo:"Efeito", w:"13%", tipo:"input"},
+    {campo:"poder", rotulo:"Poder", w:"9%", tipo:"input"},
+    {campo:"nivel", rotulo:"Nível", w:"6%", tipo:"input"},
+    {campo:"acao", rotulo:"Ação", w:"9%", tipo:"input"},
+    {campo:"alvo", rotulo:"Alvo", w:"10%", tipo:"input"},
+    {campo:"alcance", rotulo:"Alcance", w:"9%", tipo:"input"},
+    {campo:"duracao", rotulo:"Duração", w:"9%", tipo:"input"},
+    {campo:"custo", rotulo:"Custo", w:"9%", tipo:"input"},
+    {campo:"dano", rotulo:"Dano", w:"9%", tipo:"input"},
+    {campo:"descricao", rotulo:"Descrição", w:"auto", tipo:"textarea"}
+  ]},
+  armas: { titulo:"Armas", cols:[
+    {campo:"nome", rotulo:"Arma", w:"17%", tipo:"input"},
+    {campo:"categoria", rotulo:"Categoria", w:"9%", tipo:"input"},
+    {campo:"classe", rotulo:"Classe", w:"10%", tipo:"input"},
+    {campo:"preco", rotulo:"Preço", w:"10%", tipo:"input"},
+    {campo:"dano", rotulo:"Dano", w:"7%", tipo:"input"},
+    {campo:"alcance", rotulo:"Alcance", w:"11%", tipo:"input"},
+    {campo:"critico", rotulo:"Crítico", w:"9%", tipo:"input"},
+    {campo:"comp", rotulo:"Comp.", w:"13%", tipo:"input"},
+    {campo:"tipo", rotulo:"Tipo", w:"auto", tipo:"input"}
+  ]},
+  armaduras: { titulo:"Armaduras", cols:[
+    {campo:"nome", rotulo:"Armadura", w:"24%", tipo:"input"},
+    {campo:"tipo", rotulo:"Tipo", w:"11%", tipo:"input"},
+    {campo:"preco", rotulo:"Preço", w:"13%", tipo:"input"},
+    {campo:"absorcao", rotulo:"Bônus de Absorção", w:"16%", tipo:"input"},
+    {campo:"penalidade", rotulo:"Penalidade", w:"15%", tipo:"input"},
+    {campo:"comp", rotulo:"Comp.", w:"auto", tipo:"input"}
+  ]}
+};
+
+function bdCell(cat, idx, col, val){
+  if(col.tipo === "check"){
+    return '<td class="bd-flag"><input type="checkbox" data-cat="'+cat+'" data-idx="'+idx+'" data-field="'+col.campo+'"'+(val?' checked':'')+'></td>';
+  }
+  const common = 'data-cat="'+cat+'" data-idx="'+idx+'" data-field="'+col.campo+'"';
+  if(col.tipo === "textarea"){
+    return '<td><textarea '+common+' rows="2">'+escapeHtml(val)+'</textarea></td>';
+  }
+  return '<td><input type="text" '+common+' value="'+escapeAttr(val)+'"></td>';
+}
+function bdSectionHtml(cat){
+  const sc = BD_SCHEMAS[cat];
+  const colgroup = '<colgroup>' + sc.cols.map(c => '<col style="width:'+(c.w||"auto")+'">').join('') + '<col style="width:34px"></colgroup>';
+  const head = '<tr>' + sc.cols.map(c => '<th>'+c.rotulo+'</th>').join('') + '<th></th></tr>';
+  const body = DB[cat].map((row, idx) =>
+    '<tr>' + sc.cols.map(c => bdCell(cat, idx, c, row[c.campo])).join('') +
+    '<td class="bd-del"><span class="del-bd-btn" data-cat="'+cat+'" data-idx="'+idx+'" title="Remover">×</span></td></tr>'
+  ).join('');
+  return '<div class="bd-section">' +
+    '<div class="bar">' + sc.titulo + ' <span class="bd-count">(' + DB[cat].length + ')</span></div>' +
+    '<div class="bd-table-wrap"><table class="bd-table">' + colgroup + head + body + '</table></div>' +
+    '<button class="bd-add btn-add-row" data-add-bd="'+cat+'">+ Adicionar</button>' +
+    '</div>';
+}
+function ccNum(key){ return '<input class="cc-num" type="text" data-calckey="'+key+'" value="'+escapeAttr(DB.calc[key])+'">'; }
+function bdCalcHtml(){
+  const linhas = [
+    ['Vitalidade Total', ccNum('vitBase')+' + '+ccNum('vitVigor')+' × Vigor + '+ccNum('vitNC')+' × Nível da Campanha', 'Básico p.20'],
+    ['Chakra Total', ccNum('chakraBase')+' + '+ccNum('chakraEsp')+' × Espírito', 'Básico p.20'],
+    ['Habilidades de Combate', 'Base + Atributo + Outro (base inicial '+ccNum('hcBase')+', móvel entre as 4)', 'Básico p.19'],
+    ['Perícias', 'Pontos + ½ Atributo (arred. p/ cima) + Outro', 'Básico p.36'],
+    ['Iniciativa', 'Prontidão + Agilidade', 'Básico p.20'],
+    ['Reação de Esquiva', 'Esquiva + '+ccNum('reacaoConst'), 'Básico p.20'],
+    ['Deslocamento', ccNum('deslocBase')+'m + Agilidade ÷ '+ccNum('deslocDiv')+' (arred. p/ cima)', 'Básico p.20'],
+    ['Testes Sociais', 'Carisma/Manipulação + ½ (atributo ou perícia) (arred. p/ cima)', 'Básico p.53-55'],
+    ['Pontos de Atributo', ccNum('ptsAtrPorNC')+' × NC '+ccNum('ptsAtrBase'), 'Básico p.27/30'],
+    ['Pontos de Perícia', ccNum('ptsPerPorNC')+' × NC '+ccNum('ptsPerBase'), 'Básico p.27/30'],
+    ['Pontos de Poder', ccNum('ptsPodPorNC')+' × NC '+ccNum('ptsPodBase'), 'Básico p.27/30'],
+    ['Pontos Sociais', '2 × Mínimo (piso de 2)', 'Básico p.53'],
+    ['Atributo Mínimo', '(NC − 4) ÷ 2 (arred. p/ cima) — todos os atributos', 'Básico p.27'],
+    ['Atributo Máximo', 'igual ao Nível de Campanha', 'Básico p.26'],
+    ['Limite de Poder / Perícia / Social', 'NC ÷ 2 (arred. p/ baixo)', 'Básico p.26'],
+    ['Aptidões gratuitas', ccNum('aptidoesGratis'), 'Básico p.19']
+  ];
+  const rows = linhas.map(l =>
+    '<div class="bd-calc-row"><span class="cc-nome">'+l[0]+'</span><span class="cc-formula">'+l[1]+'</span><span class="cc-fonte">'+l[2]+'</span></div>'
+  ).join('');
+  return '<div class="bd-section"><div class="bar">Cálculos (coeficientes ajustáveis)</div><div class="bd-calc">'+rows+'</div></div>';
+}
+const bdRoot = document.getElementById("bd_root");
+function bdElementosHtml(){
+  const rows = Object.keys(DB.elementos).map(nome => {
+    const cfg = DB.elementos[nome];
+    return '<tr>' +
+      '<td style="padding:6px 8px;font-weight:700;">'+nome+'</td>' +
+      '<td><textarea data-elem="'+nome+'" data-efield="permitidos" rows="2">'+escapeHtml((cfg.permitidos||[]).join(", "))+'</textarea></td>' +
+      '<td><textarea data-elem="'+nome+'" data-efield="modificador" rows="2">'+escapeHtml(cfg.modificador||"")+'</textarea></td>' +
+      '</tr>';
+  }).join('');
+  return '<div class="bd-section"><div class="bar">Elementos (efeitos gerais permitidos por poder)</div>' +
+    '<div class="bd-table-wrap"><table class="bd-table"><colgroup><col style="width:13%"><col style="width:54%"><col style="width:auto"></colgroup>' +
+    '<tr><th>Elemento</th><th>Efeitos gerais permitidos (separados por vírgula)</th><th>Modificador</th></tr>' +
+    rows + '</table></div></div>';
+}
+function bdSiglasHtml(){
+  const grupos = [
+    ["Atributos", "FOR Força · DES Destreza · AGI Agilidade · PER Percepção · INT Inteligência · VIG Vigor · ESP Espírito"],
+    ["Habilidades", "CC Combate Corporal · CD Combate à Distância · ESQ Esquiva · LM Ler Movimento"],
+    ["Derivados / bônus", "INI Iniciativa · REA Reação de Esquiva · DESL Deslocamento · VIT Vitalidade · CHA Chakra · CAR Carisma · MAN Manipulação"]
+  ];
+  const linhas = grupos.map(g => '<div class="bd-sigla-linha"><b>'+g[0]+':</b> '+g[1]+'</div>').join('');
+  return '<div class="bd-section"><div class="bar">Siglas</div><div class="bd-siglas">'+linhas+'</div></div>';
+}
+function renderBD(){
+  let html = bdSiglasHtml() + bdCalcHtml();
+  ["aptidoes","poderes","efeitos"].forEach(cat => html += bdSectionHtml(cat));
+  html += bdElementosHtml();
+  ["armas","armaduras"].forEach(cat => html += bdSectionHtml(cat));
+  bdRoot.innerHTML = html;
+}
+function vazioDe(cat){
+  const o = {};
+  BD_SCHEMAS[cat].cols.forEach(c => o[c.campo] = (c.tipo === "check") ? false : "");
+  return o;
+}
+
+bdRoot.addEventListener("input", (e) => {
+  const el = e.target;
+  if(el.classList.contains("cc-num")){
+    DB.calc[el.dataset.calckey] = num(el.value); persist(); recalc(); return;
+  }
+  if(el.dataset.elem){
+    const elem = el.dataset.elem, ef = el.dataset.efield;
+    if(!DB.elementos[elem]) DB.elementos[elem] = {permitidos:[], modificador:""};
+    if(ef === "permitidos"){ DB.elementos[elem].permitidos = el.value.split(",").map(s => s.trim()).filter(Boolean); }
+    else { DB.elementos[elem][ef] = el.value; }
+    persist(); return;
+  }
+  const cat = el.dataset.cat, idx = el.dataset.idx, field = el.dataset.field;
+  if(cat == null || idx == null || field == null) return;
+  DB[cat][+idx][field] = (el.type === "checkbox") ? el.checked : el.value;
+  persist();
+  recalc();
+});
+bdRoot.addEventListener("change", (e) => {
+  const el = e.target;
+  if(el.type === "checkbox" && el.dataset.cat){
+    DB[el.dataset.cat][+el.dataset.idx][el.dataset.field] = el.checked; persist();
+  }
+});
+bdRoot.addEventListener("click", (e) => {
+  if(e.target.classList.contains("del-bd-btn")){
+    const cat = e.target.dataset.cat, idx = +e.target.dataset.idx;
+    DB[cat].splice(idx, 1); persist(); renderBD();
+    return;
+  }
+  const addBtn = e.target.closest(".btn-add-row[data-add-bd]");
+  if(addBtn){
+    const cat = addBtn.dataset.addBd;
+    DB[cat].push(vazioDe(cat)); persist(); renderBD();
+  }
+});
+
+document.getElementById("bd_exportar").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(DB, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "banco_de_dados_sns.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  setStatus("Banco de dados exportado.");
+});
+document.getElementById("bd_importar").addEventListener("click", () => document.getElementById("bd_arquivo").click());
+document.getElementById("bd_arquivo").addEventListener("change", (e) => {
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const s = JSON.parse(reader.result);
+      const base = clone(SEED_DB);
+      ["aptidoes","poderes","armas","armaduras","efeitos"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
+      if(s.calc) Object.assign(base.calc, s.calc);
+      if(s.elementos) Object.assign(base.elementos, s.elementos);
+      if(typeof s.foto === "string") base.foto = s.foto;
+      DB = base; persist(); renderBD(); recalc();
+      setStatus("Banco de dados importado.");
+    }catch(err){ setStatus("Arquivo inválido: " + err.message); }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+});
+document.getElementById("bd_restaurar").addEventListener("click", () => {
+  if(!confirm("Restaurar o banco de dados para o padrão dos livros? Suas edições locais serão perdidas.")) return;
+  DB = clone(SEED_DB);
+  try{ localStorage.removeItem(DB_KEY); }catch(e){}
+  renderBD(); recalc();
+  setStatus("Banco de dados restaurado ao padrão.");
+});
+
+/* ---- Foto do personagem (upload + persistência) ---- */
+(function(){
+  const img = document.getElementById("foto_img");
+  const btn = document.getElementById("foto_btn");
+  const input = document.getElementById("foto_input");
+  if(!img || !btn || !input) return;
+  if(DB.foto) img.src = DB.foto;
+  btn.addEventListener("click", () => input.click());
+  input.addEventListener("change", (e) => {
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const tmp = new Image();
+      tmp.onload = () => {
+        const max = 400;
+        let w = tmp.width, h = tmp.height;
+        if(w >= h){ if(w > max){ h = Math.round(h*max/w); w = max; } }
+        else { if(h > max){ w = Math.round(w*max/h); h = max; } }
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(tmp, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        img.src = dataUrl; DB.foto = dataUrl; persist();
+      };
+      tmp.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  });
+})();
+
+/* ---- Rolagem de dano (2d8 → Grau de Dano; Dano Final = Dano Base × Grau) ---- */
+function d8(){ return 1 + Math.floor(Math.random()*8); }
+function grauDe(soma){ if(soma<=3) return 0; if(soma<=8) return 1; if(soma<=11) return 2; if(soma<=14) return 3; return 4; }
+function destacarGrau(g){
+  document.querySelectorAll(".d8-cell").forEach(c => c.classList.remove("hit"));
+  document.querySelectorAll('.d8-cell[data-grau="'+g+'"]').forEach(c => c.classList.add("hit"));
+}
+function valDe(tr, sel){ const e = tr.querySelector(sel); return e ? num(e.value) : 0; }
+function rolarDano(tr, tipo){
+  const total = (tipo === "jutsu")
+    ? valDe(tr,".cj-dbase") + valDe(tr,".cj-delem") + valDe(tr,".cj-bonus")
+    : valDe(tr,".ca-dbase") + valDe(tr,".ca-bonus");
+  const nomeEl = tr.querySelector("input");
+  const nome = (nomeEl && nomeEl.value.trim()) ? nomeEl.value.trim() : (tipo === "jutsu" ? "Jutsu" : "Ataque");
+  const a = d8(), b = d8(), soma = a + b, g = grauDe(soma);
+  destacarGrau(g);
+  const res = document.getElementById("d8_result");
+  if(res){
+    res.textContent = (g === 0)
+      ? ("🎲 " + nome + ": 2d8 = " + a + " + " + b + " = " + soma + " → Falha!")
+      : ("🎲 " + nome + ": 2d8 = " + a + " + " + b + " = " + soma + " → Grau " + g + " → Dano " + (total*g) + "  (" + total + " × " + g + ")");
+  }
+}
+function celAcoesCalc(tipo, comDelete){
+  const td = document.createElement("td");
+  td.className = "del-cell calc-acoes";
+  td.innerHTML = '<span class="roll-btn" data-tipo="'+tipo+'" title="Rolar dano">🎲</span>' +
+    (comDelete ? '<span class="del-row-btn" title="Remover linha">×</span>' : '');
+  return td;
+}
+document.addEventListener("click", (e) => {
+  const rb = e.target.closest(".roll-btn");
+  if(rb){ const tr = rb.closest("tr"); if(tr) rolarDano(tr, rb.dataset.tipo); }
+});
+
+/* ===================================================================
+   PERSISTÊNCIA DA FICHA — salva tudo no navegador; sobrevive a F5/fechar
+   =================================================================== */
+const ESTADO_KEY = "sns_ficha_estado_v1";
+const DINAMICOS = ["poderes_rows","apt_rows","inv_rows","calc_jutsu_rows","calc_armado_rows","jutsu_grid"];
+function dentroDeDinamico(el){
+  for(const id of DINAMICOS){ const c = document.getElementById(id); if(c && c.contains(el)) return true; }
+  const bd = document.getElementById("tab-bd"); if(bd && bd.contains(el)) return true;
+  const ov = document.getElementById("seletor_overlay"); if(ov && ov.contains(el)) return true;
+  return false;
+}
+function camposEstaticos(){
+  const stage = document.getElementById("stage"); if(!stage) return [];
+  return Array.from(stage.querySelectorAll("input, textarea, select")).filter(el => !dentroDeDinamico(el));
+}
+function serializarContainer(id){
+  const c = document.getElementById(id); if(!c) return "";
+  const clone = c.cloneNode(true);
+  const live = c.querySelectorAll("input, textarea, select");
+  const cl = clone.querySelectorAll("input, textarea, select");
+  live.forEach((el, i) => {
+    const ce = cl[i]; if(!ce) return;
+    if(el.tagName === "TEXTAREA"){ ce.textContent = el.value; }
+    else if(el.tagName === "SELECT"){ Array.from(ce.options).forEach(o => { o.removeAttribute("selected"); if(o.value === el.value) o.setAttribute("selected",""); }); }
+    else if(el.type === "checkbox" || el.type === "radio"){ if(el.checked) ce.setAttribute("checked",""); else ce.removeAttribute("checked"); }
+    else { ce.setAttribute("value", el.value == null ? "" : el.value); }
+  });
+  return clone.innerHTML;
+}
+function salvarEstado(){
+  try{
+    const estado = {
+      estaticos: camposEstaticos().map(el => el.type === "checkbox" ? (el.checked?1:0) : el.value),
+      autoOver: Array.from(document.querySelectorAll(".auto")).map(el => el.dataset.over === "1" ? 1 : 0),
+      containers: {}
+    };
+    DINAMICOS.forEach(id => { estado.containers[id] = serializarContainer(id); });
+    localStorage.setItem(ESTADO_KEY, JSON.stringify(estado));
+  }catch(e){}
+}
+let _saveTimer = null;
+function agendarSalvar(){ clearTimeout(_saveTimer); _saveTimer = setTimeout(salvarEstado, 400); }
+function restaurarEstado(){
+  let raw; try{ raw = localStorage.getItem(ESTADO_KEY); }catch(e){ return; }
+  if(!raw) return;
+  let estado; try{ estado = JSON.parse(raw); }catch(e){ return; }
+  if(estado.containers){
+    DINAMICOS.forEach(id => {
+      if(typeof estado.containers[id] === "string"){ const c = document.getElementById(id); if(c) c.innerHTML = estado.containers[id]; }
+    });
+  }
+  let maxId = 0;
+  document.querySelectorAll("[data-jid]").forEach(el => { const m = /(\d+)/.exec(el.getAttribute("data-jid")||""); if(m) maxId = Math.max(maxId, +m[1]); });
+  idSeq = maxId + 1;
+  if(Array.isArray(estado.estaticos)){
+    camposEstaticos().forEach((el, i) => {
+      if(i < estado.estaticos.length){
+        if(el.type === "checkbox") el.checked = !!estado.estaticos[i];
+        else el.value = estado.estaticos[i];
+      }
+    });
+  }
+  if(Array.isArray(estado.autoOver)){
+    Array.from(document.querySelectorAll(".auto")).forEach((el, i) => { if(estado.autoOver[i]) el.dataset.over = "1"; });
+  }
+}
+document.addEventListener("input", agendarSalvar);
+document.addEventListener("change", agendarSalvar);
+document.addEventListener("click", agendarSalvar);
+window.addEventListener("beforeunload", salvarEstado);
+document.addEventListener("visibilitychange", () => { if(document.hidden) salvarEstado(); });
+
+renderBD();
+restaurarEstado();
+recalc();
+
+/* ===== MOTOR DE ESCALA PROPORCIONAL ===== */
+(function(){
+  const BASE_WIDTH = 950;
+  const MAX_SCALE  = 2;
+  const outer = document.getElementById("scaler");
+  const stage = document.getElementById("stage");
+  let scale = 1;
+  function ajustarAltura(){ outer.style.height = (stage.offsetHeight * scale) + "px"; }
+  function aplicar(){
+    const vw = document.documentElement.clientWidth;
+    const gutter = vw < 700 ? 8 : 32;
+    const disponivel = Math.max(280, vw - gutter);
+    scale = Math.min(disponivel / BASE_WIDTH, MAX_SCALE);
+    stage.style.transform = "translateX(-50%) scale(" + scale + ")";
+    ajustarAltura();
+  }
+  window.addEventListener("resize", aplicar);
+  window.addEventListener("orientationchange", aplicar);
+  window.addEventListener("load", aplicar);
+  if (window.ResizeObserver){ new ResizeObserver(ajustarAltura).observe(stage); }
+  if (document.fonts && document.fonts.ready){ document.fonts.ready.then(aplicar); }
+  aplicar();
+})();
+
+</script>
+
+</body>
+</html>
