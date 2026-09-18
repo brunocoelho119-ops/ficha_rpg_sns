@@ -870,7 +870,7 @@ let _minhaFichaOwnerId = null, _meuUserId = null;
 async function carregarDaNuvem(){
   try{
     const { data: sess } = await sb.auth.getSession();
-    if(!sess.session){ location.href = "login.html"; return false; }
+    if(!sess.session){ location.href = "index.html"; return false; }
     _meuUserId = sess.session.user.id;
     if(!FICHA_ID){ location.href = "home.html"; return false; }
 
@@ -2589,7 +2589,7 @@ recalc();
   if(btnSair) btnSair.addEventListener("click", async () => {
     if(typeof sb === "undefined") return;
     await sb.auth.signOut();
-    location.href = "login.html";
+    location.href = "index.html";
   });
   const inNome = document.getElementById("ft_nome_ficha");
   if(inNome){

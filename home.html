@@ -98,7 +98,7 @@ function formatarData(iso){
 
 async function iniciar(){
   const { data: sess } = await sb.auth.getSession();
-  if(!sess.session){ location.href = "login.html"; return; }
+  if(!sess.session){ location.href = "index.html"; return; }
   meuId = sess.session.user.id;
 
   const { data: perfil, error: errPerfil } = await sb.from("perfis").select("nome, role").eq("id", meuId).single();
@@ -181,19 +181,19 @@ function ligarCliques(){
   });
 }
 
-function abrirFicha(id){ location.href = "index.html?id=" + id; }
+function abrirFicha(id){ location.href = "ficha.html?id=" + id; }
 
 document.getElementById("btn_nova").addEventListener("click", async () => {
   const nome = prompt("Nome da nova ficha (ex: nome do personagem):", "Novo Shinobi");
   if(nome == null) return;
   const { data, error } = await sb.from("fichas").insert({ user_id: meuId, nome: nome.trim() || "Ficha sem nome", dados:{} }).select("id").single();
   if(error){ alert("Não foi possível criar a ficha: " + error.message); return; }
-  location.href = "index.html?id=" + data.id;
+  location.href = "ficha.html?id=" + data.id;
 });
 
 document.getElementById("btn_sair").addEventListener("click", async () => {
   await sb.auth.signOut();
-  location.href = "login.html";
+  location.href = "index.html";
 });
 
 iniciar();
