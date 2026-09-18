@@ -324,6 +324,59 @@
   }
   .modal-btn.primary{ background:var(--bar-bg); color:#fff; border-color:var(--bar-bg); }
   .modal-btn:disabled{ opacity:0.45; cursor:not-allowed; }
+  .rl-group{ margin-bottom:14px; }
+  .rl-label{ display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--gray-text); margin-bottom:6px; }
+  .rl-segs{ display:flex; gap:6px; }
+  .rl-seg{ flex:1; padding:9px 10px; border:1px solid var(--border); border-radius:8px; background:var(--input-bg); font-weight:700; font-size:13px; cursor:pointer; font-family:var(--font-body); }
+  .rl-seg.active{ background:var(--bar-bg); color:#fff; border-color:var(--bar-bg); }
+  .rl-nota{ font-size:11px; color:var(--gray-text); font-style:italic; margin-top:6px; line-height:1.4; }
+  .rl-resultado{ margin-top:12px; padding:12px; background:var(--gray-light); border-radius:8px; font-size:13px; font-weight:600; min-height:20px; border-left:3px solid var(--bar-bg); line-height:1.5; }
+  .rl-resultado .rl-r-top{ font-family:var(--font-display); font-size:19px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; display:block; margin-bottom:4px; }
+  .rl-resultado .rl-r-sub{ display:block; font-size:12px; font-weight:600; color:#3d3f45; }
+  .rl-resultado .rl-r-warn{ display:block; font-size:11.5px; font-weight:700; color:#a32020; margin-top:5px; }
+  .rl-resultado.flash{ animation: rlFlash 900ms ease-out; }
+  @keyframes rlFlash{ 0%{ background:#ffe9a8; transform:scale(1.015);} 100%{ background:var(--gray-light); transform:scale(1);} }
+  .bd-select{ width:100%; font-size:12px; padding:4px 6px !important; background:var(--input-bg); border:1px solid var(--input-border); border-radius:6px; font-family:var(--font-body); }
+
+  /* ---------- animação de rolagem de dados ---------- */
+  .modal-card{ position:relative; }
+  .modal-card.rolando .modal-body,
+  .modal-card.rolando .modal-head,
+  .modal-card.rolando .modal-foot{ opacity:0.07; filter:blur(2px); transition:opacity 220ms ease, filter 220ms ease; pointer-events:none; }
+  .modal-body, .modal-head, .modal-foot{ transition:opacity 260ms ease, filter 260ms ease; }
+  .rl-dice-stage{
+    position:absolute; inset:0; z-index:5; display:none;
+    flex-direction:column; align-items:center; justify-content:center; gap:18px;
+    background:rgba(255,255,255,0.86); border-radius:16px;
+  }
+  .modal-card.rolando .rl-dice-stage{ display:flex; animation: rlStageIn 200ms ease-out; }
+  @keyframes rlStageIn{ from{ opacity:0; } to{ opacity:1; } }
+  .rl-dice-wrap{ display:flex; gap:20px; }
+  .rl-die{
+    width:78px; height:78px; display:flex; align-items:center; justify-content:center;
+    background:var(--bar-bg); color:#fff; border-radius:18px;
+    font-family:var(--font-display); font-size:40px; font-weight:700; line-height:1;
+    box-shadow:0 12px 26px rgba(0,0,0,0.28);
+    clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+  }
+  .rl-die.girando{ animation: rlTumble 420ms linear infinite; }
+  .rl-die.parado{ animation: rlPop 360ms cubic-bezier(.2,1.5,.4,1); }
+  @keyframes rlTumble{
+    0%{ transform: rotate(0deg) scale(1); }
+    25%{ transform: rotate(90deg) scale(1.1); }
+    50%{ transform: rotate(180deg) scale(0.92); }
+    75%{ transform: rotate(270deg) scale(1.08); }
+    100%{ transform: rotate(360deg) scale(1); }
+  }
+  @keyframes rlPop{ 0%{ transform:scale(0.7);} 60%{ transform:scale(1.14);} 100%{ transform:scale(1);} }
+  .rl-dice-cap{
+    font-family:var(--font-display); text-transform:uppercase; letter-spacing:1px;
+    font-size:16px; font-weight:700; color:var(--ink); text-align:center; min-height:22px;
+  }
+  .rl-dice-cap b{ font-size:22px; }
+  @media (prefers-reduced-motion: reduce){
+    .rl-die.girando, .rl-die.parado, .rl-resultado.flash, .modal-card.rolando .rl-dice-stage{ animation:none; }
+  }
   /* ===================== ABA BANCO DE DADOS ===================== */
   .bd-intro{ font-size:12.5px; color:#4a4c52; line-height:1.5; margin:6px 2px 14px 2px; }
   .bd-toolbar{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:18px; }
@@ -356,6 +409,7 @@
   .bd-calc .cc-formula{ flex:1; color:#333; }
   .bd-calc .cc-num{ width:52px; text-align:center; font-weight:700; padding:4px 6px !important; }
   .bd-calc .cc-fonte{ flex:0 0 128px; text-align:right; font-size:10px; color:var(--gray-text); text-transform:uppercase; letter-spacing:0.3px; }
+  .bd-calc-nota{ font-size:11px; color:var(--gray-text); font-style:italic; padding:8px 4px 0 4px; }
   /* ---- controles de efeito no card de Jutsu ---- */
   .jutsu-field select.jutsu-poder{
     flex:1; min-width:0; font-family:var(--font-body); font-size:11px; font-weight:600;
@@ -405,7 +459,8 @@
 
 <div class="tabs-nav">
   <button class="tab-btn active" data-tab="ficha">Ficha</button>
-  <button class="tab-btn" data-tab="inventario">Inventário</button>
+  <button class="tab-btn" data-tab="inventario">Skills</button>
+  <button class="tab-btn" data-tab="itens">Inventário</button>
   <button class="tab-btn" data-tab="jutsus">Jutsus</button>
   <button class="tab-btn" data-tab="bd">Banco de Dados</button>
 </div>
@@ -554,19 +609,20 @@
 
 </div>
 
-<!-- ================= ABA INVENTARIO (Inventario + Poderes + Aptidoes + Calculadoras, como na pagina 2 original) ================= -->
+<!-- ================= ABA INVENTÁRIO (Itens em cards, mesmo molde da aba Jutsus) ================= -->
+<div class="tab-content" id="tab-itens">
+<div class="page" id="page_itens">
+
+  <div class="bar" style="border-radius:999px; font-size:20px; padding:10px;">Inventário</div>
+  <div class="jutsu-grid" id="item_grid"></div>
+  <button class="btn-add-row" id="btn_add_item" style="margin-top:16px;">+ Adicionar Item</button>
+  <div class="footer-logo" style="margin-top:14px;">Shinobi no Sho</div>
+</div>
+</div>
+
+<!-- ================= ABA SKILLS (Inventario antigo + Poderes + Aptidoes + Calculadoras, como na pagina 2 original) ================= -->
 <div class="tab-content" id="tab-inventario">
 <div class="page" id="page_inventario">
-
-  <div class="bar bar-icon">
-    <svg viewBox="0 0 24 24"><path d="M8 8V6a4 4 0 0 1 8 0v2M5 8h14l1 13H4z"/><path d="M9 8v3M15 8v3"/></svg>
-    Inventário
-  </div>
-  <table class="dtable">
-    <tr><th style="width:16%;">Nome</th><th style="width:14%;">Quantidade</th><th style="width:18%;">Compartimentos</th><th>Anotações</th><th class="del-th"></th></tr>
-    <tbody id="inv_rows"></tbody>
-  </table>
-  <button class="btn-add-row" data-catalogo="equipamentos" data-add="inv_rows">+ Escolher equipamento</button>
 
   <div class="row2col" style="margin-top:14px;">
     <div style="flex:1;">
@@ -580,8 +636,8 @@
     <div style="flex:0 0 260px;">
       <div class="pill-stat">
         <span class="pill-icon">KG</span>
-        <span class="pill-label">Comp. Usados</span>
-        <input value="0">
+        <span class="pill-label">Peso Carregado</span>
+        <input id="in_comp_usados" class="calc-ro" readonly value="0">
       </div>
       <div class="pill-stat">
         <span class="pill-icon">¥</span>
@@ -619,6 +675,7 @@
         <div class="d8-cell lbl" data-grau="0">Falha</div><div class="d8-cell lbl" data-grau="1">Grau 1</div><div class="d8-cell lbl" data-grau="2">Grau 2</div><div class="d8-cell lbl" data-grau="3">Grau 3</div><div class="d8-cell lbl" data-grau="4">Grau 4</div>
       </div>
       <div class="d8-result" id="d8_result">Clique no 🎲 de uma linha de dano para rolar.</div>
+      <button class="btn-add-row" id="btn_abrir_rolagem" style="margin-top:10px; width:100%;">🎲 Rolar Ação (Ataque / Defesa)</button>
     </div>
     <div style="flex:1;">
       <div class="bar">Calculadora de Dano — Ataques Armados / Desarmado</div>
@@ -687,6 +744,90 @@
   </div>
 </div>
 
+<!-- ================= MODAL ROLAGEM DE AÇÃO (Ataque / Defesa) ================= -->
+<div class="modal-overlay" id="rolagem_overlay">
+  <div class="modal-card">
+    <div class="modal-head">🎲 Rolagem de Ação</div>
+    <div class="modal-body">
+
+      <div class="rl-group">
+        <label class="rl-label">Tipo da Ação</label>
+        <div class="rl-segs" id="rl_acao">
+          <button type="button" class="rl-seg active" data-val="ataque">Ataque</button>
+          <button type="button" class="rl-seg" data-val="defesa">Defesa</button>
+        </div>
+      </div>
+
+      <div id="rl_bloco_ataque">
+        <div class="rl-group">
+          <label class="rl-label">Tipo do Ataque</label>
+          <div class="rl-segs" id="rl_tipo_ataque">
+            <button type="button" class="rl-seg active" data-val="normal">Normal</button>
+            <button type="button" class="rl-seg" data-val="jutsu">Jutsu</button>
+          </div>
+        </div>
+        <div class="rl-group" id="rl_grp_hab">
+          <label class="rl-label">Habilidade (CC = corpo-a-corpo/toque · CD = à distância)</label>
+          <div class="rl-segs" id="rl_habilidade">
+            <button type="button" class="rl-seg active" data-val="CC">CC</button>
+            <button type="button" class="rl-seg" data-val="CD">CD</button>
+          </div>
+        </div>
+        <div class="rl-group" id="rl_grp_alcance" style="display:none;">
+          <label class="rl-label">Alcance da técnica (é ele que define a habilidade do teste)</label>
+          <div class="rl-segs" id="rl_alcance">
+            <button type="button" class="rl-seg active" data-val="toque">Toque → CC</button>
+            <button type="button" class="rl-seg" data-val="distancia">À distância → CD</button>
+            <button type="button" class="rl-seg" data-val="pessoal">Pessoal</button>
+          </div>
+          <div class="rl-nota">Básico p.257: poder de alcance toque usa CC, de alcance à distância usa CD, e alcance pessoal não pede teste de acerto. Ao escolher o jutsu abaixo, o alcance é sugerido automaticamente.</div>
+        </div>
+        <div class="rl-group">
+          <label class="rl-label">Referência (opcional — pra puxar dano e gastar custo/munição)</label>
+          <select class="modal-select" id="rl_ref_ataque"></select>
+          <div class="rl-nota" id="rl_ref_nota"></div>
+        </div>
+      </div>
+
+      <div id="rl_bloco_defesa" style="display:none;">
+        <div class="rl-group">
+          <label class="rl-label">Tipo de Defesa</label>
+          <select class="modal-select" id="rl_tipo_defesa">
+            <option value="esquiva">Esquiva</option>
+            <option value="bloqueio">Bloqueio</option>
+            <option value="antecipar">Antecipar</option>
+            <option value="evadir">Evadir</option>
+            <option value="anular">Anular Técnica</option>
+            <option value="superar">Superar Técnica</option>
+            <option value="defender_tecnica">Defender com Técnica</option>
+          </select>
+          <div class="rl-nota" id="rl_defesa_nota"></div>
+        </div>
+        <div class="rl-group" id="rl_grp_def_tecnica" style="display:none;">
+          <label class="rl-label">Técnica usada na defesa</label>
+          <select class="modal-select" id="rl_ref_defesa"></select>
+          <div class="rl-nota" id="rl_def_tecnica_nota"></div>
+        </div>
+      </div>
+
+      <div class="rl-resultado" id="rl_resultado">Escolha as opções e clique em Rolar.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="modal-btn" id="rl_cancelar">Fechar</button>
+      <button class="modal-btn primary" id="rl_rolar">🎲 Rolar</button>
+    </div>
+
+    <!-- palco da animação de dados: cobre o card enquanto rola -->
+    <div class="rl-dice-stage" id="rl_dice_stage" aria-hidden="true">
+      <div class="rl-dice-wrap">
+        <div class="rl-die" id="rl_die_a">?</div>
+        <div class="rl-die" id="rl_die_b">?</div>
+      </div>
+      <div class="rl-dice-cap" id="rl_dice_cap">Rolando 2d8…</div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ===================================================================
    PONTE COM A NUVEM (Supabase) — DESATIVADA por padrão.
@@ -745,7 +886,11 @@ const SEED_DB = {
     ptsAtrPorNC:6, ptsAtrBase:-12,
     ptsPerPorNC:4, ptsPerBase:-8,
     ptsPodPorNC:2, ptsPodBase:-4,
-    aptidoesGratis:3
+    aptidoesGratis:3,
+    meioDivisor:2,
+    minAtrNCBase:4, minAtrDiv:2,
+    limiteDiv:2,
+    socMult:2, socPiso:2
   },
   aptidoes: [
     {nome:"Acuidade", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Use Combate Corporal com o atributo Destreza.", revisado:false},
@@ -797,51 +942,51 @@ const SEED_DB = {
     {nome:"Senjutsu (Técnica Eremita)", tipo:"Restrito", prereq:"", restricao:"", descricao:"Modo Sábio: absorve energia natural para ampliar força, técnicas e percepção.", revisado:true}
   ],
   armas: [
-    {nome:"Ataque Desarmado", categoria:"Simples", classe:"Base", preco:"---", dano:"+0", alcance:"---", critico:"15-16", comp:"---", tipo:"Esmagamento"},
-    {nome:"Espada Curta", categoria:"Simples", classe:"Leve", preco:"8 Ryos", dano:"+2", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
-    {nome:"Tantō", categoria:"Simples", classe:"Leve", preco:"10 Ryos", dano:"+2", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
-    {nome:"Tonfa (par)", categoria:"Simples", classe:"Leve", preco:"8 Ryos", dano:"+1/+1", alcance:"---", critico:"15-16", comp:"1 par/1 comp.", tipo:"Esmagamento"},
-    {nome:"Clava", categoria:"Simples", classe:"Mediana", preco:"---", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento"},
-    {nome:"Lança", categoria:"Simples", classe:"Mediana", preco:"2 Ryos", dano:"+3", alcance:"10m", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
-    {nome:"Maça", categoria:"Simples", classe:"Mediana", preco:"12 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento"},
-    {nome:"Ninja-tō", categoria:"Simples", classe:"Mediana", preco:"20 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
-    {nome:"Bastão (D)", categoria:"Simples", classe:"Longa", preco:"---", dano:"+2/+2", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento"},
-    {nome:"Pique", categoria:"Simples", classe:"Longa", preco:"2 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
-    {nome:"Tacape", categoria:"Simples", classe:"Pesada", preco:"---", dano:"+4", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento"},
-    {nome:"Senbon (CC/CD) (3)", categoria:"Simples", classe:"Arremesso", preco:"3 Ryos cada", dano:"+1", alcance:"20m", critico:"15-16", comp:"15 itens/1 comp.", tipo:"Perfuração"},
-    {nome:"Shuriken (3)", categoria:"Simples", classe:"Arremesso", preco:"3 Ryos cada", dano:"+1", alcance:"20m", critico:"15-16", comp:"18 itens/1 comp.", tipo:"Perfuração"},
-    {nome:"Kunai (CC/CD) (3)", categoria:"Simples", classe:"Arremesso", preco:"2 Ryos cada", dano:"+1", alcance:"15m", critico:"15-16", comp:"10 itens/1 comp.", tipo:"Perfuração"},
-    {nome:"Arco Curto", categoria:"Simples", classe:"Disparo", preco:"30 Ryos", dano:"+1", alcance:"25m", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
-    {nome:"Besta Leve", categoria:"Simples", classe:"Disparo", preco:"35 Ryos", dano:"+2", alcance:"25m", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
-    {nome:"Tarja Explosiva", categoria:"Simples", classe:"Explosivo", preco:"10 Ryos cada", dano:"4", alcance:"5m diâmetro", critico:"---", comp:"6 itens/1 comp.", tipo:"Fogo"},
-    {nome:"Bomba de Fumaça", categoria:"Simples", classe:"Explosivo", preco:"10 Ryos cada", dano:"---", alcance:"10m diâmetro", critico:"---", comp:"6 itens/1 comp.", tipo:"---"},
-    {nome:"Bomba Luminosa", categoria:"Simples", classe:"Explosivo", preco:"10 Ryos cada", dano:"---", alcance:"10m diâmetro", critico:"---", comp:"6 itens/1 comp.", tipo:"---"},
-    {nome:"Aian Nakkuru (par)", categoria:"Marcial", classe:"Leve", preco:"100 Ryos", dano:"+1/+1", alcance:"15m", critico:"15-16", comp:"1 par/1 comp.", tipo:"Corte"},
-    {nome:"Kousen (15m)", categoria:"Marcial", classe:"Leve", preco:"2 Ryos", dano:"---", alcance:"---", critico:"---", comp:"1 item/1 comp.", tipo:"---"},
-    {nome:"Nunchaku", categoria:"Marcial", classe:"Leve", preco:"2 Ryos", dano:"+2", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento"},
-    {nome:"Sai (par)", categoria:"Marcial", classe:"Leve", preco:"5 Ryos", dano:"+1/+1", alcance:"20m", critico:"15-16", comp:"1 par/1 comp.", tipo:"Perfuração"},
-    {nome:"Wakizashi", categoria:"Marcial", classe:"Leve", preco:"15 Ryos", dano:"+2", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
-    {nome:"Chicote", categoria:"Marcial", classe:"Mediana", preco:"1 Ryo", dano:"+0", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
-    {nome:"Chokutō", categoria:"Marcial", classe:"Mediana", preco:"20 Ryos", dano:"+4", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
-    {nome:"Cimitarra", categoria:"Marcial", classe:"Mediana", preco:"20 Ryos", dano:"+2", alcance:"---", critico:"14-15-16", comp:"1 item/1 comp.", tipo:"Corte"},
-    {nome:"Corrente com Cravos", categoria:"Marcial", classe:"Mediana", preco:"25 Ryos", dano:"+1", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
-    {nome:"Espada Longa", categoria:"Marcial", classe:"Mediana", preco:"15 Ryos", dano:"+4", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
-    {nome:"Florete", categoria:"Marcial", classe:"Mediana", preco:"20 Ryos", dano:"+2", alcance:"---", critico:"14-15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
-    {nome:"Katana", categoria:"Marcial", classe:"Mediana", preco:"20 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
-    {nome:"Machado", categoria:"Marcial", classe:"Mediana", preco:"10 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte"},
-    {nome:"Martelo de Guerra", categoria:"Marcial", classe:"Mediana", preco:"12 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento"},
-    {nome:"Foice", categoria:"Marcial", classe:"Longa", preco:"18 Ryos", dano:"+4", alcance:"---", critico:"15-16", comp:"1 item/2 comp.", tipo:"Corte"},
-    {nome:"Leque Gigante", categoria:"Marcial", classe:"Longa", preco:"100 Ryos", dano:"+2", alcance:"---", critico:"15-16", comp:"1 item/2 comp.", tipo:"Esmagamento"},
-    {nome:"Espada de Duas Lâminas (D)", categoria:"Marcial", classe:"Pesada", preco:"100 Ryos", dano:"+2/+2", alcance:"---", critico:"15-16", comp:"1 item/2 comp.", tipo:"Corte"},
-    {nome:"Espada Grande", categoria:"Marcial", classe:"Pesada", preco:"20 Ryos", dano:"+5", alcance:"---", critico:"15-16", comp:"1 item/2 comp.", tipo:"Corte"},
-    {nome:"Machado Grande", categoria:"Marcial", classe:"Pesada", preco:"50 Ryos", dano:"+5 (+1)", alcance:"---", critico:"15-16", comp:"1 item/2 comp.", tipo:"Corte"},
-    {nome:"Fuuma Shuriken: Gigante", categoria:"Marcial", classe:"Arremesso", preco:"10 Ryos", dano:"+5", alcance:"20m", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
-    {nome:"Fuuma Shuriken: Lâmina Reta", categoria:"Marcial", classe:"Arremesso", preco:"15 Ryos", dano:"+3", alcance:"20m", critico:"15-16", comp:"2 itens/1 comp.", tipo:"Perfuração"},
-    {nome:"Fuuma Shuriken: Kage Fushä", categoria:"Marcial", classe:"Arremesso", preco:"20 Ryos", dano:"+2", alcance:"20m", critico:"14-15-16", comp:"2 itens/1 comp.", tipo:"Perfuração"},
-    {nome:"Arco Composto/Longo", categoria:"Marcial", classe:"Disparo", preco:"100 Ryos", dano:"+3", alcance:"10m +2m×Des", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
-    {nome:"Besta Pesada", categoria:"Marcial", classe:"Disparo", preco:"50 Ryos", dano:"+4", alcance:"35m", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração"},
-    {nome:"Flechas para arcos (1)", categoria:"Marcial", classe:"Munição", preco:"1 Ryo cada", dano:"---", alcance:"---", critico:"---", comp:"20 itens/1 comp.", tipo:"---"},
-    {nome:"Virotes para bestas (1)", categoria:"Marcial", classe:"Munição", preco:"1 Ryo cada", dano:"---", alcance:"---", critico:"---", comp:"20 itens/1 comp.", tipo:"---"}
+    {nome:"Ataque Desarmado", categoria:"Simples", classe:"Base", preco:"---", dano:"+0", alcance:"---", critico:"15-16", comp:"---", tipo:"Esmagamento", uso:"CC"},
+    {nome:"Espada Curta", categoria:"Simples", classe:"Leve", preco:"8 Ryos", dano:"+2", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte", uso:"CC"},
+    {nome:"Tantō", categoria:"Simples", classe:"Leve", preco:"10 Ryos", dano:"+2", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte", uso:"CC"},
+    {nome:"Tonfa (par)", categoria:"Simples", classe:"Leve", preco:"8 Ryos", dano:"+1/+1", alcance:"---", critico:"15-16", comp:"1 par/1 comp.", tipo:"Esmagamento", uso:"CC"},
+    {nome:"Clava", categoria:"Simples", classe:"Mediana", preco:"---", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento", uso:"CC"},
+    {nome:"Lança", categoria:"Simples", classe:"Mediana", preco:"2 Ryos", dano:"+3", alcance:"10m", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração", uso:"CC/CD"},
+    {nome:"Maça", categoria:"Simples", classe:"Mediana", preco:"12 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento", uso:"CC"},
+    {nome:"Ninja-tō", categoria:"Simples", classe:"Mediana", preco:"20 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte", uso:"CC"},
+    {nome:"Bastão (D)", categoria:"Simples", classe:"Longa", preco:"---", dano:"+2/+2", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento", uso:"CC"},
+    {nome:"Pique", categoria:"Simples", classe:"Longa", preco:"2 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração", uso:"CC"},
+    {nome:"Tacape", categoria:"Simples", classe:"Pesada", preco:"---", dano:"+4", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento", uso:"CC"},
+    {nome:"Senbon (CC/CD) (3)", categoria:"Simples", classe:"Arremesso", preco:"3 Ryos cada", dano:"+1", alcance:"20m", critico:"15-16", comp:"15 itens/1 comp.", tipo:"Perfuração", uso:"CC/CD"},
+    {nome:"Shuriken (3)", categoria:"Simples", classe:"Arremesso", preco:"3 Ryos cada", dano:"+1", alcance:"20m", critico:"15-16", comp:"18 itens/1 comp.", tipo:"Perfuração", uso:"CD"},
+    {nome:"Kunai (CC/CD) (3)", categoria:"Simples", classe:"Arremesso", preco:"2 Ryos cada", dano:"+1", alcance:"15m", critico:"15-16", comp:"10 itens/1 comp.", tipo:"Perfuração", uso:"CC/CD"},
+    {nome:"Arco Curto", categoria:"Simples", classe:"Disparo", preco:"30 Ryos", dano:"+1", alcance:"25m", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração", uso:"CD"},
+    {nome:"Besta Leve", categoria:"Simples", classe:"Disparo", preco:"35 Ryos", dano:"+2", alcance:"25m", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração", uso:"CD"},
+    {nome:"Tarja Explosiva", categoria:"Simples", classe:"Explosivo", preco:"10 Ryos cada", dano:"4", alcance:"5m diâmetro", critico:"---", comp:"6 itens/1 comp.", tipo:"Fogo", uso:"CD"},
+    {nome:"Bomba de Fumaça", categoria:"Simples", classe:"Explosivo", preco:"10 Ryos cada", dano:"---", alcance:"10m diâmetro", critico:"---", comp:"6 itens/1 comp.", tipo:"---", uso:"CD"},
+    {nome:"Bomba Luminosa", categoria:"Simples", classe:"Explosivo", preco:"10 Ryos cada", dano:"---", alcance:"10m diâmetro", critico:"---", comp:"6 itens/1 comp.", tipo:"---", uso:"CD"},
+    {nome:"Aian Nakkuru (par)", categoria:"Marcial", classe:"Leve", preco:"100 Ryos", dano:"+1/+1", alcance:"15m", critico:"15-16", comp:"1 par/1 comp.", tipo:"Corte", uso:"CC/CD"},
+    {nome:"Kousen (15m)", categoria:"Marcial", classe:"Leve", preco:"2 Ryos", dano:"---", alcance:"---", critico:"---", comp:"1 item/1 comp.", tipo:"---", uso:"—"},
+    {nome:"Nunchaku", categoria:"Marcial", classe:"Leve", preco:"2 Ryos", dano:"+2", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento", uso:"CC"},
+    {nome:"Sai (par)", categoria:"Marcial", classe:"Leve", preco:"5 Ryos", dano:"+1/+1", alcance:"20m", critico:"15-16", comp:"1 par/1 comp.", tipo:"Perfuração", uso:"CC/CD"},
+    {nome:"Wakizashi", categoria:"Marcial", classe:"Leve", preco:"15 Ryos", dano:"+2", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte", uso:"CC"},
+    {nome:"Chicote", categoria:"Marcial", classe:"Mediana", preco:"1 Ryo", dano:"+0", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte", uso:"CC"},
+    {nome:"Chokutō", categoria:"Marcial", classe:"Mediana", preco:"20 Ryos", dano:"+4", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte", uso:"CC"},
+    {nome:"Cimitarra", categoria:"Marcial", classe:"Mediana", preco:"20 Ryos", dano:"+2", alcance:"---", critico:"14-15-16", comp:"1 item/1 comp.", tipo:"Corte", uso:"CC"},
+    {nome:"Corrente com Cravos", categoria:"Marcial", classe:"Mediana", preco:"25 Ryos", dano:"+1", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração", uso:"CC"},
+    {nome:"Espada Longa", categoria:"Marcial", classe:"Mediana", preco:"15 Ryos", dano:"+4", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte", uso:"CC"},
+    {nome:"Florete", categoria:"Marcial", classe:"Mediana", preco:"20 Ryos", dano:"+2", alcance:"---", critico:"14-15-16", comp:"1 item/1 comp.", tipo:"Perfuração", uso:"CC"},
+    {nome:"Katana", categoria:"Marcial", classe:"Mediana", preco:"20 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte", uso:"CC"},
+    {nome:"Machado", categoria:"Marcial", classe:"Mediana", preco:"10 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Corte", uso:"CC"},
+    {nome:"Martelo de Guerra", categoria:"Marcial", classe:"Mediana", preco:"12 Ryos", dano:"+3", alcance:"---", critico:"15-16", comp:"1 item/1 comp.", tipo:"Esmagamento", uso:"CC"},
+    {nome:"Foice", categoria:"Marcial", classe:"Longa", preco:"18 Ryos", dano:"+4", alcance:"---", critico:"15-16", comp:"1 item/2 comp.", tipo:"Corte", uso:"CC"},
+    {nome:"Leque Gigante", categoria:"Marcial", classe:"Longa", preco:"100 Ryos", dano:"+2", alcance:"---", critico:"15-16", comp:"1 item/2 comp.", tipo:"Esmagamento", uso:"CC"},
+    {nome:"Espada de Duas Lâminas (D)", categoria:"Marcial", classe:"Pesada", preco:"100 Ryos", dano:"+2/+2", alcance:"---", critico:"15-16", comp:"1 item/2 comp.", tipo:"Corte", uso:"CC"},
+    {nome:"Espada Grande", categoria:"Marcial", classe:"Pesada", preco:"20 Ryos", dano:"+5", alcance:"---", critico:"15-16", comp:"1 item/2 comp.", tipo:"Corte", uso:"CC"},
+    {nome:"Machado Grande", categoria:"Marcial", classe:"Pesada", preco:"50 Ryos", dano:"+5 (+1)", alcance:"---", critico:"15-16", comp:"1 item/2 comp.", tipo:"Corte", uso:"CC"},
+    {nome:"Fuuma Shuriken: Gigante", categoria:"Marcial", classe:"Arremesso", preco:"10 Ryos", dano:"+5", alcance:"20m", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração", uso:"CD"},
+    {nome:"Fuuma Shuriken: Lâmina Reta", categoria:"Marcial", classe:"Arremesso", preco:"15 Ryos", dano:"+3", alcance:"20m", critico:"15-16", comp:"2 itens/1 comp.", tipo:"Perfuração", uso:"CD"},
+    {nome:"Fuuma Shuriken: Kage Fushä", categoria:"Marcial", classe:"Arremesso", preco:"20 Ryos", dano:"+2", alcance:"20m", critico:"14-15-16", comp:"2 itens/1 comp.", tipo:"Perfuração", uso:"CD"},
+    {nome:"Arco Composto/Longo", categoria:"Marcial", classe:"Disparo", preco:"100 Ryos", dano:"+3", alcance:"10m +2m×Des", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração", uso:"CD"},
+    {nome:"Besta Pesada", categoria:"Marcial", classe:"Disparo", preco:"50 Ryos", dano:"+4", alcance:"35m", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração", uso:"CD"},
+    {nome:"Flechas para arcos (1)", categoria:"Marcial", classe:"Munição", preco:"1 Ryo cada", dano:"---", alcance:"---", critico:"---", comp:"20 itens/1 comp.", tipo:"---", uso:"—"},
+    {nome:"Virotes para bestas (1)", categoria:"Marcial", classe:"Munição", preco:"1 Ryo cada", dano:"---", alcance:"---", critico:"---", comp:"20 itens/1 comp.", tipo:"---", uso:"—"}
   ],
   armaduras: [
     {nome:"Roupa Comum", tipo:"Leve", preco:"10 Ryos", absorcao:"+0", penalidade:"---", comp:"---"},
@@ -903,6 +1048,32 @@ const SEED_DB = {
 
 const DB_KEY = "sns_ficha_db_v1";
 function clone(o){ return JSON.parse(JSON.stringify(o)); }
+/* Uso da arma: CC (corpo-a-corpo), CD (à distância), "CC/CD" (ambos) ou "—" (não ataca) */
+function migrarArmasUso(base){
+  if(!base || !Array.isArray(base.armas)) return;
+  base.armas.forEach(a => {
+    if(a.uso != null && String(a.uso).trim() !== "") return;
+    const pad = (SEED_DB.armas.find(x => x.nome === a.nome) || {}).uso;
+    a.uso = pad || usoPadraoPorClasse(a.classe);
+  });
+}
+function usoPadraoPorClasse(classe){
+  const c = String(classe||"").trim();
+  if(c === "Arremesso" || c === "Disparo" || c === "Explosivo") return "CD";
+  if(c === "Munição") return "—";
+  return "CC";
+}
+function usoDaArma(nome, classe){
+  const a = (DB && DB.armas) ? DB.armas.find(x => x.nome === nome) : null;
+  const u = a && a.uso ? String(a.uso).trim() : "";
+  return u || usoPadraoPorClasse(classe);
+}
+function usoPermite(uso, hab){
+  const u = String(uso||"").toUpperCase();
+  if(u.indexOf("/") >= 0) return true;              /* CC/CD */
+  if(u !== "CC" && u !== "CD") return false;        /* "—" ou vazio */
+  return u === hab;
+}
 function carregarDB(){
   const base = clone(SEED_DB);
   try{
@@ -910,6 +1081,7 @@ function carregarDB(){
     if(raw){
       const s = JSON.parse(raw);
       ["aptidoes","poderes","armas","armaduras","efeitos"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
+      migrarArmasUso(base);
       if(s.calc) Object.assign(base.calc, s.calc);
       if(s.elementos) Object.assign(base.elementos, s.elementos);
       if(typeof s.foto === "string") base.foto = s.foto;
@@ -1085,6 +1257,35 @@ function adicionarJutsu(){
 }
 document.getElementById("btn_add_jutsu").addEventListener("click", adicionarJutsu);
 
+/* ===================== CARDS DE ITEM (Inventário) — mesmo molde dos cards de Jutsu ===================== */
+function criarItemCard(jid){
+  const card = document.createElement("div");
+  card.className = "jutsu-card item-card";
+  if(jid) card.dataset.jid = jid;
+  card.innerHTML =
+    '<span class="jutsu-del-btn" title="Remover item">×</span>' +
+    '<div class="jutsu-field"><span>Nome:</span><input class="if-nome"></div>' +
+    '<div class="jutsu-field"><span>Categoria:</span><input class="half if-categoria"><span>Classe:</span><input class="if-classe"></div>' +
+    '<div class="jutsu-field"><span>Preço:</span><input class="half if-preco"><span>Comp.:</span><input class="if-comp"></div>' +
+    '<div class="jutsu-field"><span>Dano:</span><input class="half if-dano"><span>Tipo:</span><input class="if-tipo"></div>' +
+    '<div class="jutsu-field"><span>Alcance:</span><input class="half if-alcance"><span>Crítico:</span><input class="if-critico"></div>' +
+    '<div class="jutsu-field"><span>Bônus de Dano:</span><input class="half if-bonus"><span>Dureza:</span><input class="if-dureza"></div>' +
+    '<div class="jutsu-field"><span>Dano Base:</span><input class="if-danobase calc-ro" readonly value="0"></div>' +
+    '<div class="jutsu-field"><span>Absorção:</span><input class="half if-absorcao"><span>Penalidade:</span><input class="if-penalidade"></div>' +
+    '<div class="jutsu-field"><span>Qtd:</span><input class="half if-qtd" value="1"><span>Peso Unit. (kg):</span><input class="if-peso" value="0"></div>' +
+    '<div class="jutsu-field"><span>Peso Total:</span><input class="if-peso-total calc-ro" readonly value="0"></div>' +
+    '<div class="jutsu-desc-bar">Anotações</div>' +
+    '<div class="jutsu-desc-lines"><textarea class="if-desc"></textarea></div>';
+  return card;
+}
+function adicionarItem(){
+  abrirSeletor("Escolher Equipamento", equipamentosParaSeletor(), adicionarEquipamento);
+}
+document.getElementById("btn_add_item").addEventListener("click", adicionarItem);
+document.getElementById("item_grid").addEventListener("input", (e) => {
+  if(e.target.closest(".jutsu-card")) recalc();
+});
+
 /* efeitos disponíveis para um poder até um nível */
 function efeitosDisponiveis(poder, nivelStr){
   const n = String(nivelStr).trim() === "" ? 99 : num(nivelStr);
@@ -1143,7 +1344,7 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
 
 /* ===== AUTOMAÇÃO DE CÁLCULOS (usa DB.calc) ===== */
 function num(v){ if(v==null) return 0; const n = parseFloat(String(v).replace(",", ".")); return isNaN(n) ? 0 : n; }
-function metadeCima(x){ return Math.ceil(x/2); }
+function metadeCima(x){ return Math.ceil(x/(DB.calc.meioDivisor||2)); }
 function attrVal(nome){ const el = document.querySelector('.attr-val[data-attr="'+nome+'"]'); return el ? num(el.value) : 0; }
 function socAttr(nome){ const el = document.querySelector('.soc-attr[data-socattr="'+nome+'"]'); return el ? num(el.value) : 0; }
 function semAcento(s){ return String(s==null?"":s).normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
@@ -1240,15 +1441,15 @@ function recalc(){
   });
 
   /* ---- Orçamento de pontos por Nível de Campanha (Básico p.27/30) ---- */
-  const min = Math.max(0, Math.ceil((NC - 4) / 2));
+  const min = Math.max(0, Math.ceil((NC - c.minAtrNCBase) / c.minAtrDiv));
   const orc = {
     atr: Math.max(0, c.ptsAtrPorNC*NC + c.ptsAtrBase),
     per: Math.max(0, c.ptsPerPorNC*NC + c.ptsPerBase),
     pod: Math.max(0, c.ptsPodPorNC*NC + c.ptsPodBase),
-    soc: Math.max(2, 2*min),
+    soc: Math.max(c.socPiso, c.socMult*min),
     min: min,
     max: NC,
-    limitePP: Math.floor(NC/2)
+    limitePP: Math.floor(NC/c.limiteDiv)
   };
   let atrGasto = 0; document.querySelectorAll(".attr-val").forEach(i => atrGasto += num(i.value));
   let perGasto = 0; document.querySelectorAll(".pr-pontos").forEach(i => perGasto += num(i.value));
@@ -1288,6 +1489,29 @@ function recalc(){
     const atr = tr.dataset.atrdano || "Força";
     dbEl.value = Math.max(0, metadeCima(attrVal(atr)) + num(danoEl ? danoEl.value : 0));
   });
+
+  /* ---- Inventário: Dano Base de cada item-arma (mesma fórmula da Calculadora de Dano) ---- */
+  document.querySelectorAll("#item_grid .item-card").forEach(card => {
+    const dbEl = card.querySelector(".if-danobase"); if(!dbEl) return;
+    const danoEl = card.querySelector(".if-dano");
+    const atr = card.dataset.atrdano || "Força";
+    dbEl.value = Math.max(0, metadeCima(attrVal(atr)) + num(danoEl ? danoEl.value : 0));
+  });
+
+  /* ---- Inventário: peso total dos itens (Peso Unit. × Qtd), somado no Peso Carregado ---- */
+  let pesoTotalItens = 0;
+  document.querySelectorAll("#item_grid .jutsu-card").forEach(card => {
+    const pesoEl = card.querySelector(".if-peso");
+    const qtdEl = card.querySelector(".if-qtd");
+    const totEl = card.querySelector(".if-peso-total");
+    const peso = num(pesoEl ? pesoEl.value : 0);
+    const qtd = num(qtdEl ? qtdEl.value : 0);
+    const tot = peso * qtd;
+    if(totEl) totEl.value = tot;
+    pesoTotalItens += tot;
+  });
+  const compUsados = document.getElementById("in_comp_usados");
+  if(compUsados) compUsados.value = Math.round(pesoTotalItens * 100) / 100;
 
   /* Barra de status: totais de Vida/Chakra + munições */
   const vitTot = document.querySelector('.auto[data-calc="vit"]');
@@ -1410,7 +1634,7 @@ function equipamentosParaSeletor(){
     nome: a.nome,
     tipo: (a.classe||"") + (a.categoria ? " · " + a.categoria : ""),
     dano: a.dano,
-    descricao: "Alcance: " + (a.alcance||"---") + " · Crítico: " + (a.critico||"---") + " · Tipo: " + (a.tipo||"---") + " · Comp.: " + (a.comp||"---") + (a.preco ? " · Preço: " + a.preco : ""),
+    descricao: "Uso: " + (a.uso || usoPadraoPorClasse(a.classe)) + " · Alcance: " + (a.alcance||"---") + " · Crítico: " + (a.critico||"---") + " · Tipo: " + (a.tipo||"---") + " · Comp.: " + (a.comp||"---") + (a.preco ? " · Preço: " + a.preco : ""),
     _kind: "arma", _raw: a
   }));
   DB.armaduras.forEach(a => lista.push({
@@ -1427,6 +1651,7 @@ function adicionarLinhaArmado(raw, jid){
   if(jid) tr.dataset.jid = jid;
   tr.dataset.atrdano = (raw.classe === "Disparo") ? "Destreza" : "Força";
   tr.dataset.classe = raw.classe || "";
+  tr.dataset.uso = raw.uso || usoPadraoPorClasse(raw.classe);
   tr.appendChild(celInput(raw.nome||""));     // Nome
   const cD = celInput(raw.dano||""); cD.querySelector("input").className = "ca-dano"; tr.appendChild(cD);  // Dano
   const cB1 = celInput(""); cB1.querySelector("input").className = "ca-bonus"; tr.appendChild(cB1);  // Bônus de Dano (manual)
@@ -1442,6 +1667,8 @@ function adicionarLinhaDesarmado(){
   const d = DB.armas.find(a => a.nome === "Ataque Desarmado") || {nome:"Ataque Desarmado", dano:"+0", alcance:"---", critico:"15-16"};
   const tr = document.createElement("tr");
   tr.dataset.atrdano = "Força";
+  tr.dataset.classe = d.classe || "Base";
+  tr.dataset.uso = d.uso || "CC";
   tr.appendChild(celInput(d.nome));
   const cD = celInput(d.dano||"+0"); cD.querySelector("input").className = "ca-dano"; tr.appendChild(cD);
   const cB0 = celInput(""); cB0.querySelector("input").className = "ca-bonus"; tr.appendChild(cB0);  // Bônus de Dano
@@ -1455,22 +1682,24 @@ function adicionarLinhaDesarmado(){
 function adicionarEquipamento(it){
   const raw = it._raw || {};
   const jid = "eq" + (idSeq++);
-  const tbody = document.getElementById("inv_rows");
-  const tr = document.createElement("tr");
-  tr.dataset.jid = jid;
-  tr.dataset.classe = raw.classe || "";
-  const anot = (it._kind === "arma")
-    ? ("Dano " + (raw.dano||"") + (raw.tipo ? " · " + raw.tipo : ""))
-    : ("Absorção " + (raw.absorcao||"") + (raw.penalidade && raw.penalidade !== "---" ? " · Pen. " + raw.penalidade : ""));
-  tr.appendChild(celInput(it.nome));       // Nome
-  tr.appendChild(celInput("1"));           // Quantidade
-  tr.appendChild(celInput(raw.comp||""));  // Compartimentos
-  tr.appendChild(celInput(anot));          // Anotações
-  const tdDel = document.createElement("td"); tdDel.className = "del-cell";
-  tdDel.innerHTML = '<span class="del-row-btn" title="Remover linha">×</span>';
-  tr.appendChild(tdDel);
-  tbody.appendChild(tr);
-  if(it._kind === "arma") adicionarLinhaArmado(raw, jid);  // arma também entra na calculadora de dano
+  const card = criarItemCard(jid);
+  card.dataset.classe = raw.classe || "";
+  card.dataset.uso = raw.uso || usoPadraoPorClasse(raw.classe);
+  card.dataset.atrdano = (raw.classe === "Disparo") ? "Destreza" : "Força";
+  card.querySelector(".if-nome").value = it.nome || "";
+  card.querySelector(".if-categoria").value = raw.categoria || "";
+  card.querySelector(".if-classe").value = raw.classe || "";
+  card.querySelector(".if-preco").value = raw.preco || "";
+  card.querySelector(".if-comp").value = raw.comp || "";
+  card.querySelector(".if-dano").value = raw.dano || "";
+  card.querySelector(".if-tipo").value = raw.tipo || "";
+  card.querySelector(".if-alcance").value = raw.alcance || "";
+  card.querySelector(".if-critico").value = raw.critico || "";
+  card.querySelector(".if-absorcao").value = raw.absorcao || "";
+  card.querySelector(".if-penalidade").value = raw.penalidade || "";
+  card.querySelector(".if-qtd").value = "1";
+  document.getElementById("item_grid").appendChild(card);
+  if(it._kind === "arma") adicionarLinhaArmado(raw, jid);  // arma também entra na calculadora de dano central
   recalc();
 }
 document.querySelectorAll(".btn-add-row[data-catalogo]").forEach(btn => {
@@ -1515,12 +1744,13 @@ const BD_SCHEMAS = {
     {campo:"descricao", rotulo:"Descrição", w:"auto", tipo:"textarea"}
   ]},
   armas: { titulo:"Armas", cols:[
-    {campo:"nome", rotulo:"Arma", w:"17%", tipo:"input"},
-    {campo:"categoria", rotulo:"Categoria", w:"9%", tipo:"input"},
-    {campo:"classe", rotulo:"Classe", w:"10%", tipo:"input"},
-    {campo:"preco", rotulo:"Preço", w:"10%", tipo:"input"},
-    {campo:"dano", rotulo:"Dano", w:"7%", tipo:"input"},
-    {campo:"alcance", rotulo:"Alcance", w:"11%", tipo:"input"},
+    {campo:"nome", rotulo:"Arma", w:"16%", tipo:"input"},
+    {campo:"categoria", rotulo:"Categoria", w:"8%", tipo:"input"},
+    {campo:"classe", rotulo:"Classe", w:"9%", tipo:"input"},
+    {campo:"uso", rotulo:"Uso", w:"8%", tipo:"select", opcoes:["CC","CD","CC/CD","—"]},
+    {campo:"preco", rotulo:"Preço", w:"9%", tipo:"input"},
+    {campo:"dano", rotulo:"Dano", w:"6%", tipo:"input"},
+    {campo:"alcance", rotulo:"Alcance", w:"10%", tipo:"input"},
     {campo:"critico", rotulo:"Crítico", w:"9%", tipo:"input"},
     {campo:"comp", rotulo:"Comp.", w:"13%", tipo:"input"},
     {campo:"tipo", rotulo:"Tipo", w:"auto", tipo:"input"}
@@ -1540,6 +1770,12 @@ function bdCell(cat, idx, col, val){
     return '<td class="bd-flag"><input type="checkbox" data-cat="'+cat+'" data-idx="'+idx+'" data-field="'+col.campo+'"'+(val?' checked':'')+'></td>';
   }
   const common = 'data-cat="'+cat+'" data-idx="'+idx+'" data-field="'+col.campo+'"';
+  if(col.tipo === "select"){
+    const atual = String(val == null ? "" : val);
+    const opts = (col.opcoes||[]).map(o => '<option value="'+escapeAttr(o)+'"'+(o === atual ? ' selected' : '')+'>'+escapeHtml(o)+'</option>').join('');
+    const extra = (atual && (col.opcoes||[]).indexOf(atual) < 0) ? '<option value="'+escapeAttr(atual)+'" selected>'+escapeHtml(atual)+'</option>' : '';
+    return '<td><select class="bd-select" '+common+'>'+opts+extra+'</select></td>';
+  }
   if(col.tipo === "textarea"){
     return '<td><textarea '+common+' rows="2">'+escapeHtml(val)+'</textarea></td>';
   }
@@ -1565,29 +1801,30 @@ function bdCalcHtml(){
     ['Vitalidade Total', ccNum('vitBase')+' + '+ccNum('vitVigor')+' × Vigor + '+ccNum('vitNC')+' × Nível da Campanha', 'Básico p.20'],
     ['Chakra Total', ccNum('chakraBase')+' + '+ccNum('chakraEsp')+' × Espírito', 'Básico p.20'],
     ['Habilidades de Combate', 'Base + Atributo + Outro (base inicial '+ccNum('hcBase')+', móvel entre as 4)', 'Básico p.19'],
-    ['Perícias', 'Pontos + ½ Atributo (arred. p/ cima) + Outro', 'Básico p.36'],
+    ['Perícias', 'Pontos + ½ Atributo (divisor '+ccNum('meioDivisor')+', arred. p/ cima) + Outro', 'Básico p.36'],
     ['Iniciativa', 'Prontidão + Agilidade', 'Básico p.20'],
     ['Reação de Esquiva', 'Esquiva + '+ccNum('reacaoConst'), 'Básico p.20'],
-    ['Deslocamento', ccNum('deslocBase')+'m + Agilidade ÷ '+ccNum('deslocDiv')+' (arred. p/ cima)', 'Básico p.20'],
-    ['Testes Sociais', 'Carisma/Manipulação + ½ (atributo ou perícia) (arred. p/ cima)', 'Básico p.53-55'],
-    ['Dano Base — Ataque Corporal', '(Força ÷ 2, arred. p/ cima) + Dano da Arma', 'Básico p.257'],
-    ['Dano Base — Ataque à Distância Armado', '(Destreza ÷ 2, arred. p/ cima) + Dano da Arma', 'Básico p.257'],
-    ['Dano Base — Ninpou / Elementos', '(Espírito ÷ 2, arred. p/ cima) + Nível usado do Poder', 'Básico p.257 / 91'],
+    ['Deslocamento', ccNum('deslocBase')+'m + Agilidade ÷ '+ccNum('deslocDiv')+' (arred. p/ cima)', 'Básico p.262'],
+    ['Testes Sociais', 'Carisma/Manipulação + ½ (atributo ou perícia; usa o mesmo divisor de Perícias acima)', 'Básico p.53-55'],
+    ['Dano Base — Ataque Corporal', '(Força ÷ divisor de Perícias, arred. p/ cima) + Dano da Arma', 'Básico p.257'],
+    ['Dano Base — Ataque à Distância Armado', '(Destreza ÷ divisor de Perícias, arred. p/ cima) + Dano da Arma', 'Básico p.257'],
+    ['Dano Base — Ninpou / Elementos', '(Espírito ÷ divisor de Perícias, arred. p/ cima) + Nível usado do Poder', 'Básico p.257 / 91'],
     ['Dano Base — mínimo', '0 — nunca fica negativo, mesmo com redutores', 'Básico p.257'],
     ['Dano Final', 'Dano Base × Grau de Dano (rolagem 2d8, grau 1 a 4)', 'Básico p.257'],
     ['Pontos de Atributo', ccNum('ptsAtrPorNC')+' × NC '+ccNum('ptsAtrBase'), 'Básico p.27/30'],
     ['Pontos de Perícia', ccNum('ptsPerPorNC')+' × NC '+ccNum('ptsPerBase'), 'Básico p.27/30'],
     ['Pontos de Poder', ccNum('ptsPodPorNC')+' × NC '+ccNum('ptsPodBase'), 'Básico p.27/30'],
-    ['Pontos Sociais', '2 × Mínimo (piso de 2)', 'Básico p.53'],
-    ['Atributo Mínimo', '(NC − 4) ÷ 2 (arred. p/ cima) — todos os atributos', 'Básico p.27'],
+    ['Pontos Sociais', ccNum('socMult')+' × Mínimo (piso de '+ccNum('socPiso')+')', 'Básico p.53'],
+    ['Atributo Mínimo', '(NC − '+ccNum('minAtrNCBase')+') ÷ '+ccNum('minAtrDiv')+' (arred. p/ cima) — todos os atributos', 'Básico p.27'],
     ['Atributo Máximo', 'igual ao Nível de Campanha', 'Básico p.26'],
-    ['Limite de Poder / Perícia / Social', 'NC ÷ 2 (arred. p/ baixo)', 'Básico p.26'],
+    ['Limite de Poder / Perícia / Social', 'NC ÷ '+ccNum('limiteDiv')+' (arred. p/ baixo)', 'Básico p.26'],
     ['Aptidões gratuitas', ccNum('aptidoesGratis'), 'Básico p.19']
   ];
   const rows = linhas.map(l =>
     '<div class="bd-calc-row"><span class="cc-nome">'+l[0]+'</span><span class="cc-formula">'+l[1]+'</span><span class="cc-fonte">'+l[2]+'</span></div>'
   ).join('');
-  return '<div class="bd-section"><div class="bar">Cálculos (coeficientes ajustáveis)</div><div class="bd-calc">'+rows+'</div></div>';
+  return '<div class="bd-section"><div class="bar">Cálculos (coeficientes ajustáveis)</div><div class="bd-calc">'+rows+
+    '</div><div class="bd-calc-nota">O campo de divisor em "Perícias" é o mesmo usado em Testes Sociais e nos 3 cálculos de Dano Base — mude ali uma vez e o valor vale para todos.</div></div>';
 }
 const bdRoot = document.getElementById("bd_root");
 function bdElementosHtml(){
@@ -1681,6 +1918,7 @@ document.getElementById("bd_arquivo").addEventListener("change", (e) => {
       const s = JSON.parse(reader.result);
       const base = clone(SEED_DB);
       ["aptidoes","poderes","armas","armaduras","efeitos"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
+      migrarArmasUso(base);
       if(s.calc) Object.assign(base.calc, s.calc);
       if(s.elementos) Object.assign(base.elementos, s.elementos);
       if(typeof s.foto === "string") base.foto = s.foto;
@@ -1757,12 +1995,9 @@ function rolarDano(tr, tipo){
     let custo = valDe(tr, ".cj-custo"); if(custo <= 0) custo = valDe(tr, ".cj-nv");
     if(custo > 0) ajustarChakra(-custo);
   } else {
-    const classe = tr.dataset.classe || "";
-    if(classe === "Arremesso" || classe === "Munição"){
-      const jid = tr.dataset.jid;
-      const inv = jid ? document.querySelector('#inv_rows tr[data-jid="'+jid+'"]') : null;
-      if(inv){ const q = inv.querySelectorAll("input")[1]; if(q){ q.value = Math.max(0, num(q.value) - 1); atualizarMunicoes(); agendarSalvar(); } }
-    }
+    /* munição só é gasta em ataque à distância — armas CC/CD usadas em CC não consomem */
+    const uso = tr.dataset.uso ? String(tr.dataset.uso).trim() : usoDaArma((tr.querySelector("input")||{}).value || "", tr.dataset.classe || "");
+    if(uso === "CD" && typeof consumirMunicao === "function") consumirMunicao(tr);
   }
 }
 function celAcoesCalc(tipo, comDelete){
@@ -1777,6 +2012,392 @@ document.addEventListener("click", (e) => {
   if(rb){ const tr = rb.closest("tr"); if(tr) rolarDano(tr, rb.dataset.tipo); }
 });
 
+/* ===================================================================
+   ROLAGEM DE AÇÃO — popup unificado (Ataque / Defesa)
+   Regras: Básico p.19-20 (Atacando/Defendendo), p.267 (Manobras de Previsão)
+   =================================================================== */
+const DEFESAS = {
+  esquiva:          { nome:"Esquiva",              hab:null, tecnica:false, chakra:false, nota:"Reação, sem teste — o atacante precisa bater sua Dif (9 + Esquiva). Você não rola nada." },
+  bloqueio:         { nome:"Bloqueio",              hab:"CC", tecnica:false, chakra:false, nota:"Reação — só é possível estando armado (Básico p.256)." },
+  antecipar:        { nome:"Antecipar",             hab:"LM", tecnica:false, chakra:false, nota:"Reação (ação livre). Teste resistido de Ler Movimento (Básico p.266)." },
+  evadir:           { nome:"Evadir",                hab:"LM", tecnica:false, chakra:false, nota:"Ação de movimento; você também se desloca. Não pode ser usada se já se deslocou na rodada." },
+  anular:           { nome:"Anular Técnica",        hab:"LM", tecnica:true,  chakra:true,  nota:"Ação padrão; só contra técnicas de Ninpou com dano, com diferença de nível ≤1. Você revida com uma técnica idêntica ou apropriada — escolha-a abaixo." },
+  superar:          { nome:"Superar Técnica",       hab:"LM", tecnica:true,  chakra:false, nota:"Ação de movimento, logo após um Anular Técnica bem-sucedido. Reaproveita a técnica já paga no Anular, por isso não gasta chakra de novo. O passo seguinte (teste de acerto com −3) é feito na aba Ataque." },
+  defender_tecnica: { nome:"Defender com Técnica",  hab:"LM", tecnica:true,  chakra:true,  nota:"Usa o efeito defensivo do seu próprio poder. Escolha a técnica abaixo — o chakra é gasto antes do teste de LM." }
+};
+const NOTA_CUSTO_ANTES = "Básico p.266: a ação e o custo de chakra da defesa são gastos ANTES do teste de LM. Se o teste falhar, eles não são recuperados.";
+
+function habTotal(cod){
+  const el = document.querySelector('.hc-row[data-cod="'+cod+'"] .hc-total');
+  return el ? num(el.textContent) : 0;
+}
+function chakraAtual(){ const el = document.querySelector(".campo-chakra"); return el ? num(el.value) : 0; }
+
+let rlAcao = "ataque", rlTipoAtaque = "normal", rlHabilidade = "CC", rlAlcance = "toque";
+let rlRefRows = [], rlRefDefRows = [];
+const rolagemOverlay = document.getElementById("rolagem_overlay");
+
+function setSeg(container, val){
+  container.querySelectorAll(".rl-seg").forEach(b => b.classList.toggle("active", b.dataset.val === val));
+}
+
+/* habilidade efetivamente usada no teste de acerto */
+function habEfetiva(){
+  if(rlTipoAtaque !== "jutsu") return rlHabilidade;
+  if(rlAlcance === "distancia") return "CD";
+  if(rlAlcance === "pessoal")   return null;   /* sem teste de acerto */
+  return "CC";
+}
+
+/* uso (CC / CD / CC-CD / —) de uma linha da calculadora de ataques armados */
+function usoDaLinha(tr){
+  const marcado = tr.dataset.uso ? String(tr.dataset.uso).trim() : "";
+  if(marcado) return marcado;
+  const nomeEl = tr.querySelector("input");
+  const nome = nomeEl ? nomeEl.value.trim() : "";
+  return usoDaArma(nome, tr.dataset.classe || "");
+}
+
+function popularReferenciaAtaque(){
+  const sel  = document.getElementById("rl_ref_ataque");
+  const nota = document.getElementById("rl_ref_nota");
+  const anterior = sel.value;
+  sel.innerHTML = '<option value="">— nenhum (só testar acerto) —</option>';
+  rlRefRows = [];
+  const ehJutsu = (rlTipoAtaque === "jutsu");
+  const hab = habEfetiva();
+  let ocultas = 0;
+
+  document.querySelectorAll(ehJutsu ? "#calc_jutsu_rows tr" : "#calc_armado_rows tr").forEach(tr => {
+    const nomeEl = tr.querySelector(ehJutsu ? ".cj-jutsu" : "input");
+    const nome = nomeEl ? nomeEl.value.trim() : "";
+    if(!nome) return;
+    if(!ehJutsu){
+      const uso = usoDaLinha(tr);
+      if(!usoPermite(uso, hab)){ ocultas++; return; }
+    }
+    const idx = rlRefRows.length;
+    rlRefRows.push(tr);
+    const o = document.createElement("option");
+    o.value = String(idx);
+    o.textContent = ehJutsu ? nome : (nome + "  (" + usoDaLinha(tr) + ")");
+    sel.appendChild(o);
+  });
+  if(anterior && sel.querySelector('option[value="'+anterior+'"]')) sel.value = anterior;
+
+  if(nota){
+    if(ehJutsu) nota.textContent = "";
+    else if(ocultas > 0) nota.textContent = ocultas + (ocultas === 1 ? " arma ocultada por não poder ser usada em " : " armas ocultadas por não poderem ser usadas em ") + hab + ". O uso de cada arma é editável na aba Banco de Dados › Armas.";
+    else nota.textContent = "";
+  }
+}
+
+/* sugere o alcance do jutsu a partir do card correspondente */
+function sugerirAlcanceDoJutsu(){
+  const idx = document.getElementById("rl_ref_ataque").value;
+  if(idx === "") return;
+  const tr = rlRefRows[Number(idx)]; if(!tr) return;
+  const jid = tr.dataset.jid; if(!jid) return;
+  const card = document.querySelector('#jutsu_grid .jutsu-card[data-jid="'+jid+'"]'); if(!card) return;
+  const el = card.querySelector(".jf-alcance"); if(!el) return;
+  const t = el.value.toLowerCase();
+  if(!t.trim()) return;
+  let novo = null;
+  if(t.indexOf("pessoal") >= 0) novo = "pessoal";
+  else if(t.indexOf("toque") >= 0) novo = "toque";
+  else if(t.indexOf("dist") >= 0 || /\d/.test(t)) novo = "distancia";
+  if(novo){ rlAlcance = novo; setSeg(document.getElementById("rl_alcance"), rlAlcance); }
+}
+
+function popularReferenciaDefesa(){
+  const sel = document.getElementById("rl_ref_defesa");
+  sel.innerHTML = '<option value="">— escolha a técnica —</option>';
+  rlRefDefRows = [];
+  document.querySelectorAll("#calc_jutsu_rows tr").forEach(tr => {
+    const el = tr.querySelector(".cj-jutsu");
+    const nome = el ? el.value.trim() : "";
+    if(!nome) return;
+    let custo = valDe(tr, ".cj-custo"); if(custo <= 0) custo = valDe(tr, ".cj-nv");
+    const idx = rlRefDefRows.length;
+    rlRefDefRows.push(tr);
+    const o = document.createElement("option");
+    o.value = String(idx);
+    o.textContent = nome + (custo > 0 ? "  (custo " + custo + ")" : "");
+    sel.appendChild(o);
+  });
+  if(rlRefDefRows.length === 0){
+    sel.innerHTML = '<option value="">— nenhum jutsu cadastrado na calculadora —</option>';
+  }
+}
+
+function atualizarNotaDefesa(){
+  const key = document.getElementById("rl_tipo_defesa").value;
+  const def = DEFESAS[key] || {};
+  document.getElementById("rl_defesa_nota").textContent = def.nota || "";
+  const grp = document.getElementById("rl_grp_def_tecnica");
+  grp.style.display = def.tecnica ? "" : "none";
+  if(def.tecnica){
+    popularReferenciaDefesa();
+    document.getElementById("rl_def_tecnica_nota").textContent =
+      def.chakra ? NOTA_CUSTO_ANTES : "O chakra já foi gasto no Anular Técnica — aqui a técnica serve só de referência.";
+  }
+}
+
+function atualizarBlocoRolagem(){
+  document.getElementById("rl_bloco_ataque").style.display = (rlAcao === "ataque") ? "" : "none";
+  document.getElementById("rl_bloco_defesa").style.display = (rlAcao === "defesa") ? "" : "none";
+  if(rlAcao === "ataque"){
+    const ehJutsu = (rlTipoAtaque === "jutsu");
+    document.getElementById("rl_grp_hab").style.display     = ehJutsu ? "none" : "";
+    document.getElementById("rl_grp_alcance").style.display = ehJutsu ? "" : "none";
+    popularReferenciaAtaque();
+  } else {
+    atualizarNotaDefesa();
+  }
+  mostrarResultado("Escolha as opções e clique em Rolar.", "");
+}
+
+/* ---------------- saída do resultado ---------------- */
+function mostrarResultado(html, texto, flash){
+  const box = document.getElementById("rl_resultado");
+  box.innerHTML = html;
+  box.classList.remove("flash");
+  if(flash){ void box.offsetWidth; box.classList.add("flash"); }
+  if(texto){ const d8r = document.getElementById("d8_result"); if(d8r) d8r.textContent = texto; }
+}
+function linhaRes(topo, sub, aviso){
+  return '<span class="rl-r-top">' + escapeHtml(topo) + '</span>' +
+         (sub ? '<span class="rl-r-sub">' + sub + '</span>' : '') +
+         (aviso ? '<span class="rl-r-warn">⚠ ' + escapeHtml(aviso) + '</span>' : '');
+}
+
+/* ---------------- animação de rolagem ---------------- */
+const rlCard   = rolagemOverlay.querySelector(".modal-card");
+const rlDieA   = document.getElementById("rl_die_a");
+const rlDieB   = document.getElementById("rl_die_b");
+const rlDieCap = document.getElementById("rl_dice_cap");
+let rlAnimando = false;
+
+function animarDados(a, b, rotulo, aoTerminar){
+  const reduz = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduz){ aoTerminar(); return; }
+  rlAnimando = true;
+  rlCard.classList.add("rolando");
+  rlDieCap.textContent = (rotulo || "Rolando") + " — 2d8…";
+  [rlDieA, rlDieB].forEach(d => { d.classList.remove("parado"); d.classList.add("girando"); });
+
+  const tick = setInterval(() => {
+    rlDieA.textContent = d8();
+    rlDieB.textContent = d8();
+  }, 70);
+
+  setTimeout(() => {
+    clearInterval(tick);
+    rlDieA.textContent = a; rlDieB.textContent = b;
+    [rlDieA, rlDieB].forEach(d => { d.classList.remove("girando"); d.classList.add("parado"); });
+    rlDieCap.innerHTML = "2d8 = " + a + " + " + b + " = <b>" + (a + b) + "</b>";
+    setTimeout(() => {
+      rlCard.classList.remove("rolando");
+      rlAnimando = false;
+      aoTerminar();
+    }, 620);
+  }, 900);
+}
+
+/* ---------------- consumo de munição ---------------- */
+function baixarQtdItem(card){
+  if(!card) return false;
+  const q = card.querySelector(".if-qtd"); if(!q) return false;
+  q.value = Math.max(0, num(q.value) - 1);
+  atualizarMunicoes(); agendarSalvar();
+  return true;
+}
+/* só é chamada quando o ataque é CD (Básico: munição só se gasta em ataque à distância) */
+function consumirMunicao(tr){
+  const classe = tr.dataset.classe || "";
+  if(classe === "Arremesso" || classe === "Munição"){
+    const jid = tr.dataset.jid;
+    const card = jid ? document.querySelector('#item_grid .item-card[data-jid="'+jid+'"]') : null;
+    return baixarQtdItem(card) ? "munição/arma arremessada −1" : "";
+  }
+  if(classe === "Disparo"){
+    const nomeEl = tr.querySelector("input");
+    const nome = (nomeEl ? nomeEl.value : "").toLowerCase();
+    const alvo = nome.indexOf("besta") >= 0 ? "virote" : (nome.indexOf("arco") >= 0 ? "flecha" : "");
+    let escolhido = null;
+    document.querySelectorAll('#item_grid .item-card').forEach(card => {
+      if(escolhido) return;
+      if((card.dataset.classe || "") !== "Munição") return;
+      const n = card.querySelector(".if-nome");
+      const txt = (n ? n.value : "").toLowerCase();
+      if(!alvo || txt.indexOf(alvo) >= 0) escolhido = card;
+    });
+    return baixarQtdItem(escolhido) ? "munição −1" : "";
+  }
+  return "";
+}
+
+/* ---------------- ataque ---------------- */
+function rolarAtaquePopup(){
+  const hab = habEfetiva();
+
+  /* alcance pessoal: não existe teste de acerto */
+  if(hab === null){
+    mostrarResultado(linhaRes("Sem teste de acerto",
+      "Poderes de alcance pessoal não exigem teste de acerto (Básico p.257). Aplique o efeito da técnica direto.",
+      ""), "Jutsu de alcance pessoal: sem teste de acerto.", true);
+    return;
+  }
+
+  const precisao = habTotal(hab);
+  const a = d8(), b = d8(), soma = a + b;
+
+  animarDados(a, b, rlTipoAtaque === "jutsu" ? "Jutsu" : "Ataque", () => {
+    const totalTeste = soma + precisao;
+    const rotulo = hab + " (" + (rlTipoAtaque === "jutsu" ? "Jutsu" : "Normal") + ")";
+    let topo, sub = "", aviso = "", texto;
+
+    if(soma <= 3){
+      topo = "Erro automático";
+      sub  = rotulo + ": 2d8 (" + a + "+" + b + ") + " + precisao + " = <b>" + totalTeste + "</b> — não acerta.";
+      texto = "🎲 " + rotulo + ": 2d8 (" + a + "+" + b + ") + " + precisao + " = " + totalTeste + " → ERRO AUTOMÁTICO";
+      mostrarResultado(linhaRes(topo, sub, aviso), texto, true);
+      agendarSalvar();
+      return;
+    }
+
+    const g = grauDe(soma);
+    destacarGrau(g);
+    topo = (soma >= 15 ? "Crítico automático · Grau " + g : "Grau " + g);
+    sub  = rotulo + ": 2d8 (" + a + "+" + b + ") + " + precisao + " = <b>" + totalTeste + "</b>";
+    texto = "🎲 " + rotulo + ": 2d8 (" + a + "+" + b + ") + " + precisao + " = " + totalTeste + " → Grau " + g;
+
+    const idx = document.getElementById("rl_ref_ataque").value;
+    if(idx !== ""){
+      const tr = rlRefRows[Number(idx)];
+      if(tr){
+        const ehJutsu = (rlTipoAtaque === "jutsu");
+        const total = ehJutsu
+          ? valDe(tr,".cj-dbase") + valDe(tr,".cj-delem") + valDe(tr,".cj-bonus")
+          : valDe(tr,".ca-dbase") + valDe(tr,".ca-bonus");
+        const nomeEl = tr.querySelector(ehJutsu ? ".cj-jutsu" : "input");
+        const nome = nomeEl ? nomeEl.value : "";
+        topo = nome + " · Dano " + (total * g);
+        sub += "<br>Dano " + (total * g) + " = " + total + " × Grau " + g;
+        texto += " → " + nome + ": Dano " + (total*g) + " (" + total + " × " + g + ")";
+
+        if(ehJutsu){
+          let custo = valDe(tr, ".cj-custo"); if(custo <= 0) custo = valDe(tr, ".cj-nv");
+          if(custo > 0){
+            if(custo > chakraAtual()) aviso = "Chakra insuficiente (precisa de " + custo + ", você tem " + chakraAtual() + ").";
+            ajustarChakra(-custo);
+            sub += " · Chakra −" + custo;
+          }
+        } else if(hab === "CD"){
+          /* munição só é descontada em ataque à distância */
+          const msg = consumirMunicao(tr);
+          if(msg) sub += " · " + msg;
+        }
+      }
+    }
+    mostrarResultado(linhaRes(topo, sub, aviso), texto, true);
+    agendarSalvar();
+  });
+}
+
+/* ---------------- defesa ---------------- */
+function rolarDefesaPopup(){
+  const key = document.getElementById("rl_tipo_defesa").value;
+  const def = DEFESAS[key];
+
+  /* Esquiva: sem rolagem */
+  if(!def.hab){
+    const esq = habTotal("ESQ");
+    const texto = "🛡️ " + def.nome + ": Dif do atacante = 9 + " + esq + " = " + (9 + esq) + " (você não rola nada)";
+    mostrarResultado(linhaRes(def.nome + " · Dif " + (9 + esq),
+      "O atacante precisa bater 9 + " + esq + " (Esquiva). Você não rola nada.", ""), texto, true);
+    return;
+  }
+
+  /* defesas com técnica: precisa escolher o jutsu antes */
+  let trTec = null, custo = 0, nomeTec = "";
+  if(def.tecnica){
+    const idx = document.getElementById("rl_ref_defesa").value;
+    if(idx === ""){
+      mostrarResultado(linhaRes("Escolha a técnica",
+        def.nome + " exige declarar qual técnica você está usando antes de rolar (Básico p.266).", ""), "", false);
+      return;
+    }
+    trTec = rlRefDefRows[Number(idx)];
+    if(trTec){
+      const el = trTec.querySelector(".cj-jutsu");
+      nomeTec = el ? el.value : "";
+      custo = valDe(trTec, ".cj-custo"); if(custo <= 0) custo = valDe(trTec, ".cj-nv");
+    }
+  }
+
+  const precisao = habTotal(def.hab);
+  const a = d8(), b = d8(), soma = a + b;
+
+  animarDados(a, b, def.nome, () => {
+    let aviso = "";
+    /* custo pago ANTES do teste, e não é devolvido se falhar (Básico p.266) */
+    if(def.tecnica && def.chakra && custo > 0){
+      if(custo > chakraAtual()) aviso = "Chakra insuficiente (precisa de " + custo + ", você tem " + chakraAtual() + ").";
+      ajustarChakra(-custo);
+    }
+
+    const totalTeste = soma + precisao;
+    let topo = def.nome + (nomeTec ? " · " + nomeTec : "");
+    let sub = def.hab + ": 2d8 (" + a + "+" + b + ") + " + precisao + " = <b>" + totalTeste + "</b>";
+    if(def.tecnica && def.chakra && custo > 0) sub += " · Chakra −" + custo + " (gasto mesmo se falhar)";
+    let texto = "🎲 " + def.nome + (nomeTec ? " [" + nomeTec + "]" : "") + " (" + def.hab + "): 2d8 (" + a + "+" + b + ") + " + precisao + " = " + totalTeste;
+
+    if(soma <= 3){ topo = "Erro automático"; sub += "<br>A defesa falhou."; texto += " → falhou (erro automático)"; }
+    else if(soma >= 15){ topo += " · Sucesso automático"; sub += "<br>Crítico: a defesa passa."; texto += " → sucesso automático (crítico)"; }
+    else { sub += "<br>Teste resistido: compare com o total do atacante."; }
+
+    mostrarResultado(linhaRes(topo, sub, aviso), texto, true);
+    agendarSalvar();
+  });
+}
+
+document.getElementById("btn_abrir_rolagem").addEventListener("click", () => {
+  rolagemOverlay.classList.add("open");
+  atualizarBlocoRolagem();
+});
+document.getElementById("rl_cancelar").addEventListener("click", () => {
+  if(rlAnimando) return;
+  rolagemOverlay.classList.remove("open");
+});
+document.getElementById("rl_acao").addEventListener("click", (e) => {
+  const b = e.target.closest(".rl-seg"); if(!b) return;
+  rlAcao = b.dataset.val; setSeg(document.getElementById("rl_acao"), rlAcao);
+  atualizarBlocoRolagem();
+});
+document.getElementById("rl_tipo_ataque").addEventListener("click", (e) => {
+  const b = e.target.closest(".rl-seg"); if(!b) return;
+  rlTipoAtaque = b.dataset.val; setSeg(document.getElementById("rl_tipo_ataque"), rlTipoAtaque);
+  atualizarBlocoRolagem();
+});
+document.getElementById("rl_habilidade").addEventListener("click", (e) => {
+  const b = e.target.closest(".rl-seg"); if(!b) return;
+  rlHabilidade = b.dataset.val; setSeg(document.getElementById("rl_habilidade"), rlHabilidade);
+  popularReferenciaAtaque();      /* lista só as armas que podem ser usadas nessa habilidade */
+});
+document.getElementById("rl_alcance").addEventListener("click", (e) => {
+  const b = e.target.closest(".rl-seg"); if(!b) return;
+  rlAlcance = b.dataset.val; setSeg(document.getElementById("rl_alcance"), rlAlcance);
+});
+document.getElementById("rl_ref_ataque").addEventListener("change", () => {
+  if(rlTipoAtaque === "jutsu") sugerirAlcanceDoJutsu();
+});
+document.getElementById("rl_tipo_defesa").addEventListener("change", atualizarNotaDefesa);
+document.getElementById("rl_rolar").addEventListener("click", () => {
+  if(rlAnimando) return;
+  if(rlAcao === "ataque") rolarAtaquePopup(); else rolarDefesaPopup();
+});
+
 /* ---- Barra de status: Vida/Chakra espelhados, munições e dano recebido ---- */
 function setTodos(cls, val){ document.querySelectorAll("."+cls).forEach(el => { el.value = val; }); }
 function ajustarChakra(delta){
@@ -1787,12 +2408,11 @@ function ajustarChakra(delta){
 function atualizarMunicoes(){
   const cont = document.getElementById("st_municoes"); if(!cont) return;
   const itens = [];
-  document.querySelectorAll("#inv_rows tr").forEach(tr => {
-    const cl = tr.dataset.classe || "";
+  document.querySelectorAll("#item_grid .item-card").forEach(card => {
+    const cl = card.dataset.classe || "";
     if(cl !== "Arremesso" && cl !== "Munição") return;
-    const ins = tr.querySelectorAll("input");
-    const nome = ins[0] ? ins[0].value : "";
-    const qtd = ins[1] ? ins[1].value : "";
+    const nome = card.querySelector(".if-nome") ? card.querySelector(".if-nome").value : "";
+    const qtd = card.querySelector(".if-qtd") ? card.querySelector(".if-qtd").value : "";
     if(nome) itens.push(escapeHtml(nome) + ": <b>" + escapeHtml(qtd || "0") + "</b>");
   });
   cont.innerHTML = itens.length ? itens.join(" &nbsp;·&nbsp; ") : "—";
@@ -1818,7 +2438,7 @@ document.addEventListener("input", (e) => {
    PERSISTÊNCIA DA FICHA — salva tudo no navegador; sobrevive a F5/fechar
    =================================================================== */
 const ESTADO_KEY = "sns_ficha_estado_v1";
-const DINAMICOS = ["poderes_rows","apt_rows","inv_rows","calc_jutsu_rows","calc_armado_rows","jutsu_grid"];
+const DINAMICOS = ["poderes_rows","apt_rows","calc_jutsu_rows","calc_armado_rows","jutsu_grid","item_grid"];
 function dentroDeDinamico(el){
   for(const id of DINAMICOS){ const c = document.getElementById(id); if(c && c.contains(el)) return true; }
   const bd = document.getElementById("tab-bd"); if(bd && bd.contains(el)) return true;
