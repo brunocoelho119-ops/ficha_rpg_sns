@@ -70,7 +70,7 @@
 
   /* ---- tratamento padrão de todo input/textarea dentro da ficha ---- */
   .page input, .page textarea{
-    border:1px solid var(--input-border); background:var(--input-bg); border-radius:7px;
+    border:1px solid var(--input-border); background:var(--input-bg); border-radius:var(--radius-sm);
     font-family: var(--font-body); color:var(--ink);
     padding:4px 8px; transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
   }
@@ -233,7 +233,7 @@
 
   /* ===================== PAGINA 3: CARDS DE JUTSU ===================== */
   .jutsu-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:16px; }
-  .jutsu-card{ border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; box-shadow:var(--shadow-sm); }
+  .jutsu-card{ border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; box-shadow:var(--shadow-sm); min-width:0; }
   .jutsu-field{ font-size:11px; font-weight:700; text-transform:uppercase; margin-bottom:6px; display:flex; align-items:baseline; gap:5px; color:var(--gray-text); }
   .jutsu-field input{ font-family:var(--font-body); font-size:11px; font-weight:500; text-transform:none; flex:1; min-width:0; color:var(--ink); padding:2px 6px; }
   .jutsu-field .half{ width:50%; }
@@ -309,7 +309,17 @@
   .modal-head{ background:var(--bar-bg); color:#fff; font-family:var(--font-display); font-weight:700; font-size:17px; text-transform:uppercase; letter-spacing:0.5px; padding:14px 18px; }
   .modal-body{ padding:14px 18px; overflow-y:auto; }
   .modal-search{ width:100%; font-size:14px; padding:9px 12px !important; margin-bottom:10px; }
-  .modal-select{ width:100%; font-size:14px; padding:9px 12px !important; margin-bottom:12px; background:var(--input-bg); }
+  .sel-lista{ border:1px solid var(--border); border-radius:12px; background:var(--input-bg); margin-bottom:12px; max-height:300px; overflow-y:auto; padding:5px; }
+  .sel-grupo{ position:sticky; top:0; background:var(--gray-light); color:var(--gray-text); font-family:var(--font-display); font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; padding:6px 10px; margin:2px 0; border-radius:6px; z-index:1; }
+  .sel-item{ display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:8px; cursor:pointer; font-size:13.5px; color:var(--ink); transition:background 90ms ease; }
+  .sel-item:hover{ background:#eef3fb; }
+  .sel-item.sel{ background:var(--bar-bg); color:#fff; }
+  .sel-item-nome{ flex:1; min-width:0; }
+  .sel-item-nv{ flex:0 0 auto; min-width:44px; text-align:center; font-size:10.5px; font-weight:700; color:var(--gray-text); background:var(--gray-light); border-radius:999px; padding:2px 8px; white-space:nowrap; }
+  .sel-item.sel .sel-item-nv{ color:#fff; background:rgba(255,255,255,0.22); }
+  .sel-item-rev{ color:#0f4c9c; font-size:12px; }
+  .sel-item.sel .sel-item-rev{ color:#ffd35a; }
+  .sel-vazio{ padding:18px; text-align:center; color:var(--gray-text); font-size:13px; }
   .modal-desc{
     border:1px solid var(--border); border-radius:10px; background:var(--gray-light);
     padding:12px 14px; font-size:13px; line-height:1.5; color:#2a2c31; min-height:90px;
@@ -327,7 +337,8 @@
   .rl-group{ margin-bottom:14px; }
   .rl-label{ display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--gray-text); margin-bottom:6px; }
   .rl-segs{ display:flex; gap:6px; }
-  .rl-seg{ flex:1; padding:9px 10px; border:1px solid var(--border); border-radius:8px; background:var(--input-bg); font-weight:700; font-size:13px; cursor:pointer; font-family:var(--font-body); }
+  .rl-seg{ flex:1; padding:9px 10px; border:1px solid var(--border); border-radius:8px; background:var(--input-bg); font-weight:700; font-size:13px; cursor:pointer; font-family:var(--font-body); transition:background 90ms ease; }
+  .rl-seg:hover:not(.active){ background:#eef3fb; }
   .rl-seg.active{ background:var(--bar-bg); color:#fff; border-color:var(--bar-bg); }
   .rl-nota{ font-size:11px; color:var(--gray-text); font-style:italic; margin-top:6px; line-height:1.4; }
   .ficha-topbar{
@@ -431,7 +442,7 @@
   .jutsu-field select.jutsu-poder{
     flex:1; min-width:0; font-family:var(--font-body); font-size:11px; font-weight:600;
     padding:3px 4px; border:1px solid var(--input-border); background:var(--input-bg);
-    border-radius:7px; color:var(--ink);
+    border-radius:var(--radius-sm); color:var(--ink);
   }
   .jutsu-efeito-btn{
     width:100%; margin:2px 0 9px 0; font-family:var(--font-body); font-weight:600; font-size:11px;
@@ -464,6 +475,22 @@
   .st-dano-in{ width:52px; text-align:center; font-weight:700; font-size:13px; padding:3px 4px !important; background:#fff !important; color:var(--ink) !important; border:none !important; border-radius:6px; }
   .st-ok{ font-family:var(--font-body); font-weight:700; font-size:11px; border:none; border-radius:999px; padding:4px 12px; cursor:pointer; background:#00AD67; color:#fff; }
   .st-ok:hover{ filter:brightness(1.08); }
+  .dtable td select.apt-escolha{ width:100%; border:none; background:transparent; font-family:var(--font-body); font-size:12px; font-weight:500; padding:5px 4px; color:var(--ink); cursor:pointer; }
+  .dtable td select.apt-escolha:focus{ outline:2px solid #cfe0f5; outline-offset:-2px; background:#fff; }
+  .modal-overlay{ backdrop-filter:blur(2px); }
+  .modal-overlay.open .modal-card{ animation: modalIn 190ms cubic-bezier(.2,.8,.2,1); }
+  @keyframes modalIn{ from{ opacity:0; transform:translateY(10px) scale(.985); } to{ opacity:1; transform:none; } }
+  .modal-search{ border-radius:10px !important; border:1px solid var(--border) !important; }
+  .modal-select{ width:100%; font-size:14px; padding:9px 12px !important; margin-bottom:12px; background:var(--input-bg); border:1px solid var(--border) !important; border-radius:10px !important; color:var(--ink); }
+  .modal-search:focus{ outline:2px solid #cfe0f5; outline-offset:-1px; }
+  .modal-btn{ transition:filter 120ms ease, background 120ms ease; }
+  .modal-btn.primary:not(:disabled):hover{ filter:brightness(1.12); }
+  .tabs-nav button, .btn-add-row, .bd-add, .modal-btn, .st-ok, .foto-btn, .del-row-btn, .del-bd-btn{ transition: background 120ms ease, color 120ms ease, filter 120ms ease, box-shadow 120ms ease, transform 120ms ease; }
+  .btn-add-row:active, .bd-add:active, .modal-btn:active, .st-ok:active{ transform: translateY(1px); }
+  @keyframes flashStat{ 0%{ box-shadow:0 0 0 3px rgba(255,193,7,0.75); } 100%{ box-shadow:0 0 0 3px rgba(255,193,7,0); } }
+  .stat-flash{ animation: flashStat 650ms ease; border-radius:6px; }
+  .per-row:hover, .hc-row:hover, .bd-table tbody tr:hover, .dtable tbody tr:hover{ background: rgba(15,98,172,0.05); }
+  @media (prefers-reduced-motion: reduce){ .stat-flash{ animation:none; } }
 </style>
   <!-- ===== NUVEM (Supabase) ===== -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -493,6 +520,7 @@
   <div class="st-item"><span class="st-lbl">Vida</span><input class="st-num campo-vida" type="text"><span class="st-sep">/</span><span class="st-tot" id="st_vida_total">0</span></div>
   <div class="st-item"><span class="st-lbl">Chakra</span><input class="st-num campo-chakra" type="text"><span class="st-sep">/</span><span class="st-tot" id="st_chakra_total">0</span></div>
   <div class="st-item st-munic"><span class="st-lbl">Munições</span><span class="st-municoes" id="st_municoes">—</span></div>
+  <div class="st-item"><button class="st-ok" id="st_descanso" title="Descanso longo: restaura Vida e Chakra ao máximo">Descanso longo</button></div>
   <div class="st-item st-dano"><span class="st-lbl">Dano recebido</span><input class="st-dano-in" id="st_dano_in" type="text" placeholder="0"><button class="st-ok" id="st_dano_ok">OK</button></div>
 </div>
 
@@ -659,9 +687,9 @@
     </div>
     <div style="flex:0 0 260px;">
       <div class="pill-stat">
-        <span class="pill-icon">KG</span>
-        <span class="pill-label">Peso Carregado</span>
-        <input id="in_comp_usados" class="calc-ro" readonly value="0">
+        <span class="pill-icon">◱</span>
+        <span class="pill-label">Compartimentos</span>
+        <input id="in_comp_usados" class="calc-ro" readonly value="0 / 3">
       </div>
       <div class="pill-stat">
         <span class="pill-icon">¥</span>
@@ -676,7 +704,7 @@
 
   <div class="bar" style="margin-top:14px;">Aptidões</div>
   <table class="dtable">
-    <tr><th style="width:10%;">Pts. Gastos</th><th style="width:18%;">Nome</th><th>Descrição / Benefícios</th><th style="width:12%;">Bônus em</th><th style="width:8%;">Valor</th><th class="del-th"></th></tr>
+    <tr><th style="width:10%;">Pts. Gastos</th><th style="width:16%;">Nome</th><th>Descrição / Benefícios</th><th style="width:11%;">Bônus em</th><th style="width:7%;">Valor</th><th style="width:12%;">Escolha</th><th class="del-th"></th></tr>
     <tbody id="apt_rows"></tbody>
   </table>
   <button class="btn-add-row" id="btn_add_apt" data-catalogo="aptidoes">+ Escolher aptidão</button>
@@ -758,7 +786,7 @@
     <div class="modal-head" id="seletor_titulo">Escolher</div>
     <div class="modal-body">
       <input class="modal-search" id="seletor_busca" type="text" placeholder="Buscar...">
-      <select class="modal-select" id="seletor_lista" size="8"></select>
+      <div class="sel-lista" id="seletor_lista"></div>
       <div class="modal-desc" id="seletor_desc"><span class="md-meta">Selecione um item para ver a descrição.</span></div>
     </div>
     <div class="modal-foot">
@@ -944,22 +972,22 @@ const SEED_DB = {
     {nome:"Acuidade", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Use Combate Corporal com o atributo Destreza.", revisado:false},
     {nome:"Ambidestria", tipo:"Combate", prereq:"Combate Corporal 12 ou Combate à Distância 12 (só p/ armas de fogo).", restricao:"Só para armas que podem ser empunhadas (não vale para armas naturais/desarmado). Armas diferentes em cada mão precisam do mesmo atributo de dano e mesma margem de crítico.", beneficio:"Ataque com armas duplas, em par ou uma arma leve em cada mão; some o dano de ambas no cálculo do ataque.", revisado:true},
     {nome:"Ataque em Movimento", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Mova-se antes e depois de atacar.", revisado:false},
-    {nome:"Atirador", tipo:"Combate", prereq:"Destreza 12.", restricao:"Ao comprar, escolha entre arcos ou armas simples de arremesso.", beneficio:"+2 de dano com arcos, ou +3 de dano com armas simples de arremesso.", revisado:true},
-    {nome:"Bloqueio Ambidestro", tipo:"Combate", prereq:"", restricao:"", beneficio:"Melhore seu bloqueio ao usar ambidestria.", revisado:false},
-    {nome:"Combate Defensivo", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Reduza sua precisão corpo-a-corpo para melhorar a esquiva.", revisado:false},
+    {nome:"Atirador", tipo:"Combate", prereq:"Destreza 12.", restricao:"Ao comprar, escolha entre arcos ou armas simples de arremesso.", beneficio:"+2 de dano com arcos, ou +3 de dano com armas simples de arremesso.", escolha:"arco ou arremesso", revisado:true},
+    {nome:"Bloqueio Ambidestro", tipo:"Combate", prereq:"", restricao:"", beneficio:"Melhore seu bloqueio ao usar ambidestria.", condicional:true, revisado:false},
+    {nome:"Combate Defensivo", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Reduza sua precisão corpo-a-corpo para melhorar a esquiva.", condicional:true, revisado:false},
     {nome:"Crítico Aprimorado", tipo:"Combate", prereq:"", restricao:"", beneficio:"Aumente a chance de acerto crítico de seus ataques armados ou desarmados.", revisado:false},
-    {nome:"Dano Extra", tipo:"Combate", prereq:"", restricao:"", beneficio:"Aumente o dano de seus ataques que tenham dano de arma.", revisado:false},
+    {nome:"Dano Extra", tipo:"Combate", prereq:"", restricao:"", beneficio:"Aumente o dano de seus ataques que tenham dano de arma.", escolha:"categoria de arma", revisado:false},
     {nome:"De Pé", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Levante-se como uma reação ou ação livre.", revisado:false},
     {nome:"Diligente", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente e repita testes de Iniciativa.", alvo:"INI", valor:3, revisado:false},
-    {nome:"Especialista", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente sua precisão em combate desarmado ou armado.", revisado:false},
-    {nome:"Guerreiro", tipo:"Combate", prereq:"", restricao:"", beneficio:"Realize manobras especiais usando armas pesadas ou longas.", revisado:false},
+    {nome:"Especialista", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente sua precisão em combate desarmado ou armado.", escolha:"categoria de arma", revisado:false},
+    {nome:"Guerreiro", tipo:"Combate", prereq:"", restricao:"", beneficio:"Realize manobras especiais usando armas pesadas ou longas.", escolha:"longas ou pesadas", revisado:false},
     {nome:"Intuição", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente sua precisão em manobras de previsão (Ler Movimento).", alvo:"LM", valor:1, revisado:false},
     {nome:"Lutador", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Realize manobras especiais desarmadas sem penalidade de precisão.", revisado:false},
     {nome:"Lutar às Cegas", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Melhore seu combate sob escuridão e outras camuflagens.", revisado:false},
-    {nome:"Maestria", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente sua precisão no uso de técnicas.", revisado:false},
+    {nome:"Maestria", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente sua precisão no uso de técnicas.", escolha:"poder ou técnica", condicional:true, revisado:false},
     {nome:"Mestre dos Selos", tipo:"Combate", prereq:"", restricao:"", beneficio:"Realize selos de mão de forma rápida ou com uma única mão.", revisado:false},
-    {nome:"Mira Apurada", tipo:"Combate", prereq:"", restricao:"", beneficio:"Aumente sua precisão com armas de disparo.", revisado:false},
-    {nome:"Mobilidade", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Melhore sua esquiva contra ataques oportunos.", revisado:false},
+    {nome:"Mira Apurada", tipo:"Combate", prereq:"", restricao:"", beneficio:"Aumente sua precisão com armas de disparo.", condicional:true, revisado:false},
+    {nome:"Mobilidade", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Melhore sua esquiva contra ataques oportunos.", condicional:true, revisado:false},
     {nome:"Oportunista", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Realize mais ataques oportunos na mesma rodada.", revisado:false},
     {nome:"Ponto Cego", tipo:"Combate", prereq:"", restricao:"", beneficio:"Finte com uma ação de movimento.", revisado:false},
     {nome:"Punho de Ferro", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente o dano de arma de seus ataques desarmados.", revisado:false},
@@ -970,7 +998,7 @@ const SEED_DB = {
     {nome:"Tiro Longo", tipo:"Combate", prereq:"", restricao:"", beneficio:"Dobre o alcance de armas de disparo.", revisado:false},
     {nome:"Tiro Preciso", tipo:"Combate", prereq:"", restricao:"", beneficio:"Seus ataques com armas de disparo ignoram cobertura e camuflagem parciais.", revisado:false},
     {nome:"Trespassar", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Receba um ataque corporal extra quando derrotar um inimigo.", revisado:false},
-    {nome:"Usar Arma", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Você sabe usar a arma escolhida, sem penalidades.", revisado:false},
+    {nome:"Usar Arma", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Você sabe usar a arma escolhida, sem penalidades.", escolha:"arma", revisado:false},
     {nome:"Usar Armaduras Pesadas", tipo:"Combate", prereq:"", restricao:"", beneficio:"Você é capaz de usar armaduras pesadas.", revisado:false},
     {nome:"Velocista", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente a distância máxima de seu deslocamento.", revisado:false}
   ],
@@ -987,7 +1015,34 @@ const SEED_DB = {
     {nome:"Kuchiyose (Invocação)", tipo:"Restrito", prereq:"", restricao:"Ver livro para regras completas.", descricao:"Invoca criaturas contratadas para lutar ao seu lado (sapos, cobras, lesmas etc.).", revisado:false},
     {nome:"Hibon Ninpou (Arte Ninja Única)", tipo:"Restrito", prereq:"", restricao:"Ver livro para regras completas.", descricao:"Arte ninja secreta/única: versão personalizada de Ninpou com efeitos próprios.", revisado:false},
     {nome:"Dokujutsu (Arte dos Venenos)", tipo:"Restrito", prereq:"Venefício 4; Químico (aptidão).", restricao:"Comprado como uma versão do Ninpou.", descricao:"Arte de usar venenos em combate (agulhas envenenadas, fumaça tóxica). Faz parte da grande revisão de Venefício.", revisado:true},
-    {nome:"Senjutsu (Técnica Eremita)", tipo:"Restrito", prereq:"", restricao:"", descricao:"Modo Sábio: absorve energia natural para ampliar força, técnicas e percepção.", revisado:true}
+    {nome:"Senjutsu (Técnica Eremita)", tipo:"Restrito", prereq:"", restricao:"", descricao:"Modo Sábio: absorve energia natural para ampliar força, técnicas e percepção.", revisado:true},
+    {nome:"Sharingan", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Doujutsu do clã Uchiha. Copia técnicas, prevê movimentos e, em níveis altos, concede genjutsu poderoso e o Mangekyou.", revisado:false},
+    {nome:"Byakugan", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Doujutsu do clã Hyuuga. Visão quase total em 360°, enxerga o chakra e os tenketsu; combina com o Juuken.", revisado:false},
+    {nome:"Rinnegan", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Doujutsu lendário. Concede acesso aos Seis Caminhos e a técnicas de altíssimo nível.", revisado:false},
+    {nome:"Juuken (Punho Gentil)", tipo:"Restrito", prereq:"Clã Hyuuga; ideal com Byakugan.", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Postura de luta Hyuuga. Ataques desarmados que usam Destreza e selam os tenketsu do alvo, drenando chakra.", revisado:false},
+    {nome:"Hachimon Tonkou (Oito Portões)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Libera os portões internos para força e velocidade extremas, com grave desgaste ao corpo.", revisado:false},
+    {nome:"Mokuton (Elemento Madeira)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Kekkei genkai (Terra + Água). Cria e controla madeira e plantas; pode suprimir chakra de bijuu.", revisado:false},
+    {nome:"Hyouton (Elemento Gelo)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Kekkei genkai (Água + Vento). Cria e manipula gelo e espelhos.", revisado:false},
+    {nome:"Youton (Elemento Lava)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Kekkei genkai (Fogo + Terra). Lava, borracha ou rocha derretida, conforme a variação.", revisado:false},
+    {nome:"Futton (Elemento Vapor)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Kekkei genkai (Água + Fogo). Névoas ácidas e vapor corrosivo.", revisado:false},
+    {nome:"Ranton (Elemento Tempestade)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Kekkei genkai (Água + Raio). Feixes de energia guiáveis.", revisado:false},
+    {nome:"Shouton (Elemento Cristal)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Cria e molda cristais para atacar, prender e defender.", revisado:false},
+    {nome:"Shakuton (Elemento Calor)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Kekkei genkai (Fogo + Vento). Desidrata e cauteriza o alvo.", revisado:false},
+    {nome:"Bakuton (Elemento Explosão)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Impregna e detona chakra explosivo em objetos e no ambiente.", revisado:false},
+    {nome:"Jiton (Elemento Magnetismo)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Manipula metal e areia magnetizada.", revisado:false},
+    {nome:"Enton (Chama Negra)", tipo:"Restrito", prereq:"Requer Sharingan avançado.", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Amaterasu: fogo negro inextinguível e sua modelagem.", revisado:false},
+    {nome:"Meiton (Elemento Escuridão)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Absorve e converte chakra alheio.", revisado:false},
+    {nome:"Kami Ninpou (Arte dos Papéis)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Cria e controla papel explosivo e cortante.", revisado:false},
+    {nome:"Kumo Ninpou (Arte da Teia)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Fios e teias de chakra pegajosos e resistentes.", revisado:false},
+    {nome:"Sumi Ninpou (Arte da Tinta)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Dá vida a desenhos feitos com tinta e pincel.", revisado:false},
+    {nome:"Hebi Ninpou (Arte das Cobras)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Invoca e manipula cobras a partir do próprio corpo.", revisado:false},
+    {nome:"Kujaku Myoho (Método do Pavão)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Manipula chakra bruto em jatos e asas.", revisado:false},
+    {nome:"Ototon (Elemento Som)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Ataques sônicos que atordoam e ferem à distância.", revisado:false},
+    {nome:"Jiongu (Costura Terrestre)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Fios vivos que costuram o corpo e roubam corações e elementos.", revisado:false},
+    {nome:"Jinchuuriki", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Poder da Besta com Cauda selada: manto de chakra, força e regeneração ampliadas.", revisado:false},
+    {nome:"Kikaichuu (Insetos Parasitas)", tipo:"Restrito", prereq:"Clã Aburame.", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Insetos que consomem o chakra do alvo e obedecem ao usuário.", revisado:false},
+    {nome:"Edo Tensei (Reanimação)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Traz almas de volta em corpos quase imortais.", revisado:false},
+    {nome:"Fuinjutsu (Arte dos Selos)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Sela chakra, criaturas, técnicas e objetos.", revisado:false}
   ],
   armas: [
     {nome:"Ataque Desarmado", categoria:"Simples", classe:"Base", preco:"---", dano:"+0", alcance:"---", critico:"15-16", comp:"---", tipo:"Esmagamento", uso:"CC"},
@@ -1085,6 +1140,39 @@ const SEED_DB = {
     {nome:"Prisão de Água", poder:"Suiton", nivel:9, custo:"= nível usado", dano:"—", descricao:"Aprisiona o alvo em uma esfera de água."}
   ],
   /* Config de cada elemento: quais efeitos gerais do Ninpou ele permite + modificador. */
+  tecnicas: [
+    {nome:"Henge no Jutsu (Transformação)", poder:"Ninpou", nivel:1, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Kawarimi no Jutsu (Substituição)", poder:"Ninpou", nivel:1, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Shunshin no Jutsu (Corpo Piscante)", poder:"Ninpou", nivel:2, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Bunshin no Jutsu (Clone)", poder:"Ninpou", nivel:1, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Rasengan", poder:"Ninpou", nivel:7, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Oodama Rasengan", poder:"Ninpou", nivel:9, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Shintenshin no Jutsu (Yamanaka)", poder:"Ninpou", nivel:4, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Kage Mane no Jutsu (Nara)", poder:"Ninpou", nivel:3, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Kage Shibari no Jutsu (Nara)", poder:"Ninpou", nivel:6, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Baika no Jutsu (Akimichi)", poder:"Ninpou", nivel:2, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Kugutsu no Jutsu (Marionete)", poder:"Ninpou", nivel:4, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Souma no Jutsu", poder:"Ninpou", nivel:8, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Yamata no Jutsu", poder:"Ninpou", nivel:10, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Goukakyuu no Jutsu (Grande Bola de Fogo)", poder:"Katon", nivel:3, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Housenka no Jutsu (Flor de Fênix)", poder:"Katon", nivel:4, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Ryuuka no Jutsu (Chama do Dragão)", poder:"Katon", nivel:5, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Shoukakyuu no Jutsu", poder:"Katon", nivel:2, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Mizu Bunshin no Jutsu (Clone de Água)", poder:"Suiton", nivel:3, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Kirigakure no Jutsu (Névoa Oculta)", poder:"Suiton", nivel:4, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Suika no Jutsu", poder:"Suiton", nivel:6, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Kaiten (Rotação Celestial)", poder:"Juuken", nivel:7, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Hakke Rokujuuyon Shou (64 Palmas)", poder:"Juuken", nivel:8, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Hakke Kuushou (Palma do Vácuo)", poder:"Juuken", nivel:5, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Juuho Soushiken (Punhos do Leão Gêmeo)", poder:"Juuken", nivel:10, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Tsukuyomi", poder:"Sharingan", nivel:10, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Susanoo", poder:"Sharingan", nivel:10, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Kamui", poder:"Sharingan", nivel:9, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Amaterasu", poder:"Enton", nivel:9, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Kagutsuchi", poder:"Enton", nivel:10, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Moku Bunshin no Jutsu", poder:"Mokuton", nivel:5, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {nome:"Kuchiyose no Jutsu (Invocação)", poder:"Kuchiyose", nivel:3, tipo:"Técnica", custo:"", dano:"", descricao:""}
+  ],
   elementos: {
     "Doton":  {permitidos:["Canhão","Orbe","Raio","Restringente","Barreira","Energizar","Criar Arma","Segurar","Coluna","Flechas","Lança","Sopro Destrutivo","Ricochete","Nuvem","Algemar","Míssil","Onda Explosiva","Selar Chakra"], bonusDano:0, modificador:"Permite todos os efeitos de Ninpou."},
     "Fuuton": {permitidos:["Canhão","Orbe","Barreira","Coluna","Flechas","Sopro Destrutivo","Raio","Nuvem","Energizar","Míssil","Onda Explosiva","Ricochete"], bonusDano:2, modificador:"Todo efeito Fuuton recebe +2 de dano base."},
@@ -1103,6 +1191,28 @@ function migrarArmasUso(base){
     if(a.uso != null && String(a.uso).trim() !== "") return;
     const pad = (SEED_DB.armas.find(x => x.nome === a.nome) || {}).uso;
     a.uso = pad || usoPadraoPorClasse(a.classe);
+  });
+}
+function migrarPoderes(base){
+  if(!base || !Array.isArray(base.poderes)) return;
+  const tem = new Set(base.poderes.map(p => (p.nome||"").trim().toLowerCase()));
+  SEED_DB.poderes.forEach(p => {
+    if(!tem.has((p.nome||"").trim().toLowerCase())) base.poderes.push(clone(p));
+  });
+}
+function migrarTecnicas(base){
+  if(!base) return;
+  if(!Array.isArray(base.tecnicas)){ base.tecnicas = clone(SEED_DB.tecnicas); return; }
+  try{
+    if(localStorage.getItem("sns_tec_limpo_v1") !== "1"){
+      const rem = ["chidori","raikiri","gian","karyuu","daitoppa","rasenshuriken","kamaitachi","doryuuheki","doryuudan","shinjuu zanshu","iwayado","suiryuudan","suijinheki","bakusui","jukai koutan","genjutsu: sharingan"];
+      base.tecnicas = base.tecnicas.filter(t => { const n = (t.nome||"").toLowerCase(); return !rem.some(r => n.indexOf(r) >= 0); });
+      localStorage.setItem("sns_tec_limpo_v1", "1");
+    }
+  }catch(e){}
+  const tem = new Set(base.tecnicas.map(t => (t.nome||"").trim().toLowerCase()));
+  SEED_DB.tecnicas.forEach(t => {
+    if(!tem.has((t.nome||"").trim().toLowerCase())) base.tecnicas.push(clone(t));
   });
 }
 function usoPadraoPorClasse(classe){
@@ -1128,8 +1238,8 @@ function carregarDB(){
     const raw = localStorage.getItem(DB_KEY);
     if(raw){
       const s = JSON.parse(raw);
-      ["aptidoes","poderes","armas","armaduras","efeitos"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
-      migrarArmasUso(base);
+      ["aptidoes","poderes","armas","armaduras","efeitos","tecnicas"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
+      migrarArmasUso(base); migrarPoderes(base); migrarTecnicas(base);
       if(s.calc) Object.assign(base.calc, s.calc);
       if(s.elementos) Object.assign(base.elementos, s.elementos);
       if(typeof s.foto === "string") base.foto = s.foto;
@@ -1268,7 +1378,8 @@ function criarJutsuCard(jid){
   const card = document.createElement("div");
   card.className = "jutsu-card";
   if(jid) card.dataset.jid = jid;
-  const opts = '<option value="">— Poder —</option>' + POWERS_WITH_EFFECTS.map(p => '<option value="'+p+'">'+p+'</option>').join('');
+  const povos = Array.from(new Set(POWERS_WITH_EFFECTS.concat((DB.tecnicas||[]).map(t => t.poder).filter(Boolean))));
+  const opts = '<option value="">— Poder —</option>' + povos.map(p => '<option value="'+p+'">'+p+'</option>').join('');
   card.innerHTML =
     '<span class="jutsu-del-btn" title="Remover jutsu">×</span>' +
     '<div class="jutsu-field"><span>Poder:</span><select class="jutsu-poder">'+opts+'</select><span>Nv:</span><input class="jutsu-nivel-poder" style="width:38px;flex:none;"></div>' +
@@ -1337,11 +1448,16 @@ document.getElementById("item_grid").addEventListener("input", (e) => {
 /* efeitos disponíveis para um poder até um nível */
 function efeitosDisponiveis(poder, nivelStr){
   const n = String(nivelStr).trim() === "" ? 99 : num(nivelStr);
-  if(!poder) return DB.efeitos.filter(e => num(e.nivel) <= n);
-  if(poder === "Ninpou") return DB.efeitos.filter(e => e.poder === "Ninpou" && num(e.nivel) <= n);
-  const cfg = DB.elementos[poder] || {permitidos:[]};
-  const permit = cfg.permitidos || [];
-  return DB.efeitos.filter(e => num(e.nivel) <= n && (e.poder === poder || permit.includes(e.nome)));
+  let lista;
+  if(!poder) lista = DB.efeitos.filter(e => num(e.nivel) <= n);
+  else if(poder === "Ninpou") lista = DB.efeitos.filter(e => e.poder === "Ninpou" && num(e.nivel) <= n);
+  else {
+    const cfg = DB.elementos[poder] || {permitidos:[]};
+    const permit = cfg.permitidos || [];
+    lista = DB.efeitos.filter(e => num(e.nivel) <= n && (e.poder === poder || permit.includes(e.nome)));
+  }
+  const tecs = (DB.tecnicas||[]).filter(t => num(t.nivel) <= n && (!poder || normNome(t.poder) === normNome(poder)));
+  return lista.concat(tecs);
 }
 function syncJutsuCalc(card){
   const jid = card.dataset.jid; if(!jid) return;
@@ -1376,7 +1492,7 @@ document.getElementById("jutsu_grid").addEventListener("click", (e) => {
   const card = btn.closest(".jutsu-card");
   const poder = card.querySelector(".jutsu-poder").value;
   const nivel = card.querySelector(".jutsu-nivel-poder").value;
-  const itens = efeitosDisponiveis(poder, nivel);
+  const itens = efeitosDisponiveis(poder, nivel).map(it => Object.assign({}, it, {_grupo: grupoJutsu(it)}));
   const titulo = poder ? ("Efeitos: " + poder + (String(nivel).trim() ? " (até Nv " + nivel + ")" : "")) : "Escolher Efeito";
   abrirSeletor(titulo, itens, (it) => preencherEfeitoNoJutsu(card, it));
 });
@@ -1412,9 +1528,13 @@ function normalizaAlvo(s){
   return map[k] || null;
 }
 /* soma os bônus estruturados das aptidões que o personagem tem na grade */
+const APT_CONDICIONAIS = new Set(["combate defensivo","mobilidade","mira apurada","maestria","bloqueio ambidestro","bloquear arma","chute duplo"]);
 function bonusDasAptidoes(){
   const bonus = {};
   document.querySelectorAll("#apt_rows tr").forEach(tr => {
+    if(tr.dataset.cond === "1") return;                              // marcada como condicional
+    const nomeEl = tr.querySelector(".apt-nome");
+    if(nomeEl && APT_CONDICIONAIS.has(normNome(nomeEl.value))) return;  // condicional conhecida
     const alvoEl = tr.querySelector(".apt-alvo");
     const valEl = tr.querySelector(".apt-valor");
     if(!alvoEl || !valEl || String(valEl.value).trim() === "") return;
@@ -1422,6 +1542,25 @@ function bonusDasAptidoes(){
     if(alvo) bonus[alvo] = (bonus[alvo]||0) + num(valEl.value);
   });
   return bonus;
+}
+function normNome(s){ return semAcento(String(s||"")).replace(/^\*+/,"").trim().toLowerCase(); }
+function compsDe(txt){
+  if(txt == null) return 0;
+  const m = /(-?\+?\d+)\s*comp/i.exec(String(txt));
+  if(m) return parseInt(m[1].replace("+",""), 10) || 0;
+  return num(txt);
+}
+function bonusPericias(){
+  const b = {};
+  document.querySelectorAll("#apt_rows tr").forEach(tr => {
+    const nomeEl = tr.querySelector(".apt-nome"), escEl = tr.querySelector(".apt-escolha");
+    if(!nomeEl || !escEl) return;
+    if(normNome(nomeEl.value) === "perito"){
+      const alvo = normNome(escEl.value);
+      if(alvo) b[alvo] = (b[alvo]||0) + 2;   // Perito: +2 de precisão na perícia escolhida (Básico p.68)
+    }
+  });
+  return b;
 }
 
 const SOCIAIS = {
@@ -1447,6 +1586,12 @@ function setCounter(id, gasto, total, nota){
 function recalc(){
   const c = DB.calc;
   const bonus = bonusDasAptidoes();
+  const perBonus = bonusPericias();
+  let compsUsados = 0;
+  document.querySelectorAll("#item_grid .item-card").forEach(card => {
+    const e = card.querySelector(".if-comp"); compsUsados += compsDe(e ? e.value : "");
+  });
+  const compExcesso = Math.max(0, compsUsados - 3);   // acima de 3 compartimentos gera penalidade
   periTotais = {};
   document.querySelectorAll(".per-row").forEach(row => {
     const nome = row.dataset.peri;
@@ -1460,7 +1605,7 @@ function recalc(){
     const treinadaSo = nome.indexOf("*") !== -1;   // perícias com * só existem se treinadas
     let total;
     if(treinadaSo && pts <= 0) total = 0;
-    else total = pts + metadeCima(attrVal(CODE2ATTR[row.dataset.attr])) + outro;
+    else total = pts + metadeCima(attrVal(CODE2ATTR[row.dataset.attr])) + outro + (perBonus[normNome(nome)]||0);
     row.querySelector(".pr-total").value = total;
     periTotais[nome] = total;
   });
@@ -1468,7 +1613,7 @@ function recalc(){
   document.querySelectorAll(".hc-row").forEach(row => {
     const base = num(row.querySelector(".base").value);
     const outro = num(row.querySelector(".outro").value);
-    const total = base + attrVal(row.dataset.attr) + outro + (bonus[row.dataset.cod] || 0);
+    const total = base + attrVal(row.dataset.attr) + outro + (bonus[row.dataset.cod] || 0) - compExcesso;
     row.querySelector(".hc-total").textContent = total;
     if(row.dataset.cod === "ESQ") esqTotal = total;
   });
@@ -1479,7 +1624,7 @@ function recalc(){
   setAuto(document.querySelector('.auto[data-calc="iniciativa"]'), (periTotais["Prontidão"]||0) + attrVal("Agilidade") + (bonus.iniciativa||0));
   setAuto(document.querySelector('.auto[data-calc="reacao"]'), esqTotal + c.reacaoConst + (bonus.reacao||0));
   const desloc = document.querySelector('.auto[data-calc="desloc"]');
-  if(desloc && desloc.dataset.over !== "1"){ desloc.value = (c.deslocBase + Math.ceil(attrVal("Agilidade")/c.deslocDiv) + (bonus.desloc||0)) + "m"; }
+  if(desloc && desloc.dataset.over !== "1"){ desloc.value = (c.deslocBase + Math.ceil(attrVal("Agilidade")/c.deslocDiv) + (bonus.desloc||0) - compExcesso*3) + "m"; }
   document.querySelectorAll('.auto[data-social]').forEach(el => {
     if(el.dataset.over === "1") return;
     const def = SOCIAIS[el.dataset.social]; if(!def) return;
@@ -1546,20 +1691,9 @@ function recalc(){
     dbEl.value = Math.max(0, metadeCima(attrVal(atr)) + num(danoEl ? danoEl.value : 0));
   });
 
-  /* ---- Inventário: peso total dos itens (Peso Unit. × Qtd), somado no Peso Carregado ---- */
-  let pesoTotalItens = 0;
-  document.querySelectorAll("#item_grid .jutsu-card").forEach(card => {
-    const pesoEl = card.querySelector(".if-peso");
-    const qtdEl = card.querySelector(".if-qtd");
-    const totEl = card.querySelector(".if-peso-total");
-    const peso = num(pesoEl ? pesoEl.value : 0);
-    const qtd = num(qtdEl ? qtdEl.value : 0);
-    const tot = peso * qtd;
-    if(totEl) totEl.value = tot;
-    pesoTotalItens += tot;
-  });
-  const compUsados = document.getElementById("in_comp_usados");
-  if(compUsados) compUsados.value = Math.round(pesoTotalItens * 100) / 100;
+  /* ---- Compartimentos: exibe X / 3 e a penalidade acima disso (Básico p.127) ---- */
+  const compDisp = document.getElementById("in_comp_usados");
+  if(compDisp) compDisp.value = compsUsados + " / 3" + (compExcesso > 0 ? "  (-" + compExcesso + " prec · -" + (compExcesso*3) + "m)" : "");
 
   /* Barra de status: totais de Vida/Chakra + munições */
   const vitTot = document.querySelector('.auto[data-calc="vit"]');
@@ -1591,17 +1725,32 @@ const selCancelar = document.getElementById("seletor_cancelar");
 let selItens = [], selCallback = null, selEscolhido = null;
 
 function corpoDe(it){ return it.beneficio || it.descricao || it.desc || ""; }
+const ORDEM_GRUPOS = ["Poderes Normais","Poderes Restritos","Poderes de Clã","Efeitos","Técnicas Básicas","Técnicas Ninpou","Técnicas Elementais","Técnicas de Clã","Técnicas"];
 function renderLista(filtro){
   selLista.innerHTML = "";
   const f = (filtro||"").toLowerCase();
-  selItens
-    .filter(it => it.nome.toLowerCase().includes(f) || (it.tipo||"").toLowerCase().includes(f))
-    .forEach(it => {
-      const opt = document.createElement("option");
-      opt.value = it.nome;
-      opt.textContent = it.nome + ((it.nivel !== undefined && it.nivel !== "") ? " (Nv " + it.nivel + ")" : "") + (it.revisado ? "  ★ revisado" : "");
-      selLista.appendChild(opt);
-    });
+  const filtrados = selItens.filter(it => it.nome.toLowerCase().includes(f) || (it.tipo||"").toLowerCase().includes(f) || (it._grupo||"").toLowerCase().includes(f));
+  function itemDiv(it){
+    const d = document.createElement("div");
+    d.className = "sel-item"; d.dataset.nome = it.nome;
+    d.innerHTML = ((it.nivel !== undefined && it.nivel !== "") ? '<span class="sel-item-nv">Nv ' + escapeHtml(it.nivel) + '</span>' : '') +
+      '<span class="sel-item-nome">' + escapeHtml(it.nome) + '</span>' +
+      (it.revisado ? '<span class="sel-item-rev">★</span>' : '');
+    return d;
+  }
+  if(!filtrados.length){ selLista.innerHTML = '<div class="sel-vazio">Nada encontrado.</div>'; return; }
+  if(!filtrados.some(it => it._grupo)){ filtrados.forEach(it => selLista.appendChild(itemDiv(it))); return; }
+  const mapa = {};
+  filtrados.forEach(it => { const g = it._grupo || "Outros"; (mapa[g] = mapa[g] || []).push(it); });
+  Object.keys(mapa).sort((a,b) => {
+    let ia = ORDEM_GRUPOS.indexOf(a), ib = ORDEM_GRUPOS.indexOf(b);
+    if(ia < 0) ia = 99; if(ib < 0) ib = 99;
+    return ia - ib || a.localeCompare(b, "pt-BR");
+  }).forEach(g => {
+    const h = document.createElement("div"); h.className = "sel-grupo"; h.textContent = g;
+    selLista.appendChild(h);
+    mapa[g].forEach(it => selLista.appendChild(itemDiv(it)));
+  });
 }
 function acharItem(nome){ return selItens.find(it => it.nome === nome); }
 function mostrarDesc(it){
@@ -1624,8 +1773,29 @@ function mostrarDesc(it){
     (meta ? '<span class="md-meta">' + escapeHtml(meta) + '</span>' : '') +
     '<div>' + escapeHtml(corpoDe(it)) + '</div>';
 }
+function categoriaPoder(nome){
+  const n = normNome(nome);
+  if(["sharingan","byakugan","rinnegan","juuken","kikaichuu"].some(c => n.indexOf(c) === 0)) return "Poderes de Clã";
+  if(["ninpou","doton","fuuton","katon","raiton","suiton","iryou","fuinjutsu","fuuinjutsu"].some(c => n.indexOf(c) === 0)) return "Poderes Normais";
+  return "Poderes Restritos";
+}
+function grupoJutsu(it){
+  if(it.tipo !== "Técnica") return "Efeitos";
+  const n = normNome(it.nome), p = normNome(it.poder);
+  if(["henge no jutsu","kawarimi no jutsu","shunshin no jutsu","bunshin no jutsu"].some(b => n.indexOf(b) === 0)) return "Técnicas Básicas";
+  if(/\((nara|yamanaka|akimichi|hyuuga|uchiha)\)/.test(n)) return "Técnicas de Clã";
+  if(["katon","suiton","raiton","fuuton","doton"].some(e => p.indexOf(e) === 0)) return "Técnicas Elementais";
+  if(["juuken","sharingan","byakugan","rinnegan","enton","mokuton","kikaichuu"].some(c => p.indexOf(c) === 0)) return "Técnicas de Clã";
+  if(p.indexOf("ninpou") === 0) return "Técnicas Ninpou";
+  return "Técnicas";
+}
 function abrirSeletor(titulo, itens, callback){
-  selItens = itens.slice().sort((a,b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  selItens = itens.slice().sort((a,b) => {
+    const na = (a.nivel === undefined || a.nivel === "") ? -1 : num(a.nivel);
+    const nb = (b.nivel === undefined || b.nivel === "") ? -1 : num(b.nivel);
+    if(na !== nb) return na - nb;                      // primeiro por nível
+    return a.nome.localeCompare(b.nome, "pt-BR");      // depois por nome
+  });
   selCallback = callback; selEscolhido = null;
   selTitulo.textContent = titulo; selBusca.value = "";
   renderLista(""); mostrarDesc(null);
@@ -1636,8 +1806,13 @@ function fecharSeletor(){ overlay.classList.remove("open"); selCallback = null; 
 function confirmarSelecao(){ if(selEscolhido && selCallback) selCallback(selEscolhido); fecharSeletor(); }
 
 selBusca.addEventListener("input", () => renderLista(selBusca.value));
-selLista.addEventListener("change", () => mostrarDesc(acharItem(selLista.value)));
-selLista.addEventListener("dblclick", () => { if(selEscolhido) confirmarSelecao(); });
+selLista.addEventListener("click", (e) => {
+  const item = e.target.closest(".sel-item"); if(!item) return;
+  selLista.querySelectorAll(".sel-item.sel").forEach(x => x.classList.remove("sel"));
+  item.classList.add("sel");
+  mostrarDesc(acharItem(item.dataset.nome));
+});
+selLista.addEventListener("dblclick", (e) => { if(e.target.closest(".sel-item") && selEscolhido) confirmarSelecao(); });
 selOk.addEventListener("click", confirmarSelecao);
 selCancelar.addEventListener("click", fecharSeletor);
 overlay.addEventListener("click", (e) => { if(e.target === overlay) fecharSeletor(); });
@@ -1662,15 +1837,32 @@ function adicionarPoder(it){
   tbody.appendChild(tr);
   recalc();
 }
+function opcoesEscolha(aptNome){
+  const n = normNome(aptNome);
+  if(n === "perito" || n === "pericia inata") return PERICIAS.map(p => p.nome.replace(/^\*+/,""));
+  if(n === "maestria") return ["Ninpou","Doton","Fuuton","Katon","Raiton","Suiton","Taijutsu","Genjutsu","Iryou Ninjutsu"];
+  if(n === "especialista" || n === "dano extra") return ["Desarmado","Armas naturais","Leves","Medianas","Longas","Pesadas","Disparo","Arremesso","Especiais"];
+  if(n === "guerreiro") return ["Longas","Pesadas"];
+  if(n === "resistencia maior") return ["Força","Destreza","Agilidade","Percepção","Inteligência","Vigor","Espírito"];
+  if(n === "atirador") return ["Arco","Arremesso"];
+  if(n === "usar arma") return DB.armas.map(a => a.nome);
+  return null;   // sem lista definida: cai em campo de texto livre
+}
 function adicionarAptidao(it){
   const tbody = document.getElementById("apt_rows");
   const tr = document.createElement("tr");
+  if(it.condicional) tr.dataset.cond = "1";
+  const ops = opcoesEscolha(it.nome);
+  const escCell = ops
+    ? '<td><select class="apt-escolha"><option value="">—</option>' + ops.map(o => '<option value="'+escapeAttr(o)+'">'+escapeHtml(o)+'</option>').join('') + '</select></td>'
+    : '<td><input class="apt-escolha" value="" placeholder="'+escapeAttr(it.escolha||"")+'"></td>';
   tr.innerHTML =
     '<td><input class="apt-pts" readonly tabindex="-1" value="0"></td>' +
     '<td><input class="apt-nome" value="'+escapeAttr(it.nome)+'"></td>' +
     '<td><input class="apt-desc" value="'+escapeAttr(corpoDe(it))+'"></td>' +
     '<td><input class="apt-alvo" value="'+escapeAttr(it.alvo||"")+'"></td>' +
     '<td><input class="apt-valor" value="'+escapeAttr(it.valor!=null?it.valor:"")+'"></td>' +
+    escCell +
     '<td class="del-cell"><span class="del-row-btn" title="Remover linha">×</span></td>';
   tbody.appendChild(tr);
   recalc();
@@ -1753,7 +1945,7 @@ function adicionarEquipamento(it){
 document.querySelectorAll(".btn-add-row[data-catalogo]").forEach(btn => {
   btn.addEventListener("click", () => {
     const cat = btn.dataset.catalogo;
-    if(cat === "poderes")  abrirSeletor("Escolher Poder", DB.poderes, adicionarPoder);
+    if(cat === "poderes")  abrirSeletor("Escolher Poder", DB.poderes.map(p => Object.assign({}, p, {_grupo: categoriaPoder(p.nome)})), adicionarPoder);
     if(cat === "aptidoes") abrirSeletor("Escolher Aptidão", DB.aptidoes, adicionarAptidao);
     if(cat === "equipamentos") abrirSeletor("Escolher Equipamento", equipamentosParaSeletor(), adicionarEquipamento);
   });
@@ -1769,6 +1961,8 @@ const BD_SCHEMAS = {
     {campo:"beneficio", rotulo:"Descrição / Benefícios", w:"auto", tipo:"textarea"},
     {campo:"alvo", rotulo:"Bônus em", w:"11%", tipo:"input"},
     {campo:"valor", rotulo:"Valor", w:"6%", tipo:"input"},
+    {campo:"escolha", rotulo:"Escolha (o quê)", w:"11%", tipo:"input"},
+    {campo:"condicional", rotulo:"Cond.", w:"42px", tipo:"check"},
     {campo:"revisado", rotulo:"Rev.", w:"42px", tipo:"check"}
   ]},
   poderes: { titulo:"Poderes", cols:[
@@ -1781,6 +1975,18 @@ const BD_SCHEMAS = {
   ]},
   efeitos: { titulo:"Efeitos", cols:[
     {campo:"nome", rotulo:"Efeito", w:"13%", tipo:"input"},
+    {campo:"poder", rotulo:"Poder", w:"9%", tipo:"input"},
+    {campo:"nivel", rotulo:"Nível", w:"6%", tipo:"input"},
+    {campo:"acao", rotulo:"Ação", w:"9%", tipo:"input"},
+    {campo:"alvo", rotulo:"Alvo", w:"10%", tipo:"input"},
+    {campo:"alcance", rotulo:"Alcance", w:"9%", tipo:"input"},
+    {campo:"duracao", rotulo:"Duração", w:"9%", tipo:"input"},
+    {campo:"custo", rotulo:"Custo", w:"9%", tipo:"input"},
+    {campo:"dano", rotulo:"Dano", w:"9%", tipo:"input"},
+    {campo:"descricao", rotulo:"Descrição", w:"auto", tipo:"textarea"}
+  ]},
+  tecnicas: { titulo:"Técnicas", cols:[
+    {campo:"nome", rotulo:"Técnica", w:"16%", tipo:"input"},
     {campo:"poder", rotulo:"Poder", w:"9%", tipo:"input"},
     {campo:"nivel", rotulo:"Nível", w:"6%", tipo:"input"},
     {campo:"acao", rotulo:"Ação", w:"9%", tipo:"input"},
@@ -1900,7 +2106,7 @@ function bdSiglasHtml(){
 }
 function renderBD(){
   let html = bdSiglasHtml() + bdCalcHtml();
-  ["aptidoes","poderes","efeitos"].forEach(cat => html += bdSectionHtml(cat));
+  ["aptidoes","poderes","efeitos","tecnicas"].forEach(cat => html += bdSectionHtml(cat));
   html += bdElementosHtml();
   ["armas","armaduras"].forEach(cat => html += bdSectionHtml(cat));
   bdRoot.innerHTML = html;
@@ -1965,8 +2171,8 @@ document.getElementById("bd_arquivo").addEventListener("change", (e) => {
     try{
       const s = JSON.parse(reader.result);
       const base = clone(SEED_DB);
-      ["aptidoes","poderes","armas","armaduras","efeitos"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
-      migrarArmasUso(base);
+      ["aptidoes","poderes","armas","armaduras","efeitos","tecnicas"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
+      migrarArmasUso(base); migrarPoderes(base); migrarTecnicas(base);
       if(s.calc) Object.assign(base.calc, s.calc);
       if(s.elementos) Object.assign(base.elementos, s.elementos);
       if(typeof s.foto === "string") base.foto = s.foto;
@@ -2051,8 +2257,7 @@ function rolarDano(tr, tipo){
 function celAcoesCalc(tipo, comDelete){
   const td = document.createElement("td");
   td.className = "del-cell calc-acoes";
-  td.innerHTML = '<span class="roll-btn" data-tipo="'+tipo+'" title="Rolar dano">🎲</span>' +
-    (comDelete ? '<span class="del-row-btn" title="Remover linha">×</span>' : '');
+  td.innerHTML = (comDelete ? '<span class="del-row-btn" title="Remover linha">×</span>' : '');
   return td;
 }
 document.addEventListener("click", (e) => {
@@ -2095,6 +2300,29 @@ function habEfetiva(){
   if(rlAlcance === "distancia") return "CD";
   if(rlAlcance === "pessoal")   return null;   /* sem teste de acerto */
   return "CC";
+}
+function catMatch(escolha, classe){
+  const e = normNome(escolha).replace(/s$/,"");
+  const c = normNome(classe).replace(/s$/,"");
+  return !!e && !!c && (e === c || c.indexOf(e) === 0 || e.indexOf(c) === 0);
+}
+/* Maestria (poder escolhido) e Especialista (categoria escolhida): +1 de precisão no ataque que casa (Básico p.62-64) */
+function bonusPrecisaoAtaque(){
+  const sel = document.getElementById("rl_ref_ataque");
+  const idx = sel ? sel.value : "";
+  if(idx === "") return 0;
+  const tr = rlRefRows[Number(idx)]; if(!tr) return 0;
+  const ehJutsu = (rlTipoAtaque === "jutsu");
+  let bonus = 0;
+  document.querySelectorAll("#apt_rows tr").forEach(row => {
+    const nomeEl = row.querySelector(".apt-nome"), escEl = row.querySelector(".apt-escolha");
+    if(!nomeEl || !escEl) return;
+    const apt = normNome(nomeEl.value), esc = String(escEl.value||"").trim();
+    if(!esc) return;
+    if(ehJutsu && apt === "maestria" && normNome(tr.dataset.poder || "") === normNome(esc)) bonus += 1;
+    if(!ehJutsu && apt === "especialista" && catMatch(esc, tr.dataset.classe || "")) bonus += 1;
+  });
+  return bonus;
 }
 
 /* uso (CC / CD / CC-CD / —) de uma linha da calculadora de ataques armados */
@@ -2297,7 +2525,7 @@ function rolarAtaquePopup(){
     return;
   }
 
-  const precisao = habTotal(hab);
+  const precisao = habTotal(hab) + bonusPrecisaoAtaque();
   const a = d8(), b = d8(), soma = a + b;
 
   animarDados(a, b, rlTipoAtaque === "jutsu" ? "Jutsu" : "Ataque", () => {
@@ -2448,11 +2676,40 @@ document.getElementById("rl_rolar").addEventListener("click", () => {
 
 /* ---- Barra de status: Vida/Chakra espelhados, munições e dano recebido ---- */
 function setTodos(cls, val){ document.querySelectorAll("."+cls).forEach(el => { el.value = val; }); }
+function flashCampo(cls){
+  document.querySelectorAll("."+cls).forEach(el => {
+    el.classList.remove("stat-flash"); void el.offsetWidth; el.classList.add("stat-flash");
+    setTimeout(() => el.classList.remove("stat-flash"), 700);
+  });
+}
 function ajustarChakra(delta){
   const el = document.querySelector(".campo-chakra"); if(!el) return;
   setTodos("campo-chakra", String(num(el.value) + delta));
+  flashCampo("campo-chakra");
   agendarSalvar();
 }
+/* Descanso longo: restaura Vida e Chakra ao máximo. Regra por noite: +10 + 2×Vigor de Vit (Básico p.258)
+   e +5 + 2×Espírito de Chakra (Básico p.260); aqui o botão traz direto ao máximo por praticidade. */
+function descansoLongo(){
+  const vidaMax = document.getElementById("st_vida_total"), chakraMax = document.getElementById("st_chakra_total");
+  if(vidaMax && vidaMax.textContent) setTodos("campo-vida", vidaMax.textContent);
+  if(chakraMax && chakraMax.textContent) setTodos("campo-chakra", chakraMax.textContent);
+  flashCampo("campo-vida"); flashCampo("campo-chakra");
+  agendarSalvar();
+}
+(function(){ const b = document.getElementById("st_descanso"); if(b) b.addEventListener("click", descansoLongo); })();
+(function(){
+  const FORMULAS = {
+    vit: "Vitalidade = 10 + 3×Vigor + 5×NC",
+    chakra: "Chakra = 10 + 3×Espírito",
+    iniciativa: "Iniciativa = Prontidão + Agilidade",
+    reacao: "Reação de Esquiva = Esquiva + 9",
+    desloc: "Deslocamento = 10m + Agilidade/2 (arred. p/ cima)"
+  };
+  Object.keys(FORMULAS).forEach(k => { const el = document.querySelector('.auto[data-calc="'+k+'"]'); if(el && !el.title) el.title = FORMULAS[k]; });
+  const comp = document.getElementById("in_comp_usados");
+  if(comp && !comp.title) comp.title = "Compartimentos ocupados. Acima de 3: −1 de precisão e −3m de deslocamento por excedente (Básico p.127).";
+})();
 function atualizarMunicoes(){
   const cont = document.getElementById("st_municoes"); if(!cont) return;
   const itens = [];
@@ -2475,7 +2732,7 @@ document.addEventListener("input", (e) => {
   if(!ok || !inp) return;
   ok.addEventListener("click", () => {
     const dano = num(inp.value);
-    if(dano > 0){ const vida = document.querySelector(".campo-vida"); if(vida) setTodos("campo-vida", String(num(vida.value) - dano)); }
+    if(dano > 0){ const vida = document.querySelector(".campo-vida"); if(vida){ setTodos("campo-vida", String(num(vida.value) - dano)); flashCampo("campo-vida"); } }
     inp.value = "";
     agendarSalvar();
   });
