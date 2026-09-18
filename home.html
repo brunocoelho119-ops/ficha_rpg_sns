@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Minhas Fichas — Shinobi no Sho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1a1a; --bar-bg:#1c1c1e; --bg:#ffffff; --page-bg:#eef0f3;
+    --gray-light:#f6f7f8; --gray-text:#8b8d92; --border:#e3e4e7; --border-strong:#d3d5d9;
+    --input-bg:#f5f6f7; --input-border:#e2e3e6;
+    --shadow: 0 1px 3px rgba(20,20,25,0.06), 0 8px 20px rgba(20,20,25,0.05);
+    --radius:14px; --font-display:'Barlow Condensed', Arial, sans-serif; --font-body:'Inter', Arial, sans-serif;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; min-height:100%; }
+  body{ font-family:var(--font-body); background:var(--page-bg); color:var(--ink); }
+  .topbar{
+    background:var(--bar-bg); color:#fff; padding:16px 20px; display:flex; align-items:center;
+    justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
+  .topbar .tt{ font-family:var(--font-display); font-size:20px; font-weight:800; text-transform:uppercase; letter-spacing:0.4px; }
+  .topbar .sub{ font-size:12px; opacity:0.7; font-weight:600; }
+  .sair{
+    background:transparent; border:1px solid rgba(255,255,255,0.35); color:#fff; border-radius:999px;
+    padding:7px 16px; font-size:12.5px; font-weight:700; cursor:pointer; font-family:var(--font-body);
+  }
+  .sair:hover{ background:rgba(255,255,255,0.12); }
+  .wrap{ max-width:920px; margin:0 auto; padding:22px 18px 60px; }
+  .barra-acoes{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+  .badge-role{
+    display:inline-block; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.4px;
+    padding:4px 11px; border-radius:999px; background:var(--gray-light); border:1px solid var(--border-strong); color:var(--ink);
+  }
+  .badge-role.mestre{ background:#0f4c9c; color:#fff; border-color:#0f4c9c; }
+  .btn-nova{
+    border:none; border-radius:999px; background:var(--bar-bg); color:#fff; font-weight:700; font-size:13.5px;
+    padding:11px 20px; cursor:pointer; font-family:var(--font-body);
+  }
+  .btn-nova:hover{ filter:brightness(1.1); }
+  .grupo-titulo{
+    font-family:var(--font-display); text-transform:uppercase; letter-spacing:0.4px; font-size:14px;
+    color:var(--gray-text); font-weight:700; margin:22px 0 10px;
+  }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:14px; }
+  .card{
+    background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:16px;
+    box-shadow:var(--shadow); display:flex; flex-direction:column; gap:8px; cursor:pointer;
+  }
+  .card:hover{ border-color:var(--border-strong); }
+  .card .nome{ font-family:var(--font-display); font-size:18px; font-weight:700; text-transform:uppercase; }
+  .card .meta{ font-size:11.5px; color:var(--gray-text); font-weight:600; }
+  .card .acoes{ display:flex; gap:8px; margin-top:6px; }
+  .card .acoes button{
+    font-size:11.5px; font-weight:700; border-radius:999px; padding:6px 12px; cursor:pointer;
+    border:1px solid var(--border-strong); background:var(--gray-light); color:var(--ink); font-family:var(--font-body);
+  }
+  .card .acoes button.apagar{ color:#a32020; }
+  .card .acoes button:hover{ filter:brightness(0.97); }
+  .vazio{ padding:40px 20px; text-align:center; color:var(--gray-text); font-size:13.5px; }
+  .carregando{ padding:40px 20px; text-align:center; color:var(--gray-text); font-size:13.5px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="tt">Shinobi no Sho</div>
+    <div class="sub" id="saudacao">Carregando…</div>
+  </div>
+  <button class="sair" id="btn_sair">Sair</button>
+</div>
+
+<div class="wrap">
+  <div class="barra-acoes">
+    <span class="badge-role" id="badge_role">—</span>
+    <button class="btn-nova" id="btn_nova">+ Nova Ficha</button>
+  </div>
+  <div id="area_listas"><div class="carregando">Carregando suas fichas…</div></div>
+</div>
+
+<script>
+let meuId = null, meuRole = "player";
+
+function escapeHtml(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function formatarData(iso){
+  if(!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"});
+}
+
+async function iniciar(){
+  const { data: sess } = await sb.auth.getSession();
+  if(!sess.session){ location.href = "login.html"; return; }
+  meuId = sess.session.user.id;
+
+  const { data: perfil, error: errPerfil } = await sb.from("perfis").select("nome, role").eq("id", meuId).single();
+  if(errPerfil){ console.error(errPerfil); }
+  meuRole = (perfil && perfil.role) || "player";
+
+  document.getElementById("saudacao").textContent = "Olá, " + ((perfil && perfil.nome) || sess.session.user.email);
+  const badge = document.getElementById("badge_role");
+  badge.textContent = (meuRole === "mestre") ? "Mestre" : "Player";
+  badge.classList.toggle("mestre", meuRole === "mestre");
+
+  await carregarFichas();
+}
+
+async function carregarFichas(){
+  const area = document.getElementById("area_listas");
+  area.innerHTML = '<div class="carregando">Carregando suas fichas…</div>';
+
+  /* RLS já garante: Player só recebe as próprias; Mestre recebe todas */
+  const { data: fichas, error } = await sb.from("fichas").select("id, user_id, nome, atualizado_em").order("atualizado_em", { ascending:false });
+  if(error){ area.innerHTML = '<div class="vazio">Erro ao carregar: ' + escapeHtml(error.message) + '</div>'; return; }
+
+  if(!fichas || fichas.length === 0){
+    area.innerHTML = '<div class="vazio">Você ainda não tem nenhuma ficha. Clique em "+ Nova Ficha" para começar.</div>';
+    return;
+  }
+
+  if(meuRole !== "mestre"){
+    area.innerHTML = '<div class="grid">' + fichas.map(f => cardHtml(f)).join("") + '</div>';
+    ligarCliques();
+    return;
+  }
+
+  /* Mestre: agrupa por dono, buscando nome de cada um em perfis (RLS libera pra mestre) */
+  const ids = [...new Set(fichas.map(f => f.user_id))];
+  const { data: perfisDonos } = await sb.from("perfis").select("id, nome").in("id", ids);
+  const nomePor = {};
+  (perfisDonos || []).forEach(p => { nomePor[p.id] = p.nome; });
+
+  const porDono = {};
+  fichas.forEach(f => {
+    const key = f.user_id;
+    if(!porDono[key]) porDono[key] = [];
+    porDono[key].push(f);
+  });
+
+  let html = "";
+  Object.keys(porDono).forEach(uid => {
+    const rotulo = (uid === meuId) ? "Suas fichas" : (nomePor[uid] || "Jogador");
+    html += '<div class="grupo-titulo">' + escapeHtml(rotulo) + '</div>';
+    html += '<div class="grid">' + porDono[uid].map(f => cardHtml(f)).join("") + '</div>';
+  });
+  area.innerHTML = html;
+  ligarCliques();
+}
+
+function cardHtml(f){
+  return '<div class="card" data-id="' + f.id + '">' +
+    '<div class="nome">' + escapeHtml(f.nome || "Ficha sem nome") + '</div>' +
+    '<div class="meta">Atualizada em ' + formatarData(f.atualizado_em) + '</div>' +
+    '<div class="acoes">' +
+      '<button type="button" class="abrir">Abrir</button>' +
+      '<button type="button" class="apagar">Apagar</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function ligarCliques(){
+  document.querySelectorAll(".card").forEach(card => {
+    const id = card.dataset.id;
+    card.querySelector(".abrir").addEventListener("click", (e) => { e.stopPropagation(); abrirFicha(id); });
+    card.addEventListener("click", () => abrirFicha(id));
+    card.querySelector(".apagar").addEventListener("click", async (e) => {
+      e.stopPropagation();
+      if(!confirm("Apagar esta ficha? Essa ação não pode ser desfeita.")) return;
+      const { error } = await sb.from("fichas").delete().eq("id", id);
+      if(error){ alert("Não foi possível apagar: " + error.message); return; }
+      carregarFichas();
+    });
+  });
+}
+
+function abrirFicha(id){ location.href = "index.html?id=" + id; }
+
+document.getElementById("btn_nova").addEventListener("click", async () => {
+  const nome = prompt("Nome da nova ficha (ex: nome do personagem):", "Novo Shinobi");
+  if(nome == null) return;
+  const { data, error } = await sb.from("fichas").insert({ user_id: meuId, nome: nome.trim() || "Ficha sem nome", dados:{} }).select("id").single();
+  if(error){ alert("Não foi possível criar a ficha: " + error.message); return; }
+  location.href = "index.html?id=" + data.id;
+});
+
+document.getElementById("btn_sair").addEventListener("click", async () => {
+  await sb.auth.signOut();
+  location.href = "login.html";
+});
+
+iniciar();
+</script>
+</body>
+</html>

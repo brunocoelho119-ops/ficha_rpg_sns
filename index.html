@@ -330,6 +330,23 @@
   .rl-seg{ flex:1; padding:9px 10px; border:1px solid var(--border); border-radius:8px; background:var(--input-bg); font-weight:700; font-size:13px; cursor:pointer; font-family:var(--font-body); }
   .rl-seg.active{ background:var(--bar-bg); color:#fff; border-color:var(--bar-bg); }
   .rl-nota{ font-size:11px; color:var(--gray-text); font-style:italic; margin-top:6px; line-height:1.4; }
+  .ficha-topbar{
+    position:sticky; top:0; z-index:500; display:flex; align-items:center; gap:12px;
+    background:var(--bar-bg); color:#fff; padding:10px 16px; flex-wrap:wrap;
+  }
+  .ficha-topbar .ft-voltar{ color:#fff; opacity:0.85; text-decoration:none; font-size:12.5px; font-weight:700; font-family:var(--font-body); white-space:nowrap; }
+  .ficha-topbar .ft-voltar:hover{ opacity:1; }
+  .ficha-topbar .ft-nome{
+    flex:1; min-width:120px; max-width:320px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25);
+    color:#fff; border-radius:8px; padding:7px 10px; font-size:13px; font-weight:700; font-family:var(--font-body);
+  }
+  .ficha-topbar .ft-nome::placeholder{ color:rgba(255,255,255,0.6); }
+  .ficha-topbar .ft-status{ font-size:11px; color:rgba(255,255,255,0.65); font-weight:600; white-space:nowrap; }
+  .ficha-topbar .ft-sair{
+    background:transparent; border:1px solid rgba(255,255,255,0.35); color:#fff; border-radius:999px;
+    padding:6px 14px; font-size:12px; font-weight:700; cursor:pointer; font-family:var(--font-body); white-space:nowrap;
+  }
+  .ficha-topbar .ft-sair:hover{ background:rgba(255,255,255,0.12); }
   .rl-resultado{ margin-top:12px; padding:12px; background:var(--gray-light); border-radius:8px; font-size:13px; font-weight:600; min-height:20px; border-left:3px solid var(--bar-bg); line-height:1.5; }
   .rl-resultado .rl-r-top{ font-family:var(--font-display); font-size:19px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; display:block; margin-bottom:4px; }
   .rl-resultado .rl-r-sub{ display:block; font-size:12px; font-weight:600; color:#3d3f45; }
@@ -448,11 +465,18 @@
   .st-ok{ font-family:var(--font-body); font-weight:700; font-size:11px; border:none; border-radius:999px; padding:4px 12px; cursor:pointer; background:#00AD67; color:#fff; }
   .st-ok:hover{ filter:brightness(1.08); }
 </style>
-  <!-- ===== NUVEM (Supabase): para ativar, descomente as 2 linhas abaixo e veja o GUIA ===== -->
-  <!-- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> -->
-  <!-- <script src="supabase-config.js"></script> -->
+  <!-- ===== NUVEM (Supabase) ===== -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
 </head>
 <body>
+
+<div class="ficha-topbar" id="ficha_topbar" style="display:none;">
+  <a href="home.html" class="ft-voltar">← Minhas Fichas</a>
+  <input type="text" id="ft_nome_ficha" class="ft-nome" placeholder="Nome da ficha" spellcheck="false">
+  <span class="ft-status" id="ft_status"></span>
+  <button type="button" class="ft-sair" id="ft_sair">Sair</button>
+</div>
 
 <div class="scaler-outer" id="scaler">
 <div class="scaler-inner" id="stage">
@@ -837,33 +861,57 @@
      2) crie o supabase-config.js com sua URL e chave anon;
      3) troque NUVEM_ATIVA para true.
    =================================================================== */
-const NUVEM_ATIVA = false;                                   // <-- vira true quando o Supabase estiver configurado
+const NUVEM_ATIVA = true;
 const FICHA_ID = new URLSearchParams(location.search).get("id");
 let _nuvemTimer = null;
+
+let _minhaFichaOwnerId = null, _meuUserId = null;
 
 async function carregarDaNuvem(){
   try{
     const { data: sess } = await sb.auth.getSession();
     if(!sess.session){ location.href = "login.html"; return false; }
+    _meuUserId = sess.session.user.id;
     if(!FICHA_ID){ location.href = "home.html"; return false; }
-    const { data, error } = await sb.from("fichas").select("dados").eq("id", FICHA_ID).single();
+
+    const { data, error } = await sb.from("fichas").select("dados, nome, user_id").eq("id", FICHA_ID).single();
     if(error){ alert("Erro ao carregar a ficha: " + error.message); location.href = "home.html"; return false; }
+
+    _minhaFichaOwnerId = data.user_id;
     const d = data.dados || {};
+    /* sempre define (ou limpa) os dois — senão uma ficha nova/vazia herdaria
+       o que sobrou no localStorage da última ficha aberta neste navegador */
     if(d.estado) localStorage.setItem("sns_ficha_estado_v1", JSON.stringify(d.estado));
+    else         localStorage.removeItem("sns_ficha_estado_v1");
     if(d.db)     localStorage.setItem("sns_ficha_db_v1", JSON.stringify(d.db));
+    else         localStorage.removeItem("sns_ficha_db_v1");
+
+    const barra = document.getElementById("ficha_topbar");
+    const inNome = document.getElementById("ft_nome_ficha");
+    if(barra){ barra.style.display = "flex"; }
+    if(inNome){ inNome.value = data.nome || ""; }
     return true;
   }catch(e){ console.error(e); alert("Falha ao conectar na nuvem."); return false; }
 }
+function salvarNomeFichaNaNuvem(nome){
+  if(!NUVEM_ATIVA || typeof sb === "undefined" || !FICHA_ID) return;
+  sb.from("fichas").update({ nome: nome, atualizado_em: new Date().toISOString() }).eq("id", FICHA_ID)
+    .then(({error}) => { if(error) console.error(error); });
+}
 function salvarNaNuvem(){
   if(!NUVEM_ATIVA || typeof sb === "undefined" || !FICHA_ID) return;
+  const st = document.getElementById("ft_status"); if(st) st.textContent = "Salvando…";
   clearTimeout(_nuvemTimer);
   _nuvemTimer = setTimeout(async () => {
     let estado = null, db = null;
     try{ estado = JSON.parse(localStorage.getItem("sns_ficha_estado_v1") || "null"); }catch(e){}
     try{ db     = JSON.parse(localStorage.getItem("sns_ficha_db_v1") || "null"); }catch(e){}
     const dados = { estado, db, foto: (db && db.foto) || "" };
-    try{ await sb.from("fichas").update({ dados, atualizado_em: new Date().toISOString() }).eq("id", FICHA_ID); }
-    catch(e){ console.error(e); }
+    try{
+      const { error } = await sb.from("fichas").update({ dados, atualizado_em: new Date().toISOString() }).eq("id", FICHA_ID);
+      if(st) st.textContent = error ? "Erro ao salvar" : "Salvo";
+      if(error) console.error(error);
+    }catch(e){ console.error(e); if(st) st.textContent = "Erro ao salvar"; }
   }, 1200);
 }
 
@@ -2535,6 +2583,23 @@ recalc();
 })();
 
 }
+
+(function(){
+  const btnSair = document.getElementById("ft_sair");
+  if(btnSair) btnSair.addEventListener("click", async () => {
+    if(typeof sb === "undefined") return;
+    await sb.auth.signOut();
+    location.href = "login.html";
+  });
+  const inNome = document.getElementById("ft_nome_ficha");
+  if(inNome){
+    let t = null;
+    inNome.addEventListener("input", () => {
+      clearTimeout(t);
+      t = setTimeout(() => salvarNomeFichaNaNuvem(inNome.value.trim() || "Ficha sem nome"), 700);
+    });
+  }
+})();
 
 /* ===== BOOTSTRAP: com nuvem ativa, carrega os dados antes de montar; senão, monta na hora ===== */
 (async function(){
