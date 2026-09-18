@@ -145,9 +145,10 @@
   .row3b{ display:flex; gap:12px; margin-top:12px; }
   .armaduras-box{ flex:0 0 34%; min-width:0; border:1px solid var(--border); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm); overflow:hidden; }
   .armaduras-box .bar{ display:flex; align-items:center; justify-content:center; gap:6px; border-radius:var(--radius-sm) var(--radius-sm) 0 0; }
-  .armaduras-box .ab-row{ display:flex; align-items:center; gap:8px; padding:8px 12px; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--gray-text); }
+  .armaduras-box .ab-row{ display:flex; align-items:center; gap:10px; padding:9px 12px; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--gray-text); }
   .armaduras-box .ab-row + .ab-row{ border-top:1px solid var(--border); }
-  .armaduras-box .ab-row input{ flex:1; }
+  .armaduras-box .ab-row span{ flex:0 0 66px; white-space:nowrap; }
+  .armaduras-box .ab-row input{ flex:1; min-width:0; }
 
   .social-box{ flex:1; min-width:0; border:1px solid var(--border); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm); overflow:hidden; }
   .social-cols{ display:flex; }
@@ -366,6 +367,29 @@
   @keyframes rlFlash{ 0%{ background:#ffe9a8; transform:scale(1.015);} 100%{ background:var(--gray-light); transform:scale(1);} }
   .bd-select{ width:100%; font-size:12px; padding:4px 6px !important; background:var(--input-bg); border:1px solid var(--input-border); border-radius:6px; font-family:var(--font-body); }
 
+  /* ===== Dropdown custom de Clã / Hijutsu (mesmo visual do seletor de poderes) ===== */
+  .cla-trigger{
+    width:100%; display:flex; align-items:center; justify-content:space-between; gap:6px;
+    font-family:var(--font-body); font-size:13px; color:var(--ink); text-align:left; cursor:pointer;
+    background:var(--input-bg); border:1px solid var(--input-border); border-radius:var(--radius-sm);
+    padding:4px 8px; transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .cla-trigger:hover{ background:#fff; }
+  .cla-trigger:focus{ outline:none; border-color:#b8bac0; background:#fff; box-shadow:0 0 0 3px rgba(20,20,25,0.06); }
+  .cla-trigger .cla-label{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cla-trigger .cla-chevron{ flex:0 0 auto; font-size:11px; color:var(--gray-text); transition:transform .15s ease; }
+  .cla-trigger.open .cla-chevron{ transform:rotate(180deg); }
+  .cla-menu{
+    position:fixed; z-index:9998; display:none;
+    background:#fff; border:1px solid var(--border); border-radius:12px;
+    box-shadow:0 16px 40px rgba(0,0,0,0.20); padding:5px; max-height:340px; overflow-y:auto;
+  }
+  .cla-menu.open{ display:block; animation:modalIn 150ms cubic-bezier(.2,.8,.2,1); }
+  .cla-grp{ position:sticky; top:0; background:var(--gray-light); color:var(--gray-text); font-family:var(--font-display); font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; padding:6px 10px; margin:2px 0; border-radius:6px; z-index:1; }
+  .cla-opt{ padding:8px 10px; border-radius:8px; cursor:pointer; font-size:13px; color:var(--ink); transition:background 90ms ease; white-space:nowrap; }
+  .cla-opt:hover{ background:#eef3fb; }
+  .cla-opt.sel{ background:var(--bar-bg); color:#fff; }
+
   /* ---------- animação de rolagem de dados ---------- */
   .modal-card{ position:relative; }
   .modal-card.rolando .modal-body,
@@ -449,6 +473,12 @@
     background:var(--bar-bg); color:#fff; border:none; border-radius:999px; padding:6px 10px; cursor:pointer;
   }
   .jutsu-efeito-btn:hover{ opacity:0.9; }
+  .if-equip-row{ display:flex; align-items:center; gap:7px; margin:2px 0 9px 0; padding:6px 10px; border-radius:999px;
+    background:#eef3fb; border:1px solid var(--border); font-size:11px; font-weight:600; color:var(--ink); cursor:pointer; }
+  .if-equip-row input{ width:auto !important; margin:0; cursor:pointer; }
+  .item-tipo-row select.if-kind{ flex:1; min-width:0; padding:5px 8px; border:1px solid var(--input-border); background:var(--input-bg);
+    border-radius:8px; font-family:var(--font-body); font-size:12px; font-weight:600; color:var(--ink); cursor:pointer; }
+  .item-tipo-row select.if-kind:focus{ outline:none; border-color:#b8bac0; background:#fff; }
   .bd-siglas{ border:1px solid var(--border); border-top:none; box-shadow:var(--shadow-sm); padding:10px 14px; }
   .bd-sigla-linha{ font-size:12px; color:#333; line-height:1.7; }
   .bd-sigla-linha b{ color:var(--ink); }
@@ -491,6 +521,64 @@
   .stat-flash{ animation: flashStat 650ms ease; border-radius:6px; }
   .per-row:hover, .hc-row:hover, .bd-table tbody tr:hover, .dtable tbody tr:hover{ background: rgba(15,98,172,0.05); }
   @media (prefers-reduced-motion: reduce){ .stat-flash{ animation:none; } }
+  /* ===================== RESULTADO DE ROLAGEM (bonito, reutilizável) ===================== */
+  .roll-out{ text-align:left; }
+  .roll-out .ro-top{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .roll-out .ro-dice{ display:flex; gap:8px; flex:0 0 auto; }
+  .roll-out .ro-die{
+    width:38px; height:38px; display:flex; align-items:center; justify-content:center;
+    background:var(--bar-bg); color:#fff; font-family:var(--font-display); font-weight:700; font-size:20px; line-height:1;
+    clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+    box-shadow:0 4px 12px rgba(0,0,0,0.22);
+  }
+  .roll-out .ro-mid{ flex:1 1 auto; min-width:120px; }
+  .roll-out .ro-eq{ font-family:var(--font-body); font-size:12.5px; color:#3d3f45; font-weight:600; line-height:1.35; }
+  .roll-out .ro-eq b{ font-size:15px; color:var(--ink); }
+  .roll-out .ro-badge{
+    display:inline-block; margin-top:5px; font-family:var(--font-display); font-weight:700; text-transform:uppercase;
+    letter-spacing:0.4px; font-size:12px; padding:4px 12px; border-radius:999px; color:#fff; background:var(--bar-bg);
+  }
+  .ro-badge.fail{ background:#c0392b; }
+  .ro-badge.g1{ background:#c99a2e; }
+  .ro-badge.g3{ background:#2e9e57; }
+  .ro-badge.crit{ background:#b8860b; box-shadow:0 0 0 2px rgba(184,134,11,0.25); }
+  .ro-badge.ok{ background:#0f62ac; }
+  .ro-badge.ini{ background:#3a3d44; }
+  .roll-out .ro-title{ font-family:var(--font-display); font-weight:700; text-transform:uppercase; font-size:14px; color:var(--ink); margin-top:9px; letter-spacing:0.3px; }
+  .roll-out .ro-lines{ margin-top:4px; font-size:12.5px; color:#3d3f45; font-weight:600; line-height:1.5; }
+  .roll-out .ro-warn{ margin-top:6px; font-size:11.5px; font-weight:700; color:#a32020; }
+
+  /* ===================== POPUP DE ROLAGEM RÁPIDA (iniciativa / testes) ===================== */
+  .qroll-overlay{ position:fixed; inset:0; z-index:9997; display:none; align-items:center; justify-content:center; padding:18px; background:rgba(18,20,24,0.5); backdrop-filter:blur(2px); }
+  .qroll-overlay.open{ display:flex; }
+  .qroll-overlay.open .qroll-card{ animation:modalIn 180ms cubic-bezier(.2,.8,.2,1); }
+  .qroll-card{ background:#fff; width:100%; max-width:440px; border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden; }
+  .qroll-head{ background:var(--bar-bg); color:#fff; font-family:var(--font-display); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; font-size:16px; padding:13px 18px; display:flex; align-items:center; justify-content:space-between; }
+  .qroll-head button{ background:transparent; border:none; color:#fff; font-size:22px; line-height:1; cursor:pointer; opacity:0.8; }
+  .qroll-head button:hover{ opacity:1; }
+  .qroll-body{ padding:16px 18px; }
+  .qroll-stage{ display:flex; gap:16px; align-items:center; justify-content:center; min-height:78px; margin-bottom:6px; }
+  .qroll-stage .rl-die{ width:64px; height:64px; font-size:34px; }
+  .qroll-res{ min-height:20px; }
+  .qroll-hist{ margin-top:12px; border-top:1px solid var(--border); padding-top:8px; display:none; }
+  .qroll-hist.show{ display:block; }
+  .qroll-hist .qh-titulo{ font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; color:var(--gray-text); margin-bottom:5px; }
+  .qroll-hist .qh-item{ font-size:11.5px; color:#3d3f45; padding:2px 0; line-height:1.4; }
+  .qroll-hist .qh-item b{ color:var(--ink); }
+  .qroll-foot{ display:flex; align-items:center; gap:10px; padding:12px 18px; border-top:1px solid var(--border); }
+  .qroll-dif{ font-size:11px; font-weight:700; text-transform:uppercase; color:var(--gray-text); display:flex; align-items:center; gap:6px; margin-right:auto; }
+  .qroll-dif input{ width:52px; text-align:center; font-size:13px; font-weight:700; padding:5px 6px; border:1px solid var(--input-border); background:var(--input-bg); border-radius:8px; }
+  .qroll-dif input:focus{ outline:none; border-color:#b8bac0; background:#fff; }
+
+  /* botãozinho de rolar (🎲) reutilizado em atributos, perícias, HC e iniciativa */
+  .test-roll{ cursor:pointer; user-select:none; font-size:13px; opacity:0.55; transition:opacity .12s, transform .12s; flex:0 0 auto; }
+  .test-roll:hover{ opacity:1; transform:scale(1.15); }
+  .sc-roll{ position:absolute; top:6px; right:8px; }
+  .stats-combate-cell{ position:relative; }
+  .attr-badge{ position:relative; }
+  .attr-roll{ position:absolute; top:6px; right:7px; }
+  .per-row .test-roll, .hc-row .test-roll{ margin-right:5px; }
+  .per-row:hover .test-roll, .hc-row:hover .test-roll{ opacity:0.85; }
 </style>
   <!-- ===== NUVEM (Supabase) ===== -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -544,7 +632,10 @@
     </div>
     <div class="header-right">
       <div class="hr-row">
-        <div class="hr-cell"><label>Clã</label><input class="field-input" id="in_cla" value=""></div>
+        <div class="hr-cell cla-field"><label>Clã / Hijutsu</label>
+          <input type="hidden" id="in_cla" value="">
+          <button type="button" class="cla-trigger" id="in_cla_btn" aria-haspopup="listbox"><span class="cla-label">Nenhum</span><span class="cla-chevron">▾</span></button>
+        </div>
         <div class="hr-cell"><label>Nível Shinobi</label><input class="field-input" id="in_patente" value=""></div>
         <div class="hr-cell"><label>Nível da Campanha</label><input class="field-input" id="in_nc" value="7"></div>
       </div>
@@ -586,6 +677,7 @@
       <div class="bar">Estatísticas de Combate</div>
       <div class="stats-combate-box">
         <div class="stats-combate-cell">
+          <span class="test-roll sc-roll" data-roll="ini" title="Rolar Iniciativa (1d8 + Agilidade + Prontidão)">🎲</span>
           <span class="sc-name">Iniciativa</span>
           <span class="sc-cap">PRO + AGI</span>
           <input class="auto" data-calc="iniciativa" title="Calculado: Prontidão + Agilidade. Digite para sobrescrever; limpe para voltar ao automático." value="">
@@ -608,8 +700,8 @@
             <svg width="18" height="18" viewBox="0 0 24 24" style="stroke:#fff;fill:none;stroke-width:2.2;vertical-align:-4px;"><path d="M12 3 L19 6 L19 12 Q19 18 12 21 Q5 18 5 12 L5 6 Z"/></svg>
             Armaduras
           </div>
-          <div class="ab-row"><span>Dureza</span><input></div>
-          <div class="ab-row"><span>Absorção</span><input></div>
+          <div class="ab-row"><span>Dureza</span><input id="in_dureza" class="auto" data-calc="dureza" title="Dureza de corpo. Automático pela aptidão Resiliência (⌊Vigor/4⌋). Digite para sobrescrever (Pele de Pedra, modos); limpe para voltar ao automático."></div>
+          <div class="ab-row"><span>Absorção</span><input id="in_absorcao" class="auto" data-calc="absorcao" title="Soma da Absorção da armadura marcada como Equipada no Inventário. Digite para sobrescrever; limpe para voltar ao automático."></div>
         </div>
         <div class="social-box">
           <div class="bar">Atributos Sociais <span class="pt-counter" id="pt_soc"></span></div>
@@ -711,7 +803,7 @@
 
   <div class="bar" style="margin-top:14px;">Calculadora de Dano - Jutsus com Dano Comum do Poder</div>
   <table class="dtable">
-    <tr><th>Jutsu</th><th>Custo</th><th>Nv. Usado do Poder</th><th>Dureza</th><th>Dano Elemental</th><th>Bônus de Dano</th><th>Dano Base</th><th class="del-th" style="width:56px;"></th></tr>
+    <tr><th>Jutsu</th><th>Custo</th><th title="Nível usado do Poder">Nv. Poder</th><th>Dureza</th><th title="Dano Elemental (bônus do elemento)">Dano Elem.</th><th title="Bônus de Dano (manual)">Bônus</th><th>Dano Base</th><th class="del-th" style="width:64px;"></th></tr>
     <tbody id="calc_jutsu_rows"></tbody>
   </table>
   <button class="btn-add-row" data-add="calc_jutsu_rows" data-cols="7">+ Adicionar linha</button>
@@ -732,7 +824,7 @@
     <div style="flex:1;">
       <div class="bar">Calculadora de Dano — Ataques Armados / Desarmado</div>
       <table class="dtable">
-        <tr><th>Nome</th><th>Dano</th><th>Bônus de Dano</th><th>Alcance</th><th>Crítico</th><th>Dureza</th><th>Dano Base</th><th class="del-th" style="width:56px;"></th></tr>
+        <tr><th>Nome</th><th>Dano</th><th title="Bônus de Dano (manual)">Bônus</th><th>Alcance</th><th>Crítico</th><th>Dureza</th><th>Dano Base</th><th class="del-th" style="width:64px;"></th></tr>
         <tbody id="calc_armado_rows"></tbody>
       </table>
       <button class="btn-add-row" data-add="calc_armado_rows" data-cols="7">+ Adicionar linha</button>
@@ -779,6 +871,29 @@
 
 </div><!-- /stage -->
 </div><!-- /scaler -->
+
+<!-- painel do dropdown de Clã / Hijutsu (fora do scaler para não ser cortado nem escalado incorretamente) -->
+<div class="cla-menu" id="in_cla_menu" role="listbox"></div>
+
+<!-- ================= POPUP DE ROLAGEM RÁPIDA (iniciativa / testes) ================= -->
+<div class="qroll-overlay" id="qroll">
+  <div class="qroll-card">
+    <div class="qroll-head"><span id="qroll_titulo">Rolagem</span><button type="button" id="qroll_x" aria-label="Fechar">×</button></div>
+    <div class="qroll-body">
+      <div class="qroll-stage" id="qroll_stage">
+        <div class="rl-die" id="qd_a">?</div>
+        <div class="rl-die" id="qd_b">?</div>
+      </div>
+      <div class="qroll-res" id="qroll_res"></div>
+      <div class="qroll-hist" id="qroll_hist"><div class="qh-titulo">Últimas rolagens</div><div id="qroll_hist_list"></div></div>
+    </div>
+    <div class="qroll-foot">
+      <label class="qroll-dif" id="qroll_dif_wrap">Dif <input type="text" id="qroll_dif" placeholder="—" inputmode="numeric"></label>
+      <button class="modal-btn" type="button" id="qroll_fechar">Fechar</button>
+      <button class="modal-btn primary" type="button" id="qroll_reroll">🎲 Rolar de novo</button>
+    </div>
+  </div>
+</div>
 
 <!-- ================= MODAL SELETOR (poderes / aptidões) ================= -->
 <div class="modal-overlay" id="seletor_overlay">
@@ -1099,6 +1214,75 @@ const SEED_DB = {
     {nome:"Armadura de Batalha", tipo:"Pesada", preco:"250 Ryos", absorcao:"+15", penalidade:"0 (-2)", comp:"–1 comp."},
     {nome:"Armadura de Batalha Reforçada", tipo:"Pesada", preco:"600 Ryos", absorcao:"+20", penalidade:"–2 (-4)", comp:"–2 comp."}
   ],
+  /* Tabela de Itens e Serviços (Livro Básico p.140). "comp": "+X comp." soma
+     capacidade de compartimentos; "N item/M comp." ocupa M; "---" nada. */
+  itens: [
+    {nome:"Algemas", categoria:"Item Geral", preco:"15 Ryos", comp:"1 item/1 comp."},
+    {nome:"Coldre/Bolsa com cinto", categoria:"Item Geral", preco:"1 Ryo", comp:"+1 comp."},
+    {nome:"Corda (15m)", categoria:"Item Geral", preco:"1 Ryo", comp:"1 item/1 comp."},
+    {nome:"Kit de artesão (5 usos)", categoria:"Item Geral", preco:"30 Ryos", comp:"1 item/1 comp."},
+    {nome:"Kit de ferramentas (5 usos)", categoria:"Item Geral", preco:"30 Ryos", comp:"1 item/1 comp."},
+    {nome:"Kit de medicamentos (5 usos)", categoria:"Item Geral", preco:"50 Ryos", comp:"1 item/1 comp."},
+    {nome:"Kit de Laboratório (5 usos)", categoria:"Item Geral", preco:"50 Ryos", comp:"1 item/1 comp."},
+    {nome:"Instrumento Musical", categoria:"Item Geral", preco:"50 Ryos", comp:"1 item/1 comp."},
+    {nome:"Lanterna", categoria:"Item Geral", preco:"7 Ryos", comp:"1 item/1 comp."},
+    {nome:"Mochila", categoria:"Item Geral", preco:"2 Ryos", comp:"+4 comp."},
+    {nome:"Caneta", categoria:"Item Geral", preco:"1 Ryo", comp:"---"},
+    {nome:"Pergaminho (Jutsus)", categoria:"Item Geral", preco:"10 Ryos", comp:"1 item/1 comp."},
+    {nome:"Pergaminho (escrita)", categoria:"Item Geral", preco:"1 Ryo cada", comp:"6 itens/1 comp."},
+    {nome:"Tarja especial (selos)", categoria:"Item Geral", preco:"10 Ryos cada", comp:"6 itens/1 comp."},
+    {nome:"Saco de dormir", categoria:"Item Geral", preco:"1 Ryo", comp:"1 item/2 comp."},
+    {nome:"Ração de viagem (por dia)", categoria:"Item Geral", preco:"1 Ryo cada", comp:"6 itens/1 comp."},
+    {nome:"Pílulas do Soldado (ver pág. 260)", categoria:"Item Geral", preco:"50 Ryos - frasco com 10 unidades", comp:"1 item/1 comp.", efeitoTipo:"Chakra", efeitoValor:"½ Espírito"},
+    {nome:"Bebida", categoria:"Hospedagem e Serviços", preco:"1 Ryo", comp:"---"},
+    {nome:"Estadia (por noite)", categoria:"Hospedagem e Serviços", preco:"5 Ryos", comp:"---"},
+    {nome:"Refeição", categoria:"Hospedagem e Serviços", preco:"3 Ryos", comp:"---"},
+    {nome:"Mensageiro", categoria:"Hospedagem e Serviços", preco:"1 Ryo por Km", comp:"---"},
+    {nome:"Cão de guarda", categoria:"Animais", preco:"50 Ryos", comp:"---"},
+    {nome:"Cavalo", categoria:"Animais", preco:"75 Ryos", comp:"---"},
+    {nome:"Estábulo (por dia)", categoria:"Animais", preco:"2 Ryos", comp:"---"},
+    {nome:"Sela", categoria:"Animais", preco:"20 Ryos", comp:"---"},
+    {nome:"Carroça", categoria:"Veículos", preco:"30 Ryos", comp:"---"},
+    {nome:"Carruagem", categoria:"Veículos", preco:"100 Ryos", comp:"---"},
+    {nome:"Canoa", categoria:"Veículos", preco:"50 Ryos", comp:"---"},
+    {nome:"Condução Terrestre", categoria:"Veículos", preco:"1 Ryo por Km", comp:"---"},
+    {nome:"Condução Marítima", categoria:"Veículos", preco:"3 Ryos por Km", comp:"---"}
+  ],
+  /* Linhagens (Clãs e Hijutsus). "poderes" = palavras-chave (início do nome do poder,
+     sem acento) que a linhagem libera; usadas no filtro da ficha. Características e
+     afinidades conforme Livro Básico (Pergaminho III) e Livros de Hijutsus Vol.1/Vol.2. */
+  linhagens: [
+    {chave:"uchiha",   nome:"Uchiha",   tipo:"Clã", afinidade:"Katon (Fogo)", poderes:"sharingan, enton", aptidoes:"Elemento Natural: Katon; Sharingan; Nidan/Sandan/Mangekyou Sharingan", caracteristica:"Kekkei genkai Sharingan (doujutsu): copia técnicas e prevê movimentos; o Mangekyou concede Amaterasu/Susanoo (Enton). Afinidade natural com Katon.", fonte:"Básico p.180"},
+    {chave:"hyuuga",   nome:"Hyuuga",   tipo:"Clã", afinidade:"", poderes:"byakugan, juuken", aptidoes:"Byakugan; Tenketsu Byakugan", caracteristica:"Kekkei genkai Byakugan: visão quase 360°, enxerga chakra e tenketsu. Possui o taijutsu mais forte de Konoha, o Juuken, que sela os tenketsu e drena o chakra do alvo.", fonte:"Básico p.157"},
+    {chave:"aburame",  nome:"Aburame",  tipo:"Clã", afinidade:"", poderes:"kikaichuu", aptidoes:"Kikaichuu; Shōkaichuu; Kidaichuu; Rinkaichuu", caracteristica:"Kekkei genkai: comunga o corpo com insetos kikai que se alimentam de chakra (Kikai Ninpou), usados em técnicas ofensivas e defensivas.", fonte:"Básico p.142"},
+    {chave:"akimichi", nome:"Akimichi", tipo:"Clã", afinidade:"", poderes:"", aptidoes:"Corpulência; Resiliência", caracteristica:"Convertem calorias em chakra; grande força física e reservas de chakra. Arte da Expansão (Baika Ninpou) e as Três Pílulas Coloridas.", fonte:"Básico p.150"},
+    {chave:"hatake",   nome:"Hatake",   tipo:"Clã", afinidade:"", poderes:"", aptidoes:"Kuchiyose Restrito: Cães; Espada de Chakra Branco", caracteristica:"Contrato de invocação com os Cães Ninjas e a Espada de Chakra Branco. Especial: com Vigor 16 não precisa de teste para se manter consciente.", fonte:"Básico p.155"},
+    {chave:"inuzuka",  nome:"Inuzuka",  tipo:"Clã", afinidade:"", poderes:"", aptidoes:"Companheiro Animal; Hakken no Jutsu; Shikakyu (Quadrúpede)", caracteristica:"Ligação com cães/lobos ninja e olfato sobre-humano; lutam ao lado do companheiro animal em estilo quadrúpede (Shikakyu).", fonte:"Básico p.163"},
+    {chave:"nara",     nome:"Nara",     tipo:"Clã", afinidade:"", poderes:"", aptidoes:"", caracteristica:"Estrategistas natos; Arte das Sombras (Kagejutsu): manipula a própria sombra para imobilizar o adversário (Kage Mane, Kage Shibari).", fonte:"Básico p.168"},
+    {chave:"sarutobi", nome:"Sarutobi", tipo:"Clã", afinidade:"Katon (Fogo)", poderes:"", aptidoes:"Kuchiyose Restrito: Macacos; Tensai (Genialidade); Vontade do Fogo", caracteristica:"Talento com Katon (só rivalizado pelos Uchiha), contrato de invocação com os Macacos Ninjas e a Vontade do Fogo.", fonte:"Básico p.173"},
+    {chave:"senju",    nome:"Senju",    tipo:"Clã", afinidade:"Mokuton (Madeira)", poderes:"mokuton", aptidoes:"Mokuton; Maximizar; Regeneração; Senjutsu; Vontade do Fogo", caracteristica:"Clã das Mil Habilidades; grande vitalidade e a kekkei genkai Mokuton (elemento madeira, Terra+Água).", fonte:"Básico p.174"},
+    {chave:"uzumaki",  nome:"Uzumaki",  tipo:"Clã", afinidade:"", poderes:"fuinjutsu", aptidoes:"Regeneração; Chakra Expandido; Mil Clones; Kongou Fuusa; Kagura Shingan", caracteristica:"Grande vitalidade e reserva de chakra, longevidade e maestria em selamento (Fuuinjutsu). Chakra Expandido aumenta o chakra total em 50%.", fonte:"Básico p.193"},
+    {chave:"yamanaka", nome:"Yamanaka", tipo:"Clã", afinidade:"", poderes:"", aptidoes:"", caracteristica:"Especialistas em confundir o oponente (Genjutsu/Ninjutsu); a arte secreta transfere a consciência para o corpo do alvo (Shintenshin).", fonte:"Básico p.196"},
+    {chave:"rinnegan",   nome:"Rinnegan",                    tipo:"Hijutsu", afinidade:"", poderes:"rinnegan", aptidoes:"", caracteristica:"Doujutsu lendário; concede acesso aos Seis Caminhos e a técnicas de altíssimo nível.", fonte:"Hijutsus Vol.1 p.65"},
+    {chave:"jinchuuriki",nome:"Jinchuuriki",                 tipo:"Hijutsu", afinidade:"", poderes:"jinchuuriki", aptidoes:"Modos do Poder; Benefícios Gerais", caracteristica:"Hospedeiro de uma Besta com Cauda selada: manto de chakra, força e regeneração ampliadas conforme o número de caudas.", fonte:"Hijutsus Vol.1 p.22 / Básico p.213"},
+    {chave:"jiton",      nome:"Jiton (Elemento Magnetismo)", tipo:"Hijutsu", afinidade:"Jiton", poderes:"jiton", aptidoes:"", caracteristica:"Kekkei genkai: manipula metal e areia magnetizada.", fonte:"Hijutsus Vol.1 p.53"},
+    {chave:"hyouton",    nome:"Hyouton (Elemento Gelo)",     tipo:"Hijutsu", afinidade:"Hyouton", poderes:"hyouton", aptidoes:"", caracteristica:"Kekkei genkai (Água + Vento): cria e manipula gelo e espelhos. Clã Yuki.", fonte:"Hijutsus Vol.2"},
+    {chave:"youton",     nome:"Youton (Elemento Lava)",      tipo:"Hijutsu", afinidade:"Youton", poderes:"youton", aptidoes:"Youton Corrosivo; Dupla Kekkei", caracteristica:"Kekkei genkai (Fogo + Terra): lava, borracha ou rocha derretida.", fonte:"Hijutsus Vol.2 (Mei KG)"},
+    {chave:"futton",     nome:"Futton (Elemento Vapor)",     tipo:"Hijutsu", afinidade:"Futton", poderes:"futton", aptidoes:"Futton Sufocante; Dupla Kekkei", caracteristica:"Kekkei genkai (Água + Fogo): névoas ácidas e vapor corrosivo.", fonte:"Hijutsus Vol.2 (Mei KG)"},
+    {chave:"ranton",     nome:"Ranton (Elemento Tempestade)",tipo:"Hijutsu", afinidade:"Ranton", poderes:"ranton", aptidoes:"", caracteristica:"Kekkei genkai (Água + Raio): feixes de energia guiáveis.", fonte:"Hijutsus Vol.2 p.115"},
+    {chave:"shouton",    nome:"Shouton (Elemento Cristal)",  tipo:"Hijutsu", afinidade:"Shouton", poderes:"shouton", aptidoes:"", caracteristica:"Cria e molda cristais para atacar, prender e defender.", fonte:"Hijutsus Vol.2 p.123"},
+    {chave:"shakuton",   nome:"Shakuton (Elemento Calor)",   tipo:"Hijutsu", afinidade:"Shakuton", poderes:"shakuton", aptidoes:"", caracteristica:"Kekkei genkai (Fogo + Vento): desidrata e cauteriza o alvo.", fonte:"Hijutsus Vol.2 p.120"},
+    {chave:"bakuton",    nome:"Bakuton (Elemento Explosão)", tipo:"Hijutsu", afinidade:"Bakuton", poderes:"bakuton", aptidoes:"Demolição", caracteristica:"Kekkei genkai: impregna e detona chakra explosivo. Não segue as regras do Ninpou (regras próprias).", fonte:"Hijutsus Vol.2 p.18"},
+    {chave:"meiton",     nome:"Meiton (Elemento Escuridão)", tipo:"Hijutsu", afinidade:"Meiton", poderes:"meiton", aptidoes:"", caracteristica:"Absorve e converte o chakra alheio.", fonte:"Hijutsus Vol.2"},
+    {chave:"kami",       nome:"Kami Ninpou (Arte dos Papéis)", tipo:"Hijutsu", afinidade:"", poderes:"kami ninpou", aptidoes:"", caracteristica:"Cria e controla papel explosivo e cortante.", fonte:"Hijutsus"},
+    {chave:"kumo",       nome:"Kumo Ninpou (Arte da Teia)",    tipo:"Hijutsu", afinidade:"", poderes:"kumo ninpou", aptidoes:"", caracteristica:"Fios e teias de chakra pegajosos e resistentes.", fonte:"Hijutsus"},
+    {chave:"sumi",       nome:"Sumi Ninpou (Arte da Tinta)",   tipo:"Hijutsu", afinidade:"", poderes:"sumi ninpou", aptidoes:"", caracteristica:"Dá vida a desenhos feitos com tinta e pincel.", fonte:"Hijutsus"},
+    {chave:"hebi",       nome:"Hebi Ninpou (Arte das Cobras)", tipo:"Hijutsu", afinidade:"", poderes:"hebi ninpou", aptidoes:"", caracteristica:"Invoca e manipula cobras a partir do próprio corpo.", fonte:"Hijutsus"},
+    {chave:"kujaku",     nome:"Kujaku Myoho (Método do Pavão)",tipo:"Hijutsu", afinidade:"", poderes:"kujaku myoho", aptidoes:"", caracteristica:"Manipula chakra bruto em jatos e asas.", fonte:"Hijutsus"},
+    {chave:"ototon",     nome:"Ototon (Elemento Som)",         tipo:"Hijutsu", afinidade:"Ototon", poderes:"ototon", aptidoes:"", caracteristica:"Ataques sônicos que atordoam e ferem à distância.", fonte:"Hijutsus"},
+    {chave:"jiongu",     nome:"Jiongu (Costura Terrestre)",    tipo:"Hijutsu", afinidade:"", poderes:"jiongu", aptidoes:"", caracteristica:"Fios vivos que costuram o corpo e roubam corações e elementos.", fonte:"Hijutsus"},
+    {chave:"edo",        nome:"Edo Tensei (Reanimação)",       tipo:"Hijutsu", afinidade:"", poderes:"edo tensei", aptidoes:"", caracteristica:"Traz almas de volta em corpos quase imortais.", fonte:"Hijutsus"}
+  ],
   /* Efeitos do Ninpou (gerais) + exclusivos de cada elemento. Níveis/parâmetros
      são estimativas do Livro Básico (Poderes, p.91-111); ajuste no BD conforme conferir. */
   efeitos: [
@@ -1215,6 +1399,18 @@ function migrarTecnicas(base){
     if(!tem.has((t.nome||"").trim().toLowerCase())) base.tecnicas.push(clone(t));
   });
 }
+function migrarLinhagens(base){
+  if(!base) return;
+  if(!Array.isArray(base.linhagens)){ base.linhagens = clone(SEED_DB.linhagens); return; }
+  const tem = new Set(base.linhagens.map(l => (l.chave||"").trim().toLowerCase()));
+  SEED_DB.linhagens.forEach(l => { if(!tem.has((l.chave||"").trim().toLowerCase())) base.linhagens.push(clone(l)); });
+}
+function migrarItens(base){
+  if(!base) return;
+  if(!Array.isArray(base.itens)){ base.itens = clone(SEED_DB.itens); return; }
+  const tem = new Set(base.itens.map(i => (i.nome||"").trim().toLowerCase()));
+  SEED_DB.itens.forEach(i => { if(!tem.has((i.nome||"").trim().toLowerCase())) base.itens.push(clone(i)); });
+}
 function usoPadraoPorClasse(classe){
   const c = String(classe||"").trim();
   if(c === "Arremesso" || c === "Disparo" || c === "Explosivo") return "CD";
@@ -1238,8 +1434,8 @@ function carregarDB(){
     const raw = localStorage.getItem(DB_KEY);
     if(raw){
       const s = JSON.parse(raw);
-      ["aptidoes","poderes","armas","armaduras","efeitos","tecnicas"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
-      migrarArmasUso(base); migrarPoderes(base); migrarTecnicas(base);
+      ["aptidoes","poderes","armas","armaduras","efeitos","tecnicas","linhagens","itens"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
+      migrarArmasUso(base); migrarPoderes(base); migrarTecnicas(base); migrarLinhagens(base); migrarItens(base);
       if(s.calc) Object.assign(base.calc, s.calc);
       if(s.elementos) Object.assign(base.elementos, s.elementos);
       if(typeof s.foto === "string") base.foto = s.foto;
@@ -1248,6 +1444,142 @@ function carregarDB(){
   return base;
 }
 let DB = carregarDB();
+
+/* ===================================================================
+   LINHAGENS (Clãs e Hijutsus) — Livro Básico p.29 "Escolhendo Clã ou
+   Hijutsu": escolher uma linhagem libera SÓ os poderes/técnicas dela;
+   não se misturam poderes de linhagens diferentes.
+   Os dados ficam em DB.linhagens (editáveis na aba Banco de Dados).
+   O campo "poderes" é texto separado por vírgula com o INÍCIO do nome
+   do poder (sem acento, minúsculo). Poderes comuns (Ninpou, elementos
+   básicos, Iryou) e hijutsus abertos a qualquer ninja (Taijutsu,
+   Genjutsu, Kuchiyose, etc.) nunca são filtrados. "Nenhum" = sem filtro.
+   =================================================================== */
+function linhagensLista(){ return (DB && Array.isArray(DB.linhagens)) ? DB.linhagens : []; }
+function poderesDaLinhagem(info){
+  if(!info) return [];
+  if(Array.isArray(info.poderes)) return info.poderes.map(normNome).filter(Boolean);
+  return String(info.poderes||"").split(",").map(s => normNome(s)).filter(Boolean);
+}
+/* poderes que qualquer ninja pode ter — nunca filtrados por linhagem */
+const PODERES_COMUNS = ["ninpou","doton","fuuton","katon","raiton","suiton","iryou"];
+const PODERES_GERAIS = ["taijutsu","genjutsu","kuchiyose","hibon ninpou","senjutsu","dokujutsu","hachimon","fuinjutsu","fuuinjutsu"];
+/* clã embutido no NOME de uma técnica, ex.: "Kage Mane no Jutsu (Nara)" */
+const CLA_NO_NOME = ["nara","yamanaka","akimichi","hyuuga","uchiha"];
+
+function poderBaseKey(nome){ return String(nome==null?"":nome).split(" (")[0].trim(); }
+function poderComecaCom(nome, prefixos){ const n = normNome(nome); return prefixos.some(p => n.indexOf(p) === 0); }
+function poderEhLivre(nome){ return poderComecaCom(nome, PODERES_COMUNS) || poderComecaCom(nome, PODERES_GERAIS); }
+function linhagemAtual(){ const el = document.getElementById("in_cla"); return (el && el.value) ? el.value : ""; }
+function linhagemInfo(chave){ return linhagensLista().find(l => l.chave === chave) || null; }
+function claNoNomeTecnica(nome){ const n = normNome(nome); for(const c of CLA_NO_NOME){ if(n.indexOf("("+c+")") !== -1) return c; } return null; }
+/* um poder aparece, dada a linhagem selecionada? */
+function poderVisivel(nomePoder){
+  const lin = linhagemAtual();
+  if(!lin) return true;                    // Nenhum = sem filtro
+  if(poderEhLivre(nomePoder)) return true; // comuns e hijutsus abertos sempre aparecem
+  const info = linhagemInfo(lin); if(!info) return true;
+  return poderComecaCom(nomePoder, poderesDaLinhagem(info));
+}
+/* uma técnica/efeito aparece? (usa o poder-base + tag de clã no nome) */
+function tecnicaVisivel(it){
+  const lin = linhagemAtual();
+  if(!lin) return true;
+  const cla = claNoNomeTecnica(it.nome || "");
+  if(cla) return cla === lin;              // técnica marcada de clã: só do clã certo
+  return poderVisivel(it.poder || "");
+}
+
+/* ===== PODER ESCOLHIDO (aba Skills) -> dropdown de Poder do card de Jutsu ===== */
+function poderesEscolhidos(){
+  const out = [];
+  document.querySelectorAll("#poderes_rows tr").forEach(tr => {
+    const nomeEl = tr.querySelector("td:first-child input");
+    const nivelEl = tr.querySelector(".pod-nivel");
+    const nome = nomeEl ? nomeEl.value.trim() : "";
+    if(nome) out.push({nome:nome, nivel: nivelEl ? nivelEl.value.trim() : ""});
+  });
+  return out;
+}
+function nivelDoPoderEscolhido(nome){ const p = poderesEscolhidos().find(x => x.nome === nome); return p ? p.nivel : ""; }
+function opcoesPoderJutsu(selecionado){
+  const nomes = [];
+  poderesEscolhidos().forEach(p => { if(nomes.indexOf(p.nome) === -1) nomes.push(p.nome); });
+  /* mantém uma seleção antiga visível mesmo se o poder foi removido do Skills */
+  if(selecionado && nomes.indexOf(selecionado) === -1) nomes.push(selecionado);
+  nomes.sort((a,b) => a.localeCompare(b, "pt-BR"));
+  let html = '<option value="">— Poder —</option>';
+  nomes.forEach(n => { html += '<option value="'+escapeAttr(n)+'"'+(n===selecionado?' selected':'')+'>'+escapeHtml(n)+'</option>'; });
+  return html;
+}
+function atualizarSelectsPoderJutsu(){
+  document.querySelectorAll("#jutsu_grid .jutsu-poder").forEach(sel => { sel.innerHTML = opcoesPoderJutsu(sel.value); });
+}
+/* ===== Dropdown custom de Clã / Hijutsu (mesmo visual do seletor de poderes) =====
+   #in_cla é um input oculto que guarda a chave (persistência + filtro).
+   O gatilho #in_cla_btn mostra o nome; o painel #in_cla_menu é montado a partir
+   de DB.linhagens e fica fora do scaler para não ser cortado. */
+function linhagemNomeAtual(){
+  const hid = document.getElementById("in_cla"); const v = hid ? hid.value : "";
+  if(!v) return "Nenhum";
+  const info = linhagemInfo(v); return info ? (info.nome || v) : "Nenhum";
+}
+function setClaLabel(){ const l = document.querySelector("#in_cla_btn .cla-label"); if(l) l.textContent = linhagemNomeAtual(); }
+function marcarClaSelecionado(){
+  const v = (document.getElementById("in_cla")||{}).value || "";
+  document.querySelectorAll("#in_cla_menu .cla-opt").forEach(o => o.classList.toggle("sel", (o.dataset.val||"") === v));
+}
+function montarLinhagens(){
+  const menu = document.getElementById("in_cla_menu"); if(!menu) return;
+  const lst = linhagensLista();
+  const grupoHtml = (rot, arr) => arr.length
+    ? ('<div class="cla-grp">'+escapeHtml(rot)+'</div>' + arr.map(l => '<div class="cla-opt" role="option" data-val="'+escapeAttr(l.chave)+'">'+escapeHtml(l.nome||l.chave)+'</div>').join(''))
+    : '';
+  menu.innerHTML =
+    '<div class="cla-opt" role="option" data-val="">Nenhum</div>' +
+    grupoHtml("Clãs", lst.filter(l => l.tipo === "Clã")) +
+    grupoHtml("Hijutsus", lst.filter(l => l.tipo !== "Clã"));
+  setClaLabel();
+  marcarClaSelecionado();
+}
+function abrirClaMenu(){
+  const trig = document.getElementById("in_cla_btn"), menu = document.getElementById("in_cla_menu");
+  if(!trig || !menu) return;
+  const r = trig.getBoundingClientRect();
+  menu.style.left = r.left + "px";
+  menu.style.top = (r.bottom + 4) + "px";
+  menu.style.minWidth = r.width + "px";
+  menu.style.maxWidth = Math.max(r.width, 240) + "px";
+  menu.classList.add("open"); trig.classList.add("open");
+  marcarClaSelecionado();
+}
+function fecharClaMenu(){
+  const menu = document.getElementById("in_cla_menu"), trig = document.getElementById("in_cla_btn");
+  if(menu) menu.classList.remove("open"); if(trig) trig.classList.remove("open");
+}
+function claMenuAberto(){ const m = document.getElementById("in_cla_menu"); return m && m.classList.contains("open"); }
+function escolherLinhagem(chave){
+  const hid = document.getElementById("in_cla"); if(!hid) return;
+  hid.value = chave || "";
+  setClaLabel(); marcarClaSelecionado(); fecharClaMenu();
+  hid.dispatchEvent(new Event("change", {bubbles:true}));   // dispara persistência
+}
+(function(){
+  const trig = document.getElementById("in_cla_btn"), menu = document.getElementById("in_cla_menu");
+  if(trig) trig.addEventListener("click", (e) => { e.stopPropagation(); claMenuAberto() ? fecharClaMenu() : abrirClaMenu(); });
+  if(menu) menu.addEventListener("click", (e) => { const o = e.target.closest(".cla-opt"); if(o) escolherLinhagem(o.dataset.val || ""); });
+  document.addEventListener("click", (e) => { if(claMenuAberto() && !e.target.closest("#in_cla_menu") && !e.target.closest("#in_cla_btn")) fecharClaMenu(); });
+  document.addEventListener("keydown", (e) => { if(e.key === "Escape" && claMenuAberto()) fecharClaMenu(); });
+  window.addEventListener("resize", fecharClaMenu);
+  window.addEventListener("scroll", fecharClaMenu, true);
+})();
+/* refaz o dropdown de linhagem + os selects de poder do jutsu (após editar o BD) */
+function refreshLinhagensUI(){ montarLinhagens(); atualizarSelectsPoderJutsu(); }
+/* quando os poderes da aba Skills mudam, os dropdowns de Jutsu acompanham */
+(function(){
+  const pr = document.getElementById("poderes_rows");
+  if(pr){ pr.addEventListener("input", atualizarSelectsPoderJutsu); pr.addEventListener("change", atualizarSelectsPoderJutsu); }
+})();
 function setStatus(txt){ const el = document.getElementById("bd_status"); if(el) el.textContent = txt; }
 function persist(){
   try{ localStorage.setItem(DB_KEY, JSON.stringify(DB)); setStatus("Salvo neste navegador."); }
@@ -1280,6 +1612,7 @@ Object.keys(ATTR_ICONS).forEach(nome => {
   const div = document.createElement("div");
   div.className = "attr-badge";
   div.innerHTML = '<span class="attr-name" title="' + nome + '">' + (SIGLAS[nome]||nome) + '</span>' +
+    '<span class="test-roll attr-roll" data-roll="attr" data-nome="' + nome + '" title="Testar ' + nome + ' (2d8 + atributo)">🎲</span>' +
     '<svg viewBox="0 0 24 24">' + ATTR_ICONS[nome] + '</svg><br>' +
     '<input type="text" class="attr-val" data-attr="' + nome + '" value="' + ATTR_VALUES[nome] + '">';
   attrsRow.appendChild(div);
@@ -1297,7 +1630,8 @@ HC_DEFS.forEach(h => {
   div.className = "hc-row";
   div.dataset.cod = h.cod;
   div.dataset.attr = h.attr;
-  div.innerHTML = '<span class="hc-name" title="' + h.full + '">' + h.cod + '</span>' +
+  div.innerHTML = '<span class="test-roll" data-roll="hc" data-cod="' + h.cod + '" data-nome="' + h.full + '" title="Testar ' + h.full + ' (2d8 + total)">🎲</span>' +
+    '<span class="hc-name" title="' + h.full + '">' + h.cod + '</span>' +
     '<span class="hc-total" title="Total = Base + ' + (SIGLAS[h.attr]||h.attr) + ' + Outro">0</span>' +
     '<span class="eq">=</span>' +
     '<input class="base" value="' + DB.calc.hcBase + '"><span>+</span>' +
@@ -1320,7 +1654,8 @@ PERICIAS.forEach(p => {
   div.className = "per-row";
   div.dataset.peri = p.nome;
   div.dataset.attr = p.attr;
-  div.innerHTML = '<span class="pr-name">' + p.nome + '</span>' +
+  div.innerHTML = '<span class="test-roll" data-roll="peri" data-nome="' + p.nome + '" title="Testar ' + p.nome.replace(/^\*+/,"") + ' (2d8 + total)">🎲</span>' +
+    '<span class="pr-name">' + p.nome + '</span>' +
     '<span class="pr-col"><input class="pr-total calc-ro" readonly tabindex="-1"></span>' +
     '<span class="pr-col"><span class="pr-eq">=</span><input class="pr-pontos"><span>+</span><span class="pr-attr">' + p.attr + '</span><span>+</span><input class="pr-outro"></span>';
   perRows.appendChild(div);
@@ -1360,8 +1695,10 @@ document.addEventListener("click", (e) => {
   if (e.target.classList.contains("del-row-btn")){
     const tr = e.target.closest("tr");
     const jid = tr.dataset.jid;
+    const eraPoder = tr.closest("#poderes_rows");
     tr.remove();
     if (jid) document.querySelectorAll('tr[data-jid="'+jid+'"]').forEach(r => r.remove());
+    if (eraPoder && typeof atualizarSelectsPoderJutsu === "function") atualizarSelectsPoderJutsu();
     recalc();
   }
   if (e.target.classList.contains("jutsu-del-btn")){
@@ -1378,8 +1715,7 @@ function criarJutsuCard(jid){
   const card = document.createElement("div");
   card.className = "jutsu-card";
   if(jid) card.dataset.jid = jid;
-  const povos = Array.from(new Set(POWERS_WITH_EFFECTS.concat((DB.tecnicas||[]).map(t => t.poder).filter(Boolean))));
-  const opts = '<option value="">— Poder —</option>' + povos.map(p => '<option value="'+p+'">'+p+'</option>').join('');
+  const opts = opcoesPoderJutsu("");
   card.innerHTML =
     '<span class="jutsu-del-btn" title="Remover jutsu">×</span>' +
     '<div class="jutsu-field"><span>Poder:</span><select class="jutsu-poder">'+opts+'</select><span>Nv:</span><input class="jutsu-nivel-poder" style="width:38px;flex:none;"></div>' +
@@ -1423,26 +1759,138 @@ function criarItemCard(jid){
   if(jid) card.dataset.jid = jid;
   card.innerHTML =
     '<span class="jutsu-del-btn" title="Remover item">×</span>' +
+    '<button class="jutsu-efeito-btn if-usar" type="button" style="display:none;"></button>' +
+    '<div class="jutsu-field item-tipo-row"><span>Tipo:</span>' +
+      '<select class="if-kind" title="Define quais campos aparecem neste card.">' +
+        '<option value="item">Item geral (simples)</option>' +
+        '<option value="arma">Arma</option>' +
+        '<option value="armadura">Armadura</option>' +
+      '</select></div>' +
+    '<label class="if-equip-row grupo-armadura" style="display:none;"><input type="checkbox" class="if-equip"> <b>Equipar</b> esta armadura (soma Absorção no cabeçalho)</label>' +
+    /* ---- comuns a todos ---- */
     '<div class="jutsu-field"><span>Nome:</span><input class="if-nome"></div>' +
-    '<div class="jutsu-field"><span>Categoria:</span><input class="half if-categoria"><span>Classe:</span><input class="if-classe"></div>' +
-    '<div class="jutsu-field"><span>Preço:</span><input class="half if-preco"><span>Comp.:</span><input class="if-comp"></div>' +
-    '<div class="jutsu-field"><span>Dano:</span><input class="half if-dano"><span>Tipo:</span><input class="if-tipo"></div>' +
-    '<div class="jutsu-field"><span>Alcance:</span><input class="half if-alcance"><span>Crítico:</span><input class="if-critico"></div>' +
-    '<div class="jutsu-field"><span>Bônus de Dano:</span><input class="half if-bonus"><span>Dureza:</span><input class="if-dureza"></div>' +
-    '<div class="jutsu-field"><span>Dano Base:</span><input class="if-danobase calc-ro" readonly value="0"></div>' +
-    '<div class="jutsu-field"><span>Absorção:</span><input class="half if-absorcao"><span>Penalidade:</span><input class="if-penalidade"></div>' +
-    '<div class="jutsu-field"><span>Qtd:</span><input class="half if-qtd" value="1"><span>Peso Unit. (kg):</span><input class="if-peso" value="0"></div>' +
-    '<div class="jutsu-field"><span>Peso Total:</span><input class="if-peso-total calc-ro" readonly value="0"></div>' +
+    '<div class="jutsu-field"><span>Categoria:</span><input class="half if-categoria"><span>Preço:</span><input class="if-preco"></div>' +
+    '<div class="jutsu-field"><span>Comp.:</span><input class="half if-comp"><span>Qtd:</span><input class="if-qtd" value="1"></div>' +
+    /* ---- só arma ---- */
+    '<div class="jutsu-field grupo-arma"><span>Classe:</span><input class="half if-classe"><span>Tipo de dano:</span><input class="if-tipo"></div>' +
+    '<div class="jutsu-field grupo-arma"><span>Dano:</span><input class="half if-dano"><span>Bônus de Dano:</span><input class="if-bonus"></div>' +
+    '<div class="jutsu-field grupo-arma"><span>Alcance:</span><input class="half if-alcance"><span>Crítico:</span><input class="if-critico"></div>' +
+    '<div class="jutsu-field grupo-arma"><span>Dureza:</span><input class="half if-dureza"><span>Dano Base:</span><input class="if-danobase calc-ro" readonly value="0"></div>' +
+    /* ---- só armadura ---- */
+    '<div class="jutsu-field grupo-armadura"><span>Absorção:</span><input class="half if-absorcao"><span>Penalidade:</span><input class="if-penalidade"></div>' +
+    /* ---- comuns (peso) ---- */
+    '<div class="jutsu-field"><span>Peso Unit. (kg):</span><input class="half if-peso" value="0"><span>Peso Total:</span><input class="if-peso-total calc-ro" readonly value="0"></div>' +
     '<div class="jutsu-desc-bar">Anotações</div>' +
     '<div class="jutsu-desc-lines"><textarea class="if-desc"></textarea></div>';
   return card;
 }
+/* mostra só os campos que fazem sentido para o tipo do item */
+function aplicarLayoutItem(card){
+  const kind = card.dataset.kind || "item";
+  card.querySelectorAll(".grupo-arma").forEach(r => r.style.display = (kind === "arma") ? "" : "none");
+  card.querySelectorAll(".grupo-armadura").forEach(r => r.style.display = (kind === "armadura") ? "" : "none");
+  const sel = card.querySelector(".if-kind"); if(sel) sel.value = kind;
+}
+/* infere o tipo a partir dos dados, para cards antigos sem data-kind */
+function inferKindItem(card){
+  if(card.dataset.kind) return card.dataset.kind;
+  const abs = (card.querySelector(".if-absorcao") || {}).value || "";
+  const dano = (card.querySelector(".if-dano") || {}).value || "";
+  if(abs.trim()) return "armadura";
+  if(dano.trim()) return "arma";
+  return "item";
+}
+/* migra cards salvos no formato antigo (sem seletor de tipo) para o novo molde */
+function migrarCardsItens(){
+  document.querySelectorAll("#item_grid .item-card").forEach(velho => {
+    if(velho.querySelector(".if-kind")){ velho.dataset.kind = velho.dataset.kind || inferKindItem(velho); aplicarLayoutItem(velho); return; }
+    const jid = velho.dataset.jid || ("eq" + (idSeq++));
+    const novo = criarItemCard(jid);
+    ["classe","uso","atrdano","efeitoTipo","efeitoValor"].forEach(k => { if(velho.dataset[k] != null) novo.dataset[k] = velho.dataset[k]; });
+    novo.dataset.kind = inferKindItem(velho);
+    ["if-nome","if-categoria","if-classe","if-preco","if-comp","if-dano","if-tipo","if-alcance","if-critico","if-bonus","if-dureza","if-absorcao","if-penalidade","if-qtd","if-peso","if-desc"].forEach(cls => {
+      const o = velho.querySelector("." + cls), n = novo.querySelector("." + cls);
+      if(o && n) n.value = o.value;
+    });
+    const oEq = velho.querySelector(".if-equip"), nEq = novo.querySelector(".if-equip");
+    if(oEq && nEq) nEq.checked = oEq.checked;
+    velho.replaceWith(novo);
+    atualizarBotaoUsar(novo);
+    aplicarLayoutItem(novo);
+  });
+}
+/* troca de tipo pelo seletor do card */
+document.getElementById("item_grid").addEventListener("change", (e) => {
+  const sel = e.target.closest(".if-kind");
+  if(!sel) return;
+  const card = sel.closest(".item-card"); if(!card) return;
+  card.dataset.kind = sel.value;
+  aplicarLayoutItem(card);
+  recalc(); agendarSalvar();
+});
 function adicionarItem(){
   abrirSeletor("Escolher Equipamento", equipamentosParaSeletor(), adicionarEquipamento);
 }
 document.getElementById("btn_add_item").addEventListener("click", adicionarItem);
 document.getElementById("item_grid").addEventListener("input", (e) => {
   if(e.target.closest(".jutsu-card")) recalc();
+});
+
+/* ---- Itens consumíveis: botão "Usar" recupera Chakra ou Vitalidade ----
+   efeitoValor aceita número puro ("10") ou fórmula com atributo ("½ Espírito",
+   "Espírito", "1/2 ESP"). "½"/"1/2"/"metade" = metade arred. p/ cima. */
+function valorEfeito(valorStr){
+  const s = normNome(valorStr);
+  if(!s) return 0;
+  if(/^-?\d+$/.test(s)) return parseInt(s, 10);
+  const ATTRS = {forca:"Força", for:"Força", destreza:"Destreza", des:"Destreza", agilidade:"Agilidade", agi:"Agilidade",
+    percepcao:"Percepção", per:"Percepção", inteligencia:"Inteligência", int:"Inteligência", vigor:"Vigor", vig:"Vigor", espirito:"Espírito", esp:"Espírito"};
+  let base = null;
+  for(const k in ATTRS){ if(new RegExp("\\b"+k+"\\b").test(s)){ base = attrVal(ATTRS[k]); break; } }
+  if(base == null){ const n = s.match(/\d+/); return n ? parseInt(n[0], 10) : 0; }
+  const meta = /1\/2|½|metade|meia|meio/.test(s);
+  return meta ? metadeCima(base) : base;
+}
+function atualizarBotaoUsar(card){
+  const btn = card.querySelector(".if-usar"); if(!btn) return;
+  const tipo = card.dataset.efeitoTipo || "";
+  const valStr = card.dataset.efeitoValor || "";
+  if(!tipo || tipo === "—" || (!valStr && valStr !== "0")){ btn.style.display = "none"; return; }
+  btn.style.display = "";
+  btn.textContent = "Usar — recupera " + valStr + " de " + tipo;
+  btn.title = "Aplica a recuperação ao " + tipo + " atual e desconta 1 da quantidade. (Pílulas do Soldado: efeito colateral de fadiga/exaustão é controlado pelo Mestre.)";
+}
+function usarItem(card){
+  const tipo = card.dataset.efeitoTipo || "";
+  if(!tipo || tipo === "—") return;
+  const valor = valorEfeito(card.dataset.efeitoValor || "");
+  if(valor <= 0) return;
+  const isCha = normNome(tipo).indexOf("chakra") === 0;
+  const cls = isCha ? "campo-chakra" : "campo-vida";
+  const totalEl = document.getElementById(isCha ? "st_chakra_total" : "st_vida_total");
+  const total = (totalEl && totalEl.textContent) ? num(totalEl.textContent) : null;
+  const atualEl = document.querySelector("." + cls);
+  const atual = atualEl ? num(atualEl.value) : 0;
+  let novo = atual + valor;
+  if(total != null && novo > total) novo = total;   // não passa do máximo
+  setTodos(cls, String(novo));
+  flashCampo(cls);
+  const q = card.querySelector(".if-qtd");
+  if(q){ const n = num(q.value); if(n > 0) q.value = String(n - 1); }
+  recalc(); agendarSalvar();
+}
+document.getElementById("item_grid").addEventListener("click", (e) => {
+  const btn = e.target.closest(".if-usar");
+  if(btn){ const card = btn.closest(".item-card"); if(card) usarItem(card); }
+});
+/* Só uma armadura equipada por vez (Básico p.136: não se veste armadura sobre armadura) */
+document.getElementById("item_grid").addEventListener("change", (e) => {
+  const chk = e.target.closest(".if-equip");
+  if(!chk) return;
+  if(chk.checked){
+    document.querySelectorAll("#item_grid .if-equip").forEach(o => { if(o !== chk) o.checked = false; });
+  }
+  recalc(); agendarSalvar();
 });
 
 /* efeitos disponíveis para um poder até um nível */
@@ -1457,7 +1905,7 @@ function efeitosDisponiveis(poder, nivelStr){
     lista = DB.efeitos.filter(e => num(e.nivel) <= n && (e.poder === poder || permit.includes(e.nome)));
   }
   const tecs = (DB.tecnicas||[]).filter(t => num(t.nivel) <= n && (!poder || normNome(t.poder) === normNome(poder)));
-  return lista.concat(tecs);
+  return lista.concat(tecs).filter(tecnicaVisivel);
 }
 function syncJutsuCalc(card){
   const jid = card.dataset.jid; if(!jid) return;
@@ -1466,7 +1914,7 @@ function syncJutsuCalc(card){
   const cj = row.querySelector(".cj-jutsu"); if(cj && nome) cj.value = nome.value;
   const cc = row.querySelector(".cj-custo"); if(cc && custo) cc.value = custo.value;
   const cn = row.querySelector(".cj-nv"); if(cn && nv) cn.value = nv.value;
-  if(poder) row.dataset.poder = poder.value;
+  if(poder) row.dataset.poder = poderBaseKey(poder.value);
   recalc();
 }
 function preencherEfeitoNoJutsu(card, it){
@@ -1486,11 +1934,19 @@ function preencherEfeitoNoJutsu(card, it){
 document.getElementById("jutsu_grid").addEventListener("input", (e) => {
   const card = e.target.closest(".jutsu-card"); if(card) syncJutsuCalc(card);
 });
+document.getElementById("jutsu_grid").addEventListener("change", (e) => {
+  const sel = e.target.closest(".jutsu-poder"); if(!sel) return;
+  const card = sel.closest(".jutsu-card");
+  const nvEl = card.querySelector(".jutsu-nivel-poder");
+  const nv = nivelDoPoderEscolhido(sel.value);
+  if(nvEl && nv !== "") nvEl.value = nv;   // nível vem do que foi escolhido na aba Skills
+  syncJutsuCalc(card);
+});
 document.getElementById("jutsu_grid").addEventListener("click", (e) => {
   const btn = e.target.closest(".jutsu-efeito-btn");
   if(!btn) return;
   const card = btn.closest(".jutsu-card");
-  const poder = card.querySelector(".jutsu-poder").value;
+  const poder = poderBaseKey(card.querySelector(".jutsu-poder").value);
   const nivel = card.querySelector(".jutsu-nivel-poder").value;
   const itens = efeitosDisponiveis(poder, nivel).map(it => Object.assign({}, it, {_grupo: grupoJutsu(it)}));
   const titulo = poder ? ("Efeitos: " + poder + (String(nivel).trim() ? " (até Nv " + nivel + ")" : "")) : "Escolher Efeito";
@@ -1550,6 +2006,14 @@ function compsDe(txt){
   if(m) return parseInt(m[1].replace("+",""), 10) || 0;
   return num(txt);
 }
+/* "+X comp." soma capacidade (mochila, coldre); os demais ("N item/M comp.", "–X comp.") ocupam M */
+function compGanho(txt){ const m = /\+(\d+)\s*comp/i.exec(String(txt||"")); return m ? (parseInt(m[1],10)||0) : 0; }
+function compUso(txt){
+  const s = String(txt||"");
+  if(/\+\d+\s*comp/i.test(s)) return 0;                 // "+X comp." é ganho, não uso
+  const m = /(-?\d+)\s*comp/i.exec(s);
+  return m ? Math.abs(parseInt(m[1],10))||0 : 0;
+}
 function bonusPericias(){
   const b = {};
   document.querySelectorAll("#apt_rows tr").forEach(tr => {
@@ -1587,11 +2051,13 @@ function recalc(){
   const c = DB.calc;
   const bonus = bonusDasAptidoes();
   const perBonus = bonusPericias();
-  let compsUsados = 0;
+  let compsUsados = 0, compGanhos = 0;
   document.querySelectorAll("#item_grid .item-card").forEach(card => {
-    const e = card.querySelector(".if-comp"); compsUsados += compsDe(e ? e.value : "");
+    const e = card.querySelector(".if-comp"); const t = e ? e.value : "";
+    compsUsados += compUso(t); compGanhos += compGanho(t);
   });
-  const compExcesso = Math.max(0, compsUsados - 3);   // acima de 3 compartimentos gera penalidade
+  const compCapacidade = 3 + compGanhos;
+  const compExcesso = Math.max(0, compsUsados - compCapacidade);   // acima da capacidade gera penalidade
   periTotais = {};
   document.querySelectorAll(".per-row").forEach(row => {
     const nome = row.dataset.peri;
@@ -1623,6 +2089,17 @@ function recalc(){
   setAuto(document.querySelector('.auto[data-calc="chakra"]'), c.chakraBase + c.chakraEsp*attrVal("Espírito") + (bonus.chakra||0));
   setAuto(document.querySelector('.auto[data-calc="iniciativa"]'), (periTotais["Prontidão"]||0) + attrVal("Agilidade") + (bonus.iniciativa||0));
   setAuto(document.querySelector('.auto[data-calc="reacao"]'), esqTotal + c.reacaoConst + (bonus.reacao||0));
+  /* Absorção: soma da(s) armadura(s) marcada(s) como Equipada no Inventário (Básico p.136) */
+  let absEquip = 0;
+  document.querySelectorAll("#item_grid .item-card").forEach(card => {
+    const eq = card.querySelector(".if-equip");
+    if(eq && eq.checked){ const a = card.querySelector(".if-absorcao"); absEquip += num(a ? a.value : 0); }
+  });
+  setAuto(document.querySelector('.auto[data-calc="absorcao"]'), absEquip);
+  /* Dureza de corpo: parcela passiva da aptidão Resiliência = ⌊Vigor/4⌋ (Básico p.150/274).
+     Situacionais (Pele de Pedra, modos) ficam por conta do jogador — digite por cima. */
+  const temResiliencia = Array.from(document.querySelectorAll("#apt_rows .apt-nome")).some(i => normNome(i.value) === "resiliencia");
+  setAuto(document.querySelector('.auto[data-calc="dureza"]'), temResiliencia ? Math.floor(attrVal("Vigor")/4) : 0);
   const desloc = document.querySelector('.auto[data-calc="desloc"]');
   if(desloc && desloc.dataset.over !== "1"){ desloc.value = (c.deslocBase + Math.ceil(attrVal("Agilidade")/c.deslocDiv) + (bonus.desloc||0) - compExcesso*3) + "m"; }
   document.querySelectorAll('.auto[data-social]').forEach(el => {
@@ -1689,11 +2166,13 @@ function recalc(){
     const danoEl = card.querySelector(".if-dano");
     const atr = card.dataset.atrdano || "Força";
     dbEl.value = Math.max(0, metadeCima(attrVal(atr)) + num(danoEl ? danoEl.value : 0));
+    const ptEl = card.querySelector(".if-peso-total");
+    if(ptEl){ const q = num((card.querySelector(".if-qtd")||{}).value), p = num((card.querySelector(".if-peso")||{}).value); ptEl.value = +(q * p).toFixed(2); }
   });
 
   /* ---- Compartimentos: exibe X / 3 e a penalidade acima disso (Básico p.127) ---- */
   const compDisp = document.getElementById("in_comp_usados");
-  if(compDisp) compDisp.value = compsUsados + " / 3" + (compExcesso > 0 ? "  (-" + compExcesso + " prec · -" + (compExcesso*3) + "m)" : "");
+  if(compDisp) compDisp.value = compsUsados + " / " + compCapacidade + (compExcesso > 0 ? "  (-" + compExcesso + " prec · -" + (compExcesso*3) + "m)" : "");
 
   /* Barra de status: totais de Vida/Chakra + munições */
   const vitTot = document.querySelector('.auto[data-calc="vit"]');
@@ -1725,7 +2204,7 @@ const selCancelar = document.getElementById("seletor_cancelar");
 let selItens = [], selCallback = null, selEscolhido = null;
 
 function corpoDe(it){ return it.beneficio || it.descricao || it.desc || ""; }
-const ORDEM_GRUPOS = ["Poderes Normais","Poderes Restritos","Poderes de Clã","Efeitos","Técnicas Básicas","Técnicas Ninpou","Técnicas Elementais","Técnicas de Clã","Técnicas"];
+const ORDEM_GRUPOS = ["Armas","Armaduras","Item Geral","Hospedagem e Serviços","Animais","Veículos","Poderes Normais","Poderes Restritos","Poderes de Clã","Efeitos","Técnicas Básicas","Técnicas Ninpou","Técnicas Elementais","Técnicas de Clã","Técnicas"];
 function renderLista(filtro){
   selLista.innerHTML = "";
   const f = (filtro||"").toLowerCase();
@@ -1835,6 +2314,7 @@ function adicionarPoder(it){
   tdDel.innerHTML = '<span class="del-row-btn" title="Remover linha">×</span>';
   tr.appendChild(tdDel);
   tbody.appendChild(tr);
+  atualizarSelectsPoderJutsu();
   recalc();
 }
 function opcoesEscolha(aptNome){
@@ -1875,13 +2355,19 @@ function equipamentosParaSeletor(){
     tipo: (a.classe||"") + (a.categoria ? " · " + a.categoria : ""),
     dano: a.dano,
     descricao: "Uso: " + (a.uso || usoPadraoPorClasse(a.classe)) + " · Alcance: " + (a.alcance||"---") + " · Crítico: " + (a.critico||"---") + " · Tipo: " + (a.tipo||"---") + " · Comp.: " + (a.comp||"---") + (a.preco ? " · Preço: " + a.preco : ""),
-    _kind: "arma", _raw: a
+    _grupo: "Armas", _kind: "arma", _raw: a
   }));
   DB.armaduras.forEach(a => lista.push({
     nome: a.nome,
     tipo: "Armadura" + (a.tipo ? " · " + a.tipo : ""),
     descricao: "Absorção: " + (a.absorcao||"---") + " · Penalidade: " + (a.penalidade||"---") + " · Comp.: " + (a.comp||"---") + (a.preco ? " · Preço: " + a.preco : ""),
-    _kind: "armadura", _raw: a
+    _grupo: "Armaduras", _kind: "armadura", _raw: a
+  }));
+  (DB.itens||[]).forEach(a => lista.push({
+    nome: a.nome,
+    tipo: a.categoria || "Item",
+    descricao: "Preço: " + (a.preco||"---") + " · Comp.: " + (a.comp||"---"),
+    _grupo: a.categoria || "Itens", _kind: "item", _raw: a
   }));
   return lista;
 }
@@ -1938,6 +2424,11 @@ function adicionarEquipamento(it){
   card.querySelector(".if-absorcao").value = raw.absorcao || "";
   card.querySelector(".if-penalidade").value = raw.penalidade || "";
   card.querySelector(".if-qtd").value = "1";
+  card.dataset.efeitoTipo = raw.efeitoTipo || "";
+  card.dataset.efeitoValor = raw.efeitoValor || "";
+  card.dataset.kind = it._kind || "item";
+  atualizarBotaoUsar(card);
+  aplicarLayoutItem(card);
   document.getElementById("item_grid").appendChild(card);
   if(it._kind === "arma") adicionarLinhaArmado(raw, jid);  // arma também entra na calculadora de dano central
   recalc();
@@ -1945,7 +2436,7 @@ function adicionarEquipamento(it){
 document.querySelectorAll(".btn-add-row[data-catalogo]").forEach(btn => {
   btn.addEventListener("click", () => {
     const cat = btn.dataset.catalogo;
-    if(cat === "poderes")  abrirSeletor("Escolher Poder", DB.poderes.map(p => Object.assign({}, p, {_grupo: categoriaPoder(p.nome)})), adicionarPoder);
+    if(cat === "poderes")  abrirSeletor("Escolher Poder", DB.poderes.filter(p => poderVisivel(p.nome)), adicionarPoder);
     if(cat === "aptidoes") abrirSeletor("Escolher Aptidão", DB.aptidoes, adicionarAptidao);
     if(cat === "equipamentos") abrirSeletor("Escolher Equipamento", equipamentosParaSeletor(), adicionarEquipamento);
   });
@@ -1972,6 +2463,16 @@ const BD_SCHEMAS = {
     {campo:"restricao", rotulo:"Restrições", w:"14%", tipo:"textarea"},
     {campo:"descricao", rotulo:"Descrição", w:"auto", tipo:"textarea"},
     {campo:"revisado", rotulo:"Rev.", w:"42px", tipo:"check"}
+  ]},
+  linhagens: { titulo:"Clãs e Hijutsus (linhagens)", cols:[
+    {campo:"chave", rotulo:"Chave (id)", w:"9%", tipo:"input"},
+    {campo:"nome", rotulo:"Nome", w:"14%", tipo:"input"},
+    {campo:"tipo", rotulo:"Tipo", w:"8%", tipo:"select", opcoes:["Clã","Hijutsu"]},
+    {campo:"afinidade", rotulo:"Afinidade elem.", w:"11%", tipo:"input"},
+    {campo:"poderes", rotulo:"Poderes liberados (vírgula)", w:"14%", tipo:"textarea"},
+    {campo:"aptidoes", rotulo:"Aptidões restritas", w:"15%", tipo:"textarea"},
+    {campo:"caracteristica", rotulo:"Característica / benefício", w:"auto", tipo:"textarea"},
+    {campo:"fonte", rotulo:"Fonte", w:"9%", tipo:"input"}
   ]},
   efeitos: { titulo:"Efeitos", cols:[
     {campo:"nome", rotulo:"Efeito", w:"13%", tipo:"input"},
@@ -2016,6 +2517,14 @@ const BD_SCHEMAS = {
     {campo:"absorcao", rotulo:"Bônus de Absorção", w:"16%", tipo:"input"},
     {campo:"penalidade", rotulo:"Penalidade", w:"15%", tipo:"input"},
     {campo:"comp", rotulo:"Comp.", w:"auto", tipo:"input"}
+  ]},
+  itens: { titulo:"Itens e Serviços", cols:[
+    {campo:"nome", rotulo:"Item / Serviço", w:"24%", tipo:"input"},
+    {campo:"categoria", rotulo:"Categoria", w:"16%", tipo:"select", opcoes:["Item Geral","Hospedagem e Serviços","Animais","Veículos"]},
+    {campo:"preco", rotulo:"Preço", w:"18%", tipo:"input"},
+    {campo:"comp", rotulo:"Compartimentos", w:"16%", tipo:"input"},
+    {campo:"efeitoTipo", rotulo:"Ao usar, recupera", w:"12%", tipo:"select", opcoes:["—","Chakra","Vitalidade"]},
+    {campo:"efeitoValor", rotulo:"Quanto (nº ou ex.: ½ Espírito)", w:"auto", tipo:"input"}
   ]}
 };
 
@@ -2106,9 +2615,9 @@ function bdSiglasHtml(){
 }
 function renderBD(){
   let html = bdSiglasHtml() + bdCalcHtml();
-  ["aptidoes","poderes","efeitos","tecnicas"].forEach(cat => html += bdSectionHtml(cat));
+  ["aptidoes","poderes","linhagens","efeitos","tecnicas"].forEach(cat => html += bdSectionHtml(cat));
   html += bdElementosHtml();
-  ["armas","armaduras"].forEach(cat => html += bdSectionHtml(cat));
+  ["armas","armaduras","itens"].forEach(cat => html += bdSectionHtml(cat));
   bdRoot.innerHTML = html;
 }
 function vazioDe(cat){
@@ -2133,6 +2642,7 @@ bdRoot.addEventListener("input", (e) => {
   if(cat == null || idx == null || field == null) return;
   DB[cat][+idx][field] = (el.type === "checkbox") ? el.checked : el.value;
   persist();
+  if(cat === "linhagens") refreshLinhagensUI();
   recalc();
 });
 bdRoot.addEventListener("change", (e) => {
@@ -2140,17 +2650,20 @@ bdRoot.addEventListener("change", (e) => {
   if(el.type === "checkbox" && el.dataset.cat){
     DB[el.dataset.cat][+el.dataset.idx][el.dataset.field] = el.checked; persist();
   }
+  if(el.classList.contains("bd-select") && el.dataset.cat === "linhagens"){ refreshLinhagensUI(); }
 });
 bdRoot.addEventListener("click", (e) => {
   if(e.target.classList.contains("del-bd-btn")){
     const cat = e.target.dataset.cat, idx = +e.target.dataset.idx;
     DB[cat].splice(idx, 1); persist(); renderBD();
+    if(cat === "linhagens") refreshLinhagensUI();
     return;
   }
   const addBtn = e.target.closest(".btn-add-row[data-add-bd]");
   if(addBtn){
     const cat = addBtn.dataset.addBd;
     DB[cat].push(vazioDe(cat)); persist(); renderBD();
+    if(cat === "linhagens") refreshLinhagensUI();
   }
 });
 
@@ -2171,12 +2684,12 @@ document.getElementById("bd_arquivo").addEventListener("change", (e) => {
     try{
       const s = JSON.parse(reader.result);
       const base = clone(SEED_DB);
-      ["aptidoes","poderes","armas","armaduras","efeitos","tecnicas"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
-      migrarArmasUso(base); migrarPoderes(base); migrarTecnicas(base);
+      ["aptidoes","poderes","armas","armaduras","efeitos","tecnicas","linhagens","itens"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
+      migrarArmasUso(base); migrarPoderes(base); migrarTecnicas(base); migrarLinhagens(base); migrarItens(base);
       if(s.calc) Object.assign(base.calc, s.calc);
       if(s.elementos) Object.assign(base.elementos, s.elementos);
       if(typeof s.foto === "string") base.foto = s.foto;
-      DB = base; persist(); renderBD(); recalc();
+      DB = base; persist(); renderBD(); refreshLinhagensUI(); recalc();
       setStatus("Banco de dados importado.");
     }catch(err){ setStatus("Arquivo inválido: " + err.message); }
   };
@@ -2187,7 +2700,7 @@ document.getElementById("bd_restaurar").addEventListener("click", () => {
   if(!confirm("Restaurar o banco de dados para o padrão dos livros? Suas edições locais serão perdidas.")) return;
   DB = clone(SEED_DB);
   try{ localStorage.removeItem(DB_KEY); }catch(e){}
-  renderBD(); recalc();
+  renderBD(); refreshLinhagensUI(); recalc();
   setStatus("Banco de dados restaurado ao padrão.");
 });
 
@@ -2238,12 +2751,13 @@ function rolarDano(tr, tipo){
   const nome = (nomeEl && nomeEl.value.trim()) ? nomeEl.value.trim() : (tipo === "jutsu" ? "Jutsu" : "Ataque");
   const a = d8(), b = d8(), soma = a + b, g = grauDe(soma);
   destacarGrau(g);
-  const res = document.getElementById("d8_result");
-  if(res){
-    res.textContent = (g === 0)
-      ? ("🎲 " + nome + ": 2d8 = " + a + " + " + b + " = " + soma + " → Falha!")
-      : ("🎲 " + nome + ": 2d8 = " + a + " + " + b + " = " + soma + " → Grau " + g + " → Dano " + (total*g) + "  (" + total + " × " + g + ")");
+  let badge, linhas = [];
+  if(g === 0){ badge = { texto: "Falha", classe: "fail" }; }
+  else {
+    badge = { texto: (soma >= 15 ? "Crítico · " : "") + "Grau " + g, classe: (soma >= 15 ? "crit" : classeGrau(g)) };
+    linhas.push("Dano <b>" + (total * g) + "</b> = " + total + " × Grau " + g);
   }
+  emitirResultado({ dados: [a, b], titulo: nome, badge: badge, linhas: linhas }, false);
   /* consumo ao usar: chakra do jutsu; munição do arremesso */
   if(tipo === "jutsu"){
     let custo = valDe(tr, ".cj-custo"); if(custo <= 0) custo = valDe(tr, ".cj-nv");
@@ -2257,13 +2771,158 @@ function rolarDano(tr, tipo){
 function celAcoesCalc(tipo, comDelete){
   const td = document.createElement("td");
   td.className = "del-cell calc-acoes";
-  td.innerHTML = (comDelete ? '<span class="del-row-btn" title="Remover linha">×</span>' : '');
+  td.innerHTML = '<span class="roll-btn" data-tipo="' + tipo + '" title="Rolar dano (2d8 → grau × dano base)">🎲</span>' +
+    (comDelete ? '<span class="del-row-btn" title="Remover linha">×</span>' : '');
   return td;
 }
 document.addEventListener("click", (e) => {
   const rb = e.target.closest(".roll-btn");
   if(rb){ const tr = rb.closest("tr"); if(tr) rolarDano(tr, rb.dataset.tipo); }
 });
+
+/* ===================================================================
+   RESULTADO DE ROLAGEM (bonito e reutilizável) + HISTÓRICO
+   =================================================================== */
+function classeGrau(g){ return g <= 0 ? "fail" : (g <= 2 ? "g1" : "g3"); }
+function resultadoRollHTML(cfg){
+  const dados = cfg.dados || [];
+  const semDados = dados.length === 0;
+  const soma = dados.reduce((s,x) => s + x, 0);
+  const bonus = cfg.bonus || 0;
+  const total = soma + bonus;
+  const dadosHtml = dados.map(d => '<span class="ro-die">' + d + '</span>').join('');
+  const nD = dados.length;
+  const temBonus = (bonus !== 0) || cfg.bonusRotulo;
+  const eq = nD + "d8 (" + dados.join("+") + ") = " + soma +
+    (temBonus ? '  ·  +' + bonus + (cfg.bonusRotulo ? ' ' + escapeHtml(cfg.bonusRotulo) : '') + ' = <b>' + total + '</b>' : ' = <b>' + soma + '</b>');
+  const topo = semDados
+    ? (cfg.badge ? '<div class="ro-badge ' + cfg.badge.classe + '">' + escapeHtml(cfg.badge.texto) + '</div>' : '')
+    : ('<div class="ro-top"><div class="ro-dice">' + dadosHtml + '</div>' +
+       '<div class="ro-mid"><div class="ro-eq">' + eq + '</div>' +
+       (cfg.badge ? '<div class="ro-badge ' + cfg.badge.classe + '">' + escapeHtml(cfg.badge.texto) + '</div>' : '') +
+       '</div></div>');
+  return '<div class="roll-out">' + topo +
+    (cfg.titulo ? '<div class="ro-title">' + escapeHtml(cfg.titulo) + '</div>' : '') +
+    (cfg.linhas && cfg.linhas.length ? '<div class="ro-lines">' + cfg.linhas.join('<br>') + '</div>' : '') +
+    (cfg.aviso ? '<div class="ro-warn">⚠ ' + escapeHtml(cfg.aviso) + '</div>' : '') +
+    '</div>';
+}
+const ROLL_HIST = [];
+function pushHist(cfg){
+  if(!cfg.dados || !cfg.dados.length){ renderHistNoPopup(); return; }
+  const soma = cfg.dados.reduce((s,x) => s + x, 0);
+  const total = soma + (cfg.bonus || 0);
+  ROLL_HIST.unshift({ titulo: cfg.titulo || (cfg.badge ? cfg.badge.texto : "Rolagem"), dados: cfg.dados.slice(), total: total, badge: cfg.badge ? cfg.badge.texto : "" });
+  if(ROLL_HIST.length > 8) ROLL_HIST.pop();
+  renderHistNoPopup();
+}
+/* mostra o resultado bonito no modal de ação (se aberto) e sempre no quadro d8 da aba Skills */
+function emitirResultado(cfg, noModal){
+  const html = resultadoRollHTML(cfg);
+  if(noModal){
+    const box = document.getElementById("rl_resultado");
+    if(box){ box.innerHTML = html; box.classList.remove("flash"); void box.offsetWidth; box.classList.add("flash"); }
+  }
+  const d8r = document.getElementById("d8_result");
+  if(d8r) d8r.innerHTML = html;
+  pushHist(cfg);
+}
+
+/* ===================================================================
+   ROLAGENS RÁPIDAS — Iniciativa (1d8 + AGI + PRO, Básico p.253) e
+   Testes (2d8 + precisão vs Dif, Básico p.18/249). Soma 15-16 sempre
+   passa; 2-3 sempre falha. Graus por soma do 2d8.
+   =================================================================== */
+const qroll = document.getElementById("qroll");
+let qrollCfg = null;
+function periTotalDe(nome){ let v = 0; document.querySelectorAll(".per-row").forEach(r => { if(r.dataset.peri === nome){ const t = r.querySelector(".pr-total"); v = t ? num(t.value) : 0; } }); return v; }
+function renderHistNoPopup(){
+  const wrap = document.getElementById("qroll_hist"), list = document.getElementById("qroll_hist_list");
+  if(!wrap || !list) return;
+  if(!ROLL_HIST.length){ wrap.classList.remove("show"); return; }
+  wrap.classList.add("show");
+  list.innerHTML = ROLL_HIST.map(h => '<div class="qh-item"><b>' + escapeHtml(h.titulo) + ':</b> ' + h.dados.join("+") + ' → ' + h.total + (h.badge ? ' · ' + escapeHtml(h.badge) : '') + '</div>').join('');
+}
+function animarQuickDados(dados, aoTerminar){
+  const dA = document.getElementById("qd_a"), dB = document.getElementById("qd_b");
+  const reduz = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduz){ dA.textContent = dados[0]; if(dados[1] != null) dB.textContent = dados[1]; aoTerminar(); return; }
+  [dA, dB].forEach(d => { d.classList.remove("parado"); d.classList.add("girando"); });
+  const tick = setInterval(() => { dA.textContent = d8(); if(dados[1] != null) dB.textContent = d8(); }, 70);
+  setTimeout(() => {
+    clearInterval(tick);
+    dA.textContent = dados[0]; if(dados[1] != null) dB.textContent = dados[1];
+    [dA, dB].forEach(d => { d.classList.remove("girando"); d.classList.add("parado"); });
+    setTimeout(aoTerminar, 250);
+  }, 680);
+}
+function rolarQuick(){
+  const cfg = qrollCfg; if(!cfg) return;
+  const dados = []; for(let i = 0; i < cfg.nDados; i++) dados.push(d8());
+  document.getElementById("qroll_res").innerHTML = "";
+  animarQuickDados(dados, () => {
+    const soma = dados.reduce((s,x) => s + x, 0);
+    const bonus = (typeof cfg.bonus === "function") ? cfg.bonus() : (cfg.bonus || 0);
+    const total = soma + bonus;
+    let badge, linhas = [];
+    if(cfg.modo === "iniciativa"){
+      badge = { texto: "Iniciativa " + total, classe: "ini" };
+      linhas = ["Ordene os turnos do maior total para o menor."];
+    } else {
+      const g = grauDe(soma);
+      const difEl = document.getElementById("qroll_dif");
+      const difStr = difEl ? difEl.value.trim() : "";
+      const dif = (difStr !== "") ? num(difStr) : null;
+      if(soma <= 3){ badge = { texto: "Falha automática", classe: "fail" }; }
+      else if(soma >= 15){ badge = { texto: "Sucesso garantido", classe: "crit" }; }
+      else if(dif != null){ badge = (total >= dif) ? { texto: "Sucesso · Grau " + g, classe: classeGrau(g) } : { texto: "Falha (não bateu a Dif)", classe: "fail" }; }
+      else { badge = { texto: "Grau " + g, classe: classeGrau(g) }; }
+      if(dif != null && soma > 3 && soma < 15) linhas.push("Dif " + dif + " · seu total " + total + (total >= dif ? " → passou" : " → não passou"));
+      else if(dif == null && cfg.modo === "teste") linhas.push("Defina a Dif (campo abaixo) para ver sucesso/falha. Dif comuns: 8 fácil · 12 média · 16 difícil · 20 muito difícil.");
+    }
+    const c = { dados: dados, bonus: bonus, bonusRotulo: cfg.bonusRotulo || "", titulo: cfg.titulo, badge: badge, linhas: linhas };
+    document.getElementById("qroll_res").innerHTML = resultadoRollHTML(c);
+    pushHist(c);
+    agendarSalvar();
+  });
+}
+function abrirQuickRoll(cfg){
+  qrollCfg = cfg;
+  document.getElementById("qroll_titulo").textContent = cfg.titulo;
+  document.getElementById("qroll_dif_wrap").style.display = (cfg.modo === "teste") ? "" : "none";
+  document.getElementById("qd_b").style.display = (cfg.nDados === 2) ? "" : "none";
+  document.getElementById("qroll_res").innerHTML = "";
+  renderHistNoPopup();
+  qroll.classList.add("open");
+  rolarQuick();
+}
+function fecharQuickRoll(){ qroll.classList.remove("open"); }
+document.addEventListener("click", (e) => {
+  const rb = e.target.closest(".test-roll");
+  if(!rb) return;
+  const tipo = rb.dataset.roll;
+  if(tipo === "ini"){
+    abrirQuickRoll({ titulo: "Iniciativa", nDados: 1, modo: "iniciativa", bonusRotulo: "AGI+PRO", bonus: () => attrVal("Agilidade") + periTotalDe("Prontidão") });
+  } else if(tipo === "attr"){
+    const nome = rb.dataset.nome;
+    abrirQuickRoll({ titulo: "Teste de " + nome, nDados: 2, modo: "teste", bonusRotulo: SIGLAS[nome] || nome, bonus: () => attrVal(nome) });
+  } else if(tipo === "hc"){
+    const cod = rb.dataset.cod, nome = rb.dataset.nome;
+    abrirQuickRoll({ titulo: nome, nDados: 2, modo: "teste", bonusRotulo: cod, bonus: () => habTotal(cod) });
+  } else if(tipo === "peri"){
+    const nome = rb.dataset.nome;
+    abrirQuickRoll({ titulo: "Teste de " + nome.replace(/^\*+/,""), nDados: 2, modo: "teste", bonusRotulo: "perícia", bonus: () => periTotalDe(nome) });
+  }
+});
+(function(){
+  const x = document.getElementById("qroll_x"), f = document.getElementById("qroll_fechar"), r = document.getElementById("qroll_reroll"), dif = document.getElementById("qroll_dif");
+  if(x) x.addEventListener("click", fecharQuickRoll);
+  if(f) f.addEventListener("click", fecharQuickRoll);
+  if(r) r.addEventListener("click", rolarQuick);
+  if(dif) dif.addEventListener("keydown", (e) => { if(e.key === "Enter") rolarQuick(); });
+  if(qroll) qroll.addEventListener("click", (e) => { if(e.target === qroll) fecharQuickRoll(); });
+  document.addEventListener("keydown", (e) => { if(e.key === "Escape" && qroll && qroll.classList.contains("open")) fecharQuickRoll(); });
+})();
 
 /* ===================================================================
    ROLAGEM DE AÇÃO — popup unificado (Ataque / Defesa)
@@ -2519,9 +3178,9 @@ function rolarAtaquePopup(){
 
   /* alcance pessoal: não existe teste de acerto */
   if(hab === null){
-    mostrarResultado(linhaRes("Sem teste de acerto",
-      "Poderes de alcance pessoal não exigem teste de acerto (Básico p.257). Aplique o efeito da técnica direto.",
-      ""), "Jutsu de alcance pessoal: sem teste de acerto.", true);
+    emitirResultado({ dados:[], titulo:"Alcance pessoal · sem teste de acerto",
+      badge:{ texto:"Sem rolagem", classe:"ini" },
+      linhas:["Poderes de alcance pessoal não exigem teste de acerto (Básico p.257). Aplique o efeito direto."] }, true);
     return;
   }
 
@@ -2529,24 +3188,19 @@ function rolarAtaquePopup(){
   const a = d8(), b = d8(), soma = a + b;
 
   animarDados(a, b, rlTipoAtaque === "jutsu" ? "Jutsu" : "Ataque", () => {
-    const totalTeste = soma + precisao;
     const rotulo = hab + " (" + (rlTipoAtaque === "jutsu" ? "Jutsu" : "Normal") + ")";
-    let topo, sub = "", aviso = "", texto;
+    let badge, titulo = rotulo, linhas = [], aviso = "";
 
     if(soma <= 3){
-      topo = "Erro automático";
-      sub  = rotulo + ": 2d8 (" + a + "+" + b + ") + " + precisao + " = <b>" + totalTeste + "</b> — não acerta.";
-      texto = "🎲 " + rotulo + ": 2d8 (" + a + "+" + b + ") + " + precisao + " = " + totalTeste + " → ERRO AUTOMÁTICO";
-      mostrarResultado(linhaRes(topo, sub, aviso), texto, true);
+      emitirResultado({ dados:[a,b], bonus:precisao, bonusRotulo:"precisão", titulo:rotulo,
+        badge:{ texto:"Erro automático", classe:"fail" }, linhas:["Soma 2-3 sempre erra, independente da precisão."] }, true);
       agendarSalvar();
       return;
     }
 
     const g = grauDe(soma);
     destacarGrau(g);
-    topo = (soma >= 15 ? "Crítico automático · Grau " + g : "Grau " + g);
-    sub  = rotulo + ": 2d8 (" + a + "+" + b + ") + " + precisao + " = <b>" + totalTeste + "</b>";
-    texto = "🎲 " + rotulo + ": 2d8 (" + a + "+" + b + ") + " + precisao + " = " + totalTeste + " → Grau " + g;
+    badge = { texto: (soma >= 15 ? "Crítico · Grau " + g : "Grau " + g), classe: (soma >= 15 ? "crit" : classeGrau(g)) };
 
     const idx = document.getElementById("rl_ref_ataque").value;
     if(idx !== ""){
@@ -2558,25 +3212,23 @@ function rolarAtaquePopup(){
           : valDe(tr,".ca-dbase") + valDe(tr,".ca-bonus");
         const nomeEl = tr.querySelector(ehJutsu ? ".cj-jutsu" : "input");
         const nome = nomeEl ? nomeEl.value : "";
-        topo = nome + " · Dano " + (total * g);
-        sub += "<br>Dano " + (total * g) + " = " + total + " × Grau " + g;
-        texto += " → " + nome + ": Dano " + (total*g) + " (" + total + " × " + g + ")";
+        titulo = (nome ? nome + " · " : "") + "Dano " + (total * g);
+        linhas.push("Dano <b>" + (total * g) + "</b> = " + total + " × Grau " + g);
 
         if(ehJutsu){
           let custo = valDe(tr, ".cj-custo"); if(custo <= 0) custo = valDe(tr, ".cj-nv");
           if(custo > 0){
             if(custo > chakraAtual()) aviso = "Chakra insuficiente (precisa de " + custo + ", você tem " + chakraAtual() + ").";
             ajustarChakra(-custo);
-            sub += " · Chakra −" + custo;
+            linhas.push("Chakra −" + custo);
           }
         } else if(hab === "CD"){
-          /* munição só é descontada em ataque à distância */
           const msg = consumirMunicao(tr);
-          if(msg) sub += " · " + msg;
+          if(msg) linhas.push(msg);
         }
       }
     }
-    mostrarResultado(linhaRes(topo, sub, aviso), texto, true);
+    emitirResultado({ dados:[a,b], bonus:precisao, bonusRotulo:"precisão", titulo:titulo, badge:badge, linhas:linhas, aviso:aviso }, true);
     agendarSalvar();
   });
 }
@@ -2589,9 +3241,9 @@ function rolarDefesaPopup(){
   /* Esquiva: sem rolagem */
   if(!def.hab){
     const esq = habTotal("ESQ");
-    const texto = "🛡️ " + def.nome + ": Dif do atacante = 9 + " + esq + " = " + (9 + esq) + " (você não rola nada)";
-    mostrarResultado(linhaRes(def.nome + " · Dif " + (9 + esq),
-      "O atacante precisa bater 9 + " + esq + " (Esquiva). Você não rola nada.", ""), texto, true);
+    emitirResultado({ dados:[], titulo: def.nome + " · Dif " + (9 + esq),
+      badge:{ texto:"Sem rolagem", classe:"ini" },
+      linhas:["O atacante precisa bater <b>" + (9 + esq) + "</b> (9 + Esquiva). Você não rola nada."] }, true);
     return;
   }
 
@@ -2600,8 +3252,9 @@ function rolarDefesaPopup(){
   if(def.tecnica){
     const idx = document.getElementById("rl_ref_defesa").value;
     if(idx === ""){
-      mostrarResultado(linhaRes("Escolha a técnica",
-        def.nome + " exige declarar qual técnica você está usando antes de rolar (Básico p.266).", ""), "", false);
+      emitirResultado({ dados:[], titulo:"Escolha a técnica",
+        badge:{ texto:"Falta técnica", classe:"fail" },
+        linhas:[def.nome + " exige declarar qual técnica você usa antes de rolar (Básico p.266)."] }, true);
       return;
     }
     trTec = rlRefDefRows[Number(idx)];
@@ -2616,24 +3269,17 @@ function rolarDefesaPopup(){
   const a = d8(), b = d8(), soma = a + b;
 
   animarDados(a, b, def.nome, () => {
-    let aviso = "";
-    /* custo pago ANTES do teste, e não é devolvido se falhar (Básico p.266) */
+    let aviso = "", linhas = [];
     if(def.tecnica && def.chakra && custo > 0){
       if(custo > chakraAtual()) aviso = "Chakra insuficiente (precisa de " + custo + ", você tem " + chakraAtual() + ").";
       ajustarChakra(-custo);
+      linhas.push("Chakra −" + custo + " (gasto mesmo se falhar)");
     }
-
-    const totalTeste = soma + precisao;
-    let topo = def.nome + (nomeTec ? " · " + nomeTec : "");
-    let sub = def.hab + ": 2d8 (" + a + "+" + b + ") + " + precisao + " = <b>" + totalTeste + "</b>";
-    if(def.tecnica && def.chakra && custo > 0) sub += " · Chakra −" + custo + " (gasto mesmo se falhar)";
-    let texto = "🎲 " + def.nome + (nomeTec ? " [" + nomeTec + "]" : "") + " (" + def.hab + "): 2d8 (" + a + "+" + b + ") + " + precisao + " = " + totalTeste;
-
-    if(soma <= 3){ topo = "Erro automático"; sub += "<br>A defesa falhou."; texto += " → falhou (erro automático)"; }
-    else if(soma >= 15){ topo += " · Sucesso automático"; sub += "<br>Crítico: a defesa passa."; texto += " → sucesso automático (crítico)"; }
-    else { sub += "<br>Teste resistido: compare com o total do atacante."; }
-
-    mostrarResultado(linhaRes(topo, sub, aviso), texto, true);
+    let titulo = def.nome + (nomeTec ? " · " + nomeTec : ""), badge;
+    if(soma <= 3){ badge = { texto:"Erro automático", classe:"fail" }; linhas.push("A defesa falhou."); }
+    else if(soma >= 15){ badge = { texto:"Sucesso automático", classe:"crit" }; linhas.push("Crítico: a defesa passa."); }
+    else { badge = { texto:"Teste resistido", classe:"ok" }; linhas.push("Compare seu total com o do atacante."); }
+    emitirResultado({ dados:[a,b], bonus:precisao, bonusRotulo:def.hab, titulo:titulo, badge:badge, linhas:linhas, aviso:aviso }, true);
     agendarSalvar();
   });
 }
@@ -2768,11 +3414,14 @@ function serializarContainer(id){
   });
   return clone.innerHTML;
 }
+function chaveAuto(el){ return el.dataset.social ? ("soc:" + el.dataset.social) : (el.dataset.calc || ""); }
 function salvarEstado(){
   try{
+    const over = {};
+    document.querySelectorAll(".auto").forEach(el => { const k = chaveAuto(el); if(k) over[k] = (el.dataset.over === "1" ? 1 : 0); });
     const estado = {
       estaticos: camposEstaticos().map(el => el.type === "checkbox" ? (el.checked?1:0) : el.value),
-      autoOver: Array.from(document.querySelectorAll(".auto")).map(el => el.dataset.over === "1" ? 1 : 0),
+      autoOver: over,
       containers: {}
     };
     DINAMICOS.forEach(id => { estado.containers[id] = serializarContainer(id); });
@@ -2801,8 +3450,16 @@ function restaurarEstado(){
       }
     });
   }
-  if(Array.isArray(estado.autoOver)){
-    Array.from(document.querySelectorAll(".auto")).forEach((el, i) => { if(estado.autoOver[i]) el.dataset.over = "1"; });
+  if(estado.autoOver){
+    if(Array.isArray(estado.autoOver)){
+      /* formato antigo (por índice): a ordem antiga é a atual SEM Dureza/Absorção, que foram
+         inseridas depois. Mapeia posicionalmente só os campos que já existiam, sem desalinhar. */
+      const antigos = Array.from(document.querySelectorAll(".auto")).filter(el => el.dataset.calc !== "dureza" && el.dataset.calc !== "absorcao");
+      antigos.forEach((el, i) => { if(estado.autoOver[i]) el.dataset.over = "1"; });
+    } else {
+      /* formato novo (por identidade do campo) */
+      document.querySelectorAll(".auto").forEach(el => { const k = chaveAuto(el); if(k && estado.autoOver[k]) el.dataset.over = "1"; });
+    }
   }
 }
 document.addEventListener("input", agendarSalvar);
@@ -2812,7 +3469,10 @@ window.addEventListener("beforeunload", salvarEstado);
 document.addEventListener("visibilitychange", () => { if(document.hidden) salvarEstado(); });
 
 renderBD();
+montarLinhagens();
 restaurarEstado();
+migrarCardsItens();
+refreshLinhagensUI();
 recalc();
 
 /* ===== MOTOR DE ESCALA PROPORCIONAL ===== */
