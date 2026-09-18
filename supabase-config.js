@@ -1,6 +1,6 @@
 /* ===================================================================
    CONFIGURAÇÃO DO SUPABASE — Shinobi no Sho
-   Usado por index.html, login.html e home.html.
+   Usado por index.html, ficha.html e home.html.
    NÃO tem segredo aqui: a "anon key" é feita pra ficar pública no
    navegador — quem protege os dados de verdade é o RLS (Row Level
    Security) configurado no banco.
