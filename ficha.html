@@ -133,6 +133,19 @@
   .resource-box .tot-line{ display:flex; align-items:center; gap:8px; font-size:11px; font-weight:700; text-transform:uppercase; margin-bottom:6px; color:var(--gray-text); }
   .resource-box .tot-line input{ width:64px; font-size:13px; text-align:center; font-weight:600; color:var(--ink); }
   .resource-box .atual-cap{ position:absolute; bottom:8px; left:0; right:0; text-align:center; font-size:10px; font-weight:700; letter-spacing:0.4px; text-transform:uppercase; color:var(--gray-text); }
+  .estado-vit{ font-size:11px; font-weight:700; text-align:center; padding:6px 8px; margin:-8px 0 12px 0; border-radius:0 0 var(--radius-sm) var(--radius-sm); display:none; }
+  .estado-vit.show{ display:block; }
+  .estado-vit.ok{ color:#3d7a3d; background:#eaf6ea; }
+  .estado-vit.warn{ color:#8a6d1a; background:#fdf3d6; }
+  .estado-vit.danger{ color:#a3312a; background:#fbe1de; }
+  .estado-vit.dead{ color:#fff; background:#3a2020; }
+  .cond-box{ display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:6px; border:1px solid var(--border); border-top:none; border-radius:0 0 var(--radius-sm) var(--radius-sm); box-shadow:var(--shadow-sm); padding:12px; background:var(--bg); }
+  .cond-chip{ display:flex; align-items:flex-start; gap:6px; font-size:11.5px; padding:5px 7px; border-radius:7px; cursor:pointer; }
+  .cond-chip:hover{ background:var(--gray-light); }
+  .cond-chip input{ margin-top:2px; flex-shrink:0; }
+  .cond-chip.ativa{ background:#fbe1de; font-weight:700; }
+  .cond-chip .cond-nome{ line-height:1.3; }
+  .cond-chip .cond-grave{ display:block; font-size:9.5px; color:var(--gray-text); font-weight:400; }
   .resource-box .atual-input{ position:absolute; bottom:24px; left:50%; transform:translateX(-50%); width:64px; text-align:center; font-family:var(--font-display); font-weight:700; font-size:16px; }
 
   .stats-combate-box{ border:1px solid var(--border); border-top:none; border-radius:0 0 var(--radius-sm) var(--radius-sm); box-shadow:var(--shadow-sm); display:flex; }
@@ -337,6 +350,7 @@
   .modal-btn:disabled{ opacity:0.45; cursor:not-allowed; }
   .rl-group{ margin-bottom:14px; }
   .rl-label{ display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--gray-text); margin-bottom:6px; }
+  .rl-chk{ display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; cursor:pointer; }
   .rl-segs{ display:flex; gap:6px; }
   .rl-seg{ flex:1; padding:9px 10px; border:1px solid var(--border); border-radius:8px; background:var(--input-bg); font-weight:700; font-size:13px; cursor:pointer; font-family:var(--font-body); transition:background 90ms ease; }
   .rl-seg:hover:not(.active){ background:#eef3fb; }
@@ -665,12 +679,14 @@
         <input class="atual-input campo-vida" id="in_vit_atual" value="">
         <div class="atual-cap">Vitalidade Atual</div>
       </div>
+      <div class="estado-vit" id="estado_vit"></div>
       <div class="bar">Chakra</div>
       <div class="resource-box">
         <div class="tot-line"><span>Chakra Total:</span><input id="in_chakra_total" class="auto" data-calc="chakra" title="Calculado: 10 + 3x Espírito. Digite para sobrescrever; limpe para voltar ao automático." value=""></div>
         <input class="atual-input campo-chakra" id="in_chakra_atual" value="">
         <div class="atual-cap">Chakra Atual</div>
       </div>
+      <div class="estado-vit" id="estado_chakra"></div>
     </div>
 
     <div class="col-right">
@@ -747,6 +763,9 @@
       </div>
     </div>
   </div>
+
+  <div class="bar" style="margin-top:12px;">Condições Prejudiciais <span class="pt-counter" id="cond_ativas_count"></span></div>
+  <div class="cond-box" id="cond_box"></div>
 
   <div class="footer-logo">Shinobi no Sho</div>
 </div>
@@ -931,7 +950,19 @@
           <div class="rl-segs" id="rl_tipo_ataque">
             <button type="button" class="rl-seg active" data-val="normal">Normal</button>
             <button type="button" class="rl-seg" data-val="jutsu">Jutsu</button>
+            <button type="button" class="rl-seg" data-val="manobra">Manobra</button>
           </div>
+        </div>
+        <div class="rl-group" id="rl_grp_manobra" style="display:none;">
+          <label class="rl-label">Manobra Especial (sempre CC -2, desarmado — Básico p.267-269)</label>
+          <select class="modal-select" id="rl_manobra">
+            <option value="agarrar">Agarrar — prende o alvo (fica Impedido)</option>
+            <option value="atropelar">Atropelar — usada com Investida; derruba e avança</option>
+            <option value="derrubar">Derrubar — alvo fica Caído</option>
+            <option value="desarmar">Desarmar — item cai a 3m (+1m a cada 4 de margem)</option>
+            <option value="empurrar">Empurrar — 1m, +1m a cada 4 de margem</option>
+          </select>
+          <div class="rl-nota" id="rl_manobra_nota"></div>
         </div>
         <div class="rl-group" id="rl_grp_hab">
           <label class="rl-label">Habilidade (CC = corpo-a-corpo/toque · CD = à distância)</label>
@@ -948,6 +979,10 @@
             <button type="button" class="rl-seg" data-val="pessoal">Pessoal</button>
           </div>
           <div class="rl-nota">Básico p.257: poder de alcance toque usa CC, de alcance à distância usa CD, e alcance pessoal não pede teste de acerto. Ao escolher o jutsu abaixo, o alcance é sugerido automaticamente.</div>
+        </div>
+        <div class="rl-group" id="rl_grp_letal">
+          <label class="rl-chk"><input type="checkbox" id="rl_contra_letal"> Ir contra a letalidade natural do ataque (letal→não-letal ou vice-versa): -3 de precisão</label>
+          <div class="rl-nota">Básico p.259-260: quase todo dano é letal por padrão; desarmado costuma ser não-letal. Forçar o oposto custa -3 na precisão do ataque.</div>
         </div>
         <div class="rl-group">
           <label class="rl-label">Referência (opcional — pra puxar dano e gastar custo/munição)</label>
@@ -1204,7 +1239,13 @@ const SEED_DB = {
     {nome:"Arco Composto/Longo", categoria:"Marcial", classe:"Disparo", preco:"100 Ryos", dano:"+3", alcance:"10m +2m×Des", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração", uso:"CD"},
     {nome:"Besta Pesada", categoria:"Marcial", classe:"Disparo", preco:"50 Ryos", dano:"+4", alcance:"35m", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração", uso:"CD"},
     {nome:"Flechas para arcos (1)", categoria:"Marcial", classe:"Munição", preco:"1 Ryo cada", dano:"---", alcance:"---", critico:"---", comp:"20 itens/1 comp.", tipo:"---", uso:"—"},
-    {nome:"Virotes para bestas (1)", categoria:"Marcial", classe:"Munição", preco:"1 Ryo cada", dano:"---", alcance:"---", critico:"---", comp:"20 itens/1 comp.", tipo:"---", uso:"—"}
+    {nome:"Virotes para bestas (1)", categoria:"Marcial", classe:"Munição", preco:"1 Ryo cada", dano:"---", alcance:"---", critico:"---", comp:"20 itens/1 comp.", tipo:"---", uso:"—"},
+    {nome:"Pistola de Pederneira Pequena", categoria:"Pólvora", classe:"Disparo", preco:"A definir (Mestre)", dano:"1", alcance:"20m", critico:"15-16", comp:"2 item/1 comp.", tipo:"Perfuração", uso:"CD", requisito:"Usar Pólvora · dif. de manuseio 10"},
+    {nome:"Pistola de Pederneira", categoria:"Pólvora", classe:"Disparo", preco:"A definir (Mestre)", dano:"2", alcance:"25m", critico:"15-16", comp:"2 item/1 comp.", tipo:"Perfuração", uso:"CD", requisito:"Usar Pólvora + Destreza 8 · dif. de manuseio 14"},
+    {nome:"Bacamarte", categoria:"Pólvora", classe:"Disparo", preco:"A definir (Mestre)", dano:"4(5)[6]", alcance:"20(10)m", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração", uso:"CD", requisito:"Usar Pólvora + Destreza 10 · duas mãos · dif. de manuseio 18 · +1 dano a até 10m (+2 com Destreza 12)"},
+    {nome:"Arcabuz", categoria:"Pólvora", classe:"Disparo", preco:"A definir (Mestre)", dano:"4", alcance:"10m +2x Destreza", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração", uso:"CD", requisito:"Usar Pólvora + Destreza 10 · duas mãos · dif. de manuseio 16"},
+    {nome:"Mosquete", categoria:"Pólvora", classe:"Disparo", preco:"A definir (Mestre)", dano:"5", alcance:"15m +3x Destreza", critico:"15-16", comp:"1 item/1 comp.", tipo:"Perfuração", uso:"CD", requisito:"Usar Pólvora + Destreza 12 · duas mãos · dif. de manuseio 22 · penetra boas armaduras"},
+    {nome:"Munição p/ Armas de Fogo (1)", categoria:"Pólvora", classe:"Munição", preco:"A definir (Mestre)", dano:"---", alcance:"---", critico:"---", comp:"20 itens/1 comp.", tipo:"---", uso:"—"}
   ],
   armaduras: [
     {nome:"Roupa Comum", tipo:"Leve", preco:"10 Ryos", absorcao:"+0", penalidade:"---", comp:"---"},
@@ -1357,6 +1398,16 @@ const SEED_DB = {
     {nome:"Moku Bunshin no Jutsu", poder:"Mokuton", nivel:5, tipo:"Técnica", custo:"", dano:"", descricao:""},
     {nome:"Kuchiyose no Jutsu (Invocação)", poder:"Kuchiyose", nivel:3, tipo:"Técnica", custo:"", dano:"", descricao:""}
   ],
+  venenos: [
+    {categoria:"Categoria 0", prereq:"Venefício 4", difFabricacao:12, difTeste:"9 + ½ Venefício", nota:"Grátis, materiais fáceis de achar — dá pra fazer de improviso."},
+    {categoria:"Categoria 1", prereq:"Venefício 6", difFabricacao:14, difTeste:"10 + ½ Venefício", nota:"Custo por dose ~3 Ryo."},
+    {categoria:"Categoria 2", prereq:"Venefício 8", difFabricacao:16, difTeste:"11 + ½ Venefício", nota:""},
+    {categoria:"Categoria 3", prereq:"Venefício 10", difFabricacao:18, difTeste:"12 + ½ Venefício", nota:""},
+    {categoria:"Categoria 4", prereq:"Venefício 12", difFabricacao:20, difTeste:"13 + ½ Venefício", nota:""},
+    {categoria:"Categoria 5", prereq:"Venefício 14", difFabricacao:22, difTeste:"14 + ½ Venefício", nota:""},
+    {categoria:"Categoria 6", prereq:"Venefício 16", difFabricacao:24, difTeste:"15 + ½ Venefício", nota:""},
+    {categoria:"Categoria Especial", prereq:"Venefício 20 (só via Hijutsu Dokujutsu)", difFabricacao:30, difTeste:"Dif. de Dokujutsu", nota:"Só produzível por quem tem o Hijutsu Dokujutsu."}
+  ],
   elementos: {
     "Doton":  {permitidos:["Canhão","Orbe","Raio","Restringente","Barreira","Energizar","Criar Arma","Segurar","Coluna","Flechas","Lança","Sopro Destrutivo","Ricochete","Nuvem","Algemar","Míssil","Onda Explosiva","Selar Chakra"], bonusDano:0, modificador:"Permite todos os efeitos de Ninpou."},
     "Fuuton": {permitidos:["Canhão","Orbe","Barreira","Coluna","Flechas","Sopro Destrutivo","Raio","Nuvem","Energizar","Míssil","Onda Explosiva","Ricochete"], bonusDano:2, modificador:"Todo efeito Fuuton recebe +2 de dano base."},
@@ -1434,7 +1485,7 @@ function carregarDB(){
     const raw = localStorage.getItem(DB_KEY);
     if(raw){
       const s = JSON.parse(raw);
-      ["aptidoes","poderes","armas","armaduras","efeitos","tecnicas","linhagens","itens"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
+      ["aptidoes","poderes","armas","armaduras","efeitos","tecnicas","linhagens","itens","venenos"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
       migrarArmasUso(base); migrarPoderes(base); migrarTecnicas(base); migrarLinhagens(base); migrarItens(base);
       if(s.calc) Object.assign(base.calc, s.calc);
       if(s.elementos) Object.assign(base.elementos, s.elementos);
@@ -2180,6 +2231,100 @@ function recalc(){
   const svt = document.getElementById("st_vida_total"); if(svt && vitTot) svt.textContent = vitTot.value;
   const sct = document.getElementById("st_chakra_total"); if(sct && chaTot) sct.textContent = chaTot.value;
   atualizarMunicoes();
+  atualizarEstadoVital();
+}
+
+/* Ferimentos e Morte (Básico p.258-259) + aviso de Chakra abaixo de zero (p.260) */
+/* Ferimentos e Morte (Básico p.258-259) + aviso de Chakra abaixo de zero (p.260) */
+const CONDICOES = [
+  {k:"debilitado", nome:"Debilitado", efeito:"-1 de precisão em todos os testes (ou só nos especificados, ex: 'Força debilitada'). Acumula até -3.", grave:""},
+  {k:"agarrado", nome:"Agarrado", efeito:"Preso em combate corpo-a-corpo pela manobra Agarrar. Fica Impedido.", grave:""},
+  {k:"amedrontado", nome:"Amedrontado", efeito:"Foge o quanto conseguir (ou se encolhe). Fica debilitado e não pode atacar. Some quando sair da presença da fonte do medo.", grave:"Aterrorizado"},
+  {k:"amputado", nome:"Amputado", efeito:"Sem um braço/mão: não usa armas de 2 mãos nem faz selos manuais (a menos que tenha Mestre dos Selos + Prestidigitação 14).", grave:""},
+  {k:"assustado", nome:"Assustado", efeito:"Se afasta da fonte do medo; se não puder, fica debilitado. Some quando sair da presença da fonte do medo.", grave:"Amedrontado"},
+  {k:"aterrorizado", nome:"Aterrorizado", efeito:"Foge desesperadamente (ou se encolhe). Fica Atordoado. Some quando sair da presença da fonte do medo.", grave:"Paralisado"},
+  {k:"atordoado", nome:"Atordoado", efeito:"Não pode realizar nenhuma ação (nem livre), mas pode usar reações como Esquiva.", grave:"Indefeso"},
+  {k:"caido", nome:"Caído", efeito:"CC debilitado (-3) e defesa debilitada (-3) contra corpo-a-corpo/área; +3 de precisão em defesas à distância. Levantar = ação de movimento.", grave:""},
+  {k:"cego", nome:"Cego", efeito:"Não enxerga; sofre penalidade de camuflagem visual total; sem testes de Procurar/Prontidão visuais nem atividades que exijam visão.", grave:""},
+  {k:"confuso", nome:"Confuso", efeito:"Ação aleatória por rodada: 1d8 → 1-2 foge, 3-4 ataca o mais próximo, 5-6 nada, 7-8 age normal.", grave:""},
+  {k:"desprevenido", nome:"Desprevenido", efeito:"Defesa debilitada (-3) e perde qualquer bônus de Esquiva que possua.", grave:""},
+  {k:"estavel", nome:"Estável", efeito:"Inconsciente, Vitalidade entre -11 e -20, mas parou de sangrar/perder Vit por turno.", grave:""},
+  {k:"exausto", nome:"Exausto", efeito:"Lento, ataque debilitado (-3) e defesa debilitada (-3). Sofrer de novo (ou sofrer Fatigado) = Inconsciente.", grave:"Inconsciente"},
+  {k:"fascinado", nome:"Fascinado", efeito:"Só presta atenção ao efeito fascinante, movendo-se aleatoriamente. Qualquer ameaça óbvia quebra o efeito.", grave:""},
+  {k:"fatigado", nome:"Fatigado", efeito:"Ataque debilitado e defesa debilitada. Sofrer de novo = Exausto. Cura dormindo (se sem duração própria).", grave:"Exausto"},
+  {k:"fintado", nome:"Fintado", efeito:"Defesa debilitada (-2) por ter caído numa finta ou pela velocidade do oponente.", grave:""},
+  {k:"flanqueado", nome:"Flanqueado", efeito:"Atacado por 2 inimigos em lados opostos: defesa debilitada contra esses dois.", grave:""},
+  {k:"impedido", nome:"Impedido", efeito:"Fisicamente preso no lugar. Ataque/defesa debilitados; sem Esquiva/Antecipar contra área (defesa fixa 9).", grave:"Indefeso"},
+  {k:"inconsciente", nome:"Inconsciente", efeito:"Sem ações, nem mentais; fica Indefeso. Acaba ao recuperar a consciência.", grave:""},
+  {k:"indefeso", nome:"Indefeso / Paralisado", efeito:"Incapaz de agir ou se defender (mas pode tentar se livrar do efeito). Ataques contra você são sucesso automático — sujeito a golpe de misericórdia.", grave:""},
+  {k:"lento", nome:"Lento", efeito:"Desloca-se à metade do normal; não pode usar Corrida nem Investida.", grave:"Fatigado"},
+  {k:"morrendo", nome:"Morrendo", efeito:"Vitalidade entre -11 e -20: sangrando, inconsciente, sem ações, perdendo 2 Vit/turno até estabilizar.", grave:""},
+  {k:"ofuscado", nome:"Ofuscado", efeito:"Visão prejudicada: ataque debilitado, e debilitado em qualquer teste que dependa de visão.", grave:""},
+  {k:"sangrando", nome:"Sangrando", efeito:"Perde 2 Vit no início de cada turno (acumula: x2=4, x3=6...). Estabiliza com Vigor dif 18 (reação) ou Medicina dif 16 (ação padrão), um nível por vez.", grave:""},
+  {k:"sufocamento", nome:"Sufocamento", efeito:"Teste de Vigor por turno (ação livre) pra prender a respiração; dif sobe +1/turno. Falhar = dano fixo; Vit a zero = inconsciente.", grave:""},
+  {k:"surdo", nome:"Surdo", efeito:"Iniciativa debilitada (-3); sem testes de Procurar/Prontidão auditivos.", grave:""},
+  {k:"tonto", nome:"Tonto", efeito:"Perde a ação de movimento (mantém as demais, podendo trocar a padrão por ações menores).", grave:"Atordoado"}
+];
+function renderCondicoes(){
+  const box = document.getElementById("cond_box"); if(!box) return;
+  box.innerHTML = CONDICOES.map(c =>
+    '<label class="cond-chip" data-k="' + c.k + '">' +
+      '<input type="checkbox" class="cond-check" data-cond="' + c.k + '">' +
+      '<span class="cond-nome" title="' + escapeAttr(c.efeito) + '">' + c.nome +
+        (c.grave ? '<span class="cond-grave">agrava para: ' + c.grave + '</span>' : '') +
+      '</span>' +
+    '</label>'
+  ).join('');
+  box.querySelectorAll(".cond-check").forEach(chk => {
+    chk.addEventListener("change", () => { atualizarCondicoesAtivas(); agendarSalvar(); });
+  });
+}
+function atualizarCondicoesAtivas(){
+  let n = 0;
+  document.querySelectorAll(".cond-check").forEach(chk => {
+    chk.closest(".cond-chip").classList.toggle("ativa", chk.checked);
+    if(chk.checked) n++;
+  });
+  const cont = document.getElementById("cond_ativas_count");
+  if(cont) cont.textContent = n > 0 ? (n + " ativa" + (n>1?"s":"")) : "";
+}
+renderCondicoes();
+
+function atualizarEstadoVital(){
+  const vitEl = document.getElementById("in_vit_atual");
+  const estadoVit = document.getElementById("estado_vit");
+  if(estadoVit){
+    if(vitEl && vitEl.value.trim() !== ""){
+      const vit = num(vitEl.value);
+      let texto = "", classe = "";
+      if(vit === 0){ texto = "Fora de combate — indefeso, porém consciente"; classe = "warn"; }
+      else if(vit >= -10){ if(vit < 0){ texto = "Inconsciente"; classe = "danger"; } }
+      else if(vit >= -20){ texto = "Morrendo — sangrando, -2 Vit/turno até estabilizar (teste de Vigor dif 18, reação, ou Medicina dif 16, ação padrão)"; classe = "dead"; }
+      else { texto = "Morto"; classe = "dead"; }
+      estadoVit.textContent = texto;
+      estadoVit.className = "estado-vit" + (texto ? " show " + classe : "");
+    } else {
+      estadoVit.className = "estado-vit";
+    }
+  }
+  const chakraEl = document.getElementById("in_chakra_atual");
+  const estadoChakra = document.getElementById("estado_chakra");
+  if(estadoChakra){
+    if(chakraEl && chakraEl.value.trim() !== ""){
+      const chakra = num(chakraEl.value);
+      if(chakra < 0){
+        estadoChakra.textContent = "Chakra abaixo de zero — se sofrer dreno forçado ≥ metade da reserva total, o personagem morre";
+        estadoChakra.className = "estado-vit show warn";
+      } else if(chakra === 0){
+        estadoChakra.textContent = "Sem chakra — condição Exausto até recuperar ao menos 1 ponto";
+        estadoChakra.className = "estado-vit show warn";
+      } else {
+        estadoChakra.className = "estado-vit";
+      }
+    } else {
+      estadoChakra.className = "estado-vit";
+    }
+  }
 }
 
 document.addEventListener("input", (e) => {
@@ -2499,16 +2644,17 @@ const BD_SCHEMAS = {
     {campo:"descricao", rotulo:"Descrição", w:"auto", tipo:"textarea"}
   ]},
   armas: { titulo:"Armas", cols:[
-    {campo:"nome", rotulo:"Arma", w:"16%", tipo:"input"},
-    {campo:"categoria", rotulo:"Categoria", w:"8%", tipo:"input"},
-    {campo:"classe", rotulo:"Classe", w:"9%", tipo:"input"},
-    {campo:"uso", rotulo:"Uso", w:"8%", tipo:"select", opcoes:["CC","CD","CC/CD","—"]},
-    {campo:"preco", rotulo:"Preço", w:"9%", tipo:"input"},
+    {campo:"nome", rotulo:"Arma", w:"14%", tipo:"input"},
+    {campo:"categoria", rotulo:"Categoria", w:"7%", tipo:"input"},
+    {campo:"classe", rotulo:"Classe", w:"8%", tipo:"input"},
+    {campo:"uso", rotulo:"Uso", w:"6%", tipo:"select", opcoes:["CC","CD","CC/CD","—"]},
+    {campo:"preco", rotulo:"Preço", w:"8%", tipo:"input"},
     {campo:"dano", rotulo:"Dano", w:"6%", tipo:"input"},
-    {campo:"alcance", rotulo:"Alcance", w:"10%", tipo:"input"},
-    {campo:"critico", rotulo:"Crítico", w:"9%", tipo:"input"},
-    {campo:"comp", rotulo:"Comp.", w:"13%", tipo:"input"},
-    {campo:"tipo", rotulo:"Tipo", w:"auto", tipo:"input"}
+    {campo:"alcance", rotulo:"Alcance", w:"9%", tipo:"input"},
+    {campo:"critico", rotulo:"Crítico", w:"7%", tipo:"input"},
+    {campo:"comp", rotulo:"Comp.", w:"9%", tipo:"input"},
+    {campo:"tipo", rotulo:"Tipo", w:"7%", tipo:"input"},
+    {campo:"requisito", rotulo:"Requisito", w:"auto", tipo:"input"}
   ]},
   armaduras: { titulo:"Armaduras", cols:[
     {campo:"nome", rotulo:"Armadura", w:"24%", tipo:"input"},
@@ -2525,6 +2671,13 @@ const BD_SCHEMAS = {
     {campo:"comp", rotulo:"Compartimentos", w:"16%", tipo:"input"},
     {campo:"efeitoTipo", rotulo:"Ao usar, recupera", w:"12%", tipo:"select", opcoes:["—","Chakra","Vitalidade"]},
     {campo:"efeitoValor", rotulo:"Quanto (nº ou ex.: ½ Espírito)", w:"auto", tipo:"input"}
+  ]},
+  venenos: { titulo:"Venenos (categorias — Guia Avançado p.76-84)", cols:[
+    {campo:"categoria", rotulo:"Categoria", w:"16%", tipo:"input"},
+    {campo:"prereq", rotulo:"Pré-requisito", w:"22%", tipo:"input"},
+    {campo:"difFabricacao", rotulo:"Dif. de Fabricação", w:"14%", tipo:"input"},
+    {campo:"difTeste", rotulo:"Dif. de Teste (da vítima)", w:"18%", tipo:"input"},
+    {campo:"nota", rotulo:"Nota", w:"auto", tipo:"input"}
   ]}
 };
 
@@ -2617,7 +2770,7 @@ function renderBD(){
   let html = bdSiglasHtml() + bdCalcHtml();
   ["aptidoes","poderes","linhagens","efeitos","tecnicas"].forEach(cat => html += bdSectionHtml(cat));
   html += bdElementosHtml();
-  ["armas","armaduras","itens"].forEach(cat => html += bdSectionHtml(cat));
+  ["armas","armaduras","itens","venenos"].forEach(cat => html += bdSectionHtml(cat));
   bdRoot.innerHTML = html;
 }
 function vazioDe(cat){
@@ -2684,7 +2837,7 @@ document.getElementById("bd_arquivo").addEventListener("change", (e) => {
     try{
       const s = JSON.parse(reader.result);
       const base = clone(SEED_DB);
-      ["aptidoes","poderes","armas","armaduras","efeitos","tecnicas","linhagens","itens"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
+      ["aptidoes","poderes","armas","armaduras","efeitos","tecnicas","linhagens","itens","venenos"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
       migrarArmasUso(base); migrarPoderes(base); migrarTecnicas(base); migrarLinhagens(base); migrarItens(base);
       if(s.calc) Object.assign(base.calc, s.calc);
       if(s.elementos) Object.assign(base.elementos, s.elementos);
@@ -2955,11 +3108,19 @@ function setSeg(container, val){
 
 /* habilidade efetivamente usada no teste de acerto */
 function habEfetiva(){
+  if(rlTipoAtaque === "manobra") return "CC";
   if(rlTipoAtaque !== "jutsu") return rlHabilidade;
   if(rlAlcance === "distancia") return "CD";
   if(rlAlcance === "pessoal")   return null;   /* sem teste de acerto */
   return "CC";
 }
+const MANOBRAS = {
+  agarrar:   { nome:"Agarrar",    efeito:"O alvo fica Agarrado e Impedido. Ele se solta com uma ação padrão (teste de CC ou Força resistido) ou perícia Escapar (Dif 4+CC ou 7+Força do atacante, à escolha dele)." },
+  atropelar: { nome:"Atropelar",  efeito:"Use junto com Investida. Se vencer, você avança e derruba o alvo (fica Caído). Se ele vencer com Esquiva/Antecipar, sai da frente; com Bloqueio, detém seu avanço." },
+  derrubar:  { nome:"Derrubar",   efeito:"O alvo fica Caído. Normalmente não causa dano (pode exigir Acrobacia pra evitar dano numa queda de grande altura)." },
+  desarmar:  { nome:"Desarmar",   efeito:"O item cai a 3m + 1m a cada 4 pontos de margem entre seu teste e a defesa do alvo. Apanhá-lo do chão é uma ação parcial." },
+  empurrar:  { nome:"Empurrar",   efeito:"Empurra o alvo 1m, +1m a cada 4 pontos de margem. Você deve avançar junto (até o limite do seu deslocamento)." }
+};
 function catMatch(escolha, classe){
   const e = normNome(escolha).replace(/s$/,"");
   const c = normNome(classe).replace(/s$/,"");
@@ -3083,9 +3244,19 @@ function atualizarBlocoRolagem(){
   document.getElementById("rl_bloco_defesa").style.display = (rlAcao === "defesa") ? "" : "none";
   if(rlAcao === "ataque"){
     const ehJutsu = (rlTipoAtaque === "jutsu");
-    document.getElementById("rl_grp_hab").style.display     = ehJutsu ? "none" : "";
+    const ehManobra = (rlTipoAtaque === "manobra");
+    document.getElementById("rl_grp_hab").style.display     = (ehJutsu || ehManobra) ? "none" : "";
     document.getElementById("rl_grp_alcance").style.display = ehJutsu ? "" : "none";
-    popularReferenciaAtaque();
+    document.getElementById("rl_grp_manobra").style.display = ehManobra ? "" : "none";
+    document.getElementById("rl_grp_letal").style.display   = ehManobra ? "none" : "";
+    const grpRef = document.getElementById("rl_ref_ataque").closest(".rl-group");
+    if(grpRef) grpRef.style.display = ehManobra ? "none" : "";
+    if(ehManobra){
+      const m = MANOBRAS[document.getElementById("rl_manobra").value];
+      document.getElementById("rl_manobra_nota").textContent = m ? m.efeito : "";
+    } else {
+      popularReferenciaAtaque();
+    }
   } else {
     atualizarNotaDefesa();
   }
@@ -3184,12 +3355,16 @@ function rolarAtaquePopup(){
     return;
   }
 
-  const precisao = habTotal(hab) + bonusPrecisaoAtaque();
+  const ehManobra = (rlTipoAtaque === "manobra");
+  const contraLetal = document.getElementById("rl_contra_letal");
+  const penalLetal = (!ehManobra && contraLetal && contraLetal.checked) ? -3 : 0;
+  const precisao = habTotal(hab) + (ehManobra ? -2 : bonusPrecisaoAtaque()) + penalLetal;
   const a = d8(), b = d8(), soma = a + b;
 
-  animarDados(a, b, rlTipoAtaque === "jutsu" ? "Jutsu" : "Ataque", () => {
-    const rotulo = hab + " (" + (rlTipoAtaque === "jutsu" ? "Jutsu" : "Normal") + ")";
+  animarDados(a, b, rlTipoAtaque === "jutsu" ? "Jutsu" : (ehManobra ? "Manobra" : "Ataque"), () => {
+    const rotulo = ehManobra ? (MANOBRAS[document.getElementById("rl_manobra").value].nome + " (CC -2)") : (hab + " (" + (rlTipoAtaque === "jutsu" ? "Jutsu" : "Normal") + ")");
     let badge, titulo = rotulo, linhas = [], aviso = "";
+    if(penalLetal) linhas.push("Indo contra a letalidade natural do ataque: -3 de precisão");
 
     if(soma <= 3){
       emitirResultado({ dados:[a,b], bonus:precisao, bonusRotulo:"precisão", titulo:rotulo,
@@ -3201,6 +3376,15 @@ function rolarAtaquePopup(){
     const g = grauDe(soma);
     destacarGrau(g);
     badge = { texto: (soma >= 15 ? "Crítico · Grau " + g : "Grau " + g), classe: (soma >= 15 ? "crit" : classeGrau(g)) };
+
+    if(ehManobra){
+      const m = MANOBRAS[document.getElementById("rl_manobra").value];
+      titulo = m.nome + " · acertou";
+      linhas.push(m.efeito);
+      emitirResultado({ dados:[a,b], bonus:precisao, bonusRotulo:"precisão", titulo:titulo, badge:badge, linhas:linhas, aviso:aviso }, true);
+      agendarSalvar();
+      return;
+    }
 
     const idx = document.getElementById("rl_ref_ataque").value;
     if(idx !== ""){
@@ -3302,6 +3486,10 @@ document.getElementById("rl_tipo_ataque").addEventListener("click", (e) => {
   rlTipoAtaque = b.dataset.val; setSeg(document.getElementById("rl_tipo_ataque"), rlTipoAtaque);
   atualizarBlocoRolagem();
 });
+document.getElementById("rl_manobra").addEventListener("change", () => {
+  const m = MANOBRAS[document.getElementById("rl_manobra").value];
+  document.getElementById("rl_manobra_nota").textContent = m ? m.efeito : "";
+});
 document.getElementById("rl_habilidade").addEventListener("click", (e) => {
   const b = e.target.closest(".rl-seg"); if(!b) return;
   rlHabilidade = b.dataset.val; setSeg(document.getElementById("rl_habilidade"), rlHabilidade);
@@ -3321,7 +3509,7 @@ document.getElementById("rl_rolar").addEventListener("click", () => {
 });
 
 /* ---- Barra de status: Vida/Chakra espelhados, munições e dano recebido ---- */
-function setTodos(cls, val){ document.querySelectorAll("."+cls).forEach(el => { el.value = val; }); }
+function setTodos(cls, val){ document.querySelectorAll("."+cls).forEach(el => { el.value = val; }); recalc(); }
 function flashCampo(cls){
   document.querySelectorAll("."+cls).forEach(el => {
     el.classList.remove("stat-flash"); void el.offsetWidth; el.classList.add("stat-flash");
@@ -3337,12 +3525,28 @@ function ajustarChakra(delta){
 /* Descanso longo: restaura Vida e Chakra ao máximo. Regra por noite: +10 + 2×Vigor de Vit (Básico p.258)
    e +5 + 2×Espírito de Chakra (Básico p.260); aqui o botão traz direto ao máximo por praticidade. */
 function descansoLongo(){
-  const vidaMax = document.getElementById("st_vida_total"), chakraMax = document.getElementById("st_chakra_total");
-  if(vidaMax && vidaMax.textContent) setTodos("campo-vida", vidaMax.textContent);
-  if(chakraMax && chakraMax.textContent) setTodos("campo-chakra", chakraMax.textContent);
+  const vidaMaxEl = document.getElementById("st_vida_total"), chakraMaxEl = document.getElementById("st_chakra_total");
+  const vidaMax = vidaMaxEl ? num(vidaMaxEl.textContent) : 0;
+  const chakraMax = chakraMaxEl ? num(chakraMaxEl.textContent) : 0;
+  const vidaAtualEl = document.getElementById("in_vit_atual");
+  const chakraAtualEl = document.getElementById("in_chakra_atual");
+  const vidaAtual = vidaAtualEl ? num(vidaAtualEl.value) : 0;
+  const chakraAtual = chakraAtualEl ? num(chakraAtualEl.value) : 0;
+  /* Cura natural (Básico p.259-260): uma noite de sono completa recupera
+     10 + 2×Vigor de Vitalidade e 5 + 2×Espírito de Chakra — nunca o total máximo de uma vez. */
+  const curaVida = 10 + 2*attrVal("Vigor");
+  const curaChakra = 5 + 2*attrVal("Espírito");
+  const novaVida = Math.min(vidaMax, vidaAtual + curaVida);
+  const novoChakra = Math.min(chakraMax, chakraAtual + curaChakra);
+  setTodos("campo-vida", novaVida);
+  setTodos("campo-chakra", novoChakra);
+  /* dormir tambem cura as condicoes Fatigado e Exausto (se nao tiverem duracao propria) */
+  ["fatigado","exausto"].forEach(k => { const c = document.querySelector('.cond-check[data-cond="'+k+'"]'); if(c) c.checked = false; });
+  atualizarCondicoesAtivas();
   flashCampo("campo-vida"); flashCampo("campo-chakra");
   agendarSalvar();
 }
+(function(){ const b = document.getElementById("st_descanso"); if(b) b.title = "Descanso longo (noite completa): recupera 10 + 2×Vigor de Vitalidade e 5 + 2×Espírito de Chakra (Básico p.259-260) — não é reset total."; })();
 (function(){ const b = document.getElementById("st_descanso"); if(b) b.addEventListener("click", descansoLongo); })();
 (function(){
   const FORMULAS = {
