@@ -8,19 +8,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#1a1a1a;
-    --bar-bg:#1c1c1e;
-    --bg:#ffffff;
-    --page-bg:#eef0f3;
-    --gray-light:#f6f7f8;
-    --gray-mid:#e4e5e7;
-    --gray-text:#8b8d92;
-    --border:#e3e4e7;
-    --border-strong:#d3d5d9;
-    --input-bg:#f5f6f7;
-    --input-border:#e2e3e6;
-    --shadow: 0 1px 3px rgba(20,20,25,0.06), 0 8px 20px rgba(20,20,25,0.05);
-    --shadow-sm: 0 1px 2px rgba(20,20,25,0.05);
+    /* ---- Paleta de PERGAMINHO ANTIGO ---- */
+    --ink:#33281a;            /* tinta sépia escura */
+    --bar-bg:#3b2f20;         /* faixa marrom escuro (cabeçalhos/barras) */
+    --bg:#f5ecd4;             /* papel creme (superfícies de conteúdo) */
+    --page-bg:#c8b68b;        /* pergaminho de fundo (cards se destacam) */
+    --gray-light:#efe3c5;     /* creme quente (headers de tabela, fundos sutis) */
+    --gray-mid:#e2d3ad;
+    --gray-text:#7a6947;      /* sépia mutado (labels/secundário) */
+    --border:#cbb88a;         /* borda tan */
+    --border-strong:#b19a6b;
+    --input-bg:#fbf4de;       /* input creme claro */
+    --input-border:#d8c69c;
+    --accent:#8e3b2a;         /* selo vermelho-tijolo (destaques) */
+    --calc-bg:#ecdfb4;        /* campo calculado (tom dourado sutil) */
+    --shadow: 0 1px 3px rgba(70,52,24,0.12), 0 8px 20px rgba(70,52,24,0.10);
+    --shadow-sm: 0 1px 2px rgba(70,52,24,0.10);
     --radius:14px;
     --radius-sm:8px;
     --font-display:'Barlow Condensed', Arial, sans-serif;
@@ -75,7 +78,7 @@
     padding:4px 8px; transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
   }
   .page input:focus, .page textarea:focus{
-    outline:none; border-color:#b8bac0; background:#fff;
+    outline:none; border-color:var(--border-strong); background:#fff;
     box-shadow: 0 0 0 3px rgba(20,20,25,0.06);
   }
   .field-input{ font-size:13px; width:100%; }
@@ -216,6 +219,45 @@
   .dtable tr:last-child td{ border-bottom:none; }
   .dtable td input{ width:100%; border:none !important; background:transparent !important; font-size:12px; box-shadow:none !important; }
   .dtable td.grat{ color:#b7b9bd; font-weight:700; font-size:10px; text-transform:uppercase; padding-left:10px; }
+  /* ---- Coluna de NOME (Poderes / Calculadoras): nome sempre legível ----
+     Padrão híbrido de data table (SetProduct 2026, PatternFly, SAP Fiori):
+     coluna larga + reticências + tooltip no hover; e o campo expande ao focar
+     para ler/editar o nome por inteiro sem cortar. */
+  .dtable td.td-nome{ position:relative; }
+  .dtable input.col-nome{ font-weight:600; text-overflow:ellipsis; }
+  .dtable input.col-nome:focus{
+    position:absolute; left:0; top:0; z-index:6;
+    width:auto; min-width:240px; max-width:340px; height:100%;
+    padding:4px 8px; background:#fff !important; color:var(--ink);
+    border:1px solid var(--border-strong) !important; border-radius:6px;
+    box-shadow:0 4px 14px rgba(18,20,24,.18); text-overflow:clip;
+  }
+  /* ===================== TOOLTIP CUSTOMIZADO =====================
+     Substitui o tooltip nativo do atributo title por um balão estilizado,
+     com posicionamento dinâmico (evita cortar na borda), fade suave, foco de
+     teclado e fechar no Esc. Padrões: LogRocket/UXPin/Userpilot (2025-26). */
+  #tip{
+    position:fixed; top:0; left:0; z-index:100000; max-width:300px;
+    background:#2c2016; color:#f3ead0;
+    font-family:var(--font-body); font-size:12px; font-weight:500; line-height:1.45;
+    padding:8px 11px; border-radius:9px; letter-spacing:.1px;
+    border:1px solid rgba(255,255,255,.10);
+    box-shadow:0 10px 30px rgba(10,12,16,.34), 0 2px 6px rgba(10,12,16,.24);
+    pointer-events:none; opacity:0; transform:translateY(4px) scale(.98);
+    transition:opacity .13s ease, transform .13s ease; will-change:transform,opacity;
+    white-space:normal; overflow-wrap:anywhere;
+  }
+  #tip.show{ opacity:1; transform:translateY(0) scale(1); }
+  #tip .tip-arrow{
+    position:absolute; width:9px; height:9px; background:#2c2016;
+    border:1px solid rgba(255,255,255,.10); transform:rotate(45deg);
+  }
+  #tip[data-pos="top"]    .tip-arrow{ bottom:-5px; border-top:none;  border-left:none;  }
+  #tip[data-pos="bottom"] .tip-arrow{ top:-5px;    border-bottom:none;border-right:none; }
+  @media (prefers-reduced-motion: reduce){
+    #tip{ transition:opacity .12s ease; transform:none; }
+    #tip.show{ transform:none; }
+  }
 
   .bar-icon{ display:flex; align-items:center; justify-content:center; gap:7px; }
   .bar-icon svg{ width:16px; height:16px; stroke:#fff; fill:none; stroke-width:1.8; }
@@ -243,7 +285,7 @@
   .d8-cell.c23{ background:#f3c9c4; }
   .d8-cell.c48, .d8-cell.c911{ background:#f7e2ae; }
   .d8-cell.c1214, .d8-cell.c1516{ background:#c6e3bd; }
-  .d8-cell.lbl{ background:#fff; font-size:9px; color:var(--gray-text); }
+  .d8-cell.lbl{ background:var(--bg); font-size:9px; color:var(--gray-text); }
 
   /* ===================== PAGINA 3: CARDS DE JUTSU ===================== */
   .jutsu-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:16px; }
@@ -263,7 +305,7 @@
   .tabs-nav{ max-width:950px; margin:28px auto 18px auto; display:flex; gap:8px; padding:0 2px; }
   .tabs-nav button{
     font-family: var(--font-display); font-weight:700; font-size:16px; letter-spacing:0.4px;
-    padding:9px 22px; cursor:pointer; background:#fff; color:var(--gray-text);
+    padding:9px 22px; cursor:pointer; background:var(--bg); color:var(--gray-text);
     border:1px solid var(--border); border-radius:999px; box-shadow:var(--shadow-sm);
     transition: background .15s, color .15s;
   }
@@ -298,16 +340,16 @@
   .jutsu-del-btn:hover{ background:#fbdedb; }
   /* ===================== CAMPOS CALCULADOS / AUTOMAÇÃO ===================== */
   /* total somente-leitura (HC e Perícias): valor derivado de base/pontos + atributo + outro */
-  .calc-ro{ background:#eef3fb !important; color:#1a1a1a !important; font-weight:700 !important; cursor:default; }
+  .calc-ro{ background:var(--calc-bg) !important; color:#1a1a1a !important; font-weight:700 !important; cursor:default; }
   /* campos auto (vit, chakra, iniciativa, etc.): calculados, mas o jogador pode sobrescrever */
-  input.auto{ background:#eef3fb; }
-  input.auto[data-over="1"]{ background:#fff; }
+  input.auto{ background:var(--calc-bg); }
+  input.auto[data-over="1"]{ background:var(--bg); }
   /* total das Habilidades de Combate, exibido antes do "=" */
   .hc-row .hc-total{
     flex:0 0 auto; min-width:26px; text-align:center; font-weight:800; font-size:13px;
-    color:#0f4c9c; background:#eef3fb; border:1px solid var(--border); border-radius:6px; padding:1px 6px;
+    color:var(--accent); background:var(--calc-bg); border:1px solid var(--border); border-radius:6px; padding:1px 6px;
   }
-  /* valor de Carisma/Manipulação no cabeçalho social */
+  /* valor de Yin/Yang no cabeçalho social */
   .soc-attr{ width:34px; text-align:center; font-size:12px; font-weight:700; padding:2px 4px !important; margin-left:4px; }
 
   /* ===================== MODAL SELETOR (poderes / aptidões) ===================== */
@@ -326,12 +368,12 @@
   .sel-lista{ border:1px solid var(--border); border-radius:12px; background:var(--input-bg); margin-bottom:12px; max-height:300px; overflow-y:auto; padding:5px; }
   .sel-grupo{ position:sticky; top:0; background:var(--gray-light); color:var(--gray-text); font-family:var(--font-display); font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; padding:6px 10px; margin:2px 0; border-radius:6px; z-index:1; }
   .sel-item{ display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:8px; cursor:pointer; font-size:13.5px; color:var(--ink); transition:background 90ms ease; }
-  .sel-item:hover{ background:#eef3fb; }
+  .sel-item:hover{ background:var(--calc-bg); }
   .sel-item.sel{ background:var(--bar-bg); color:#fff; }
   .sel-item-nome{ flex:1; min-width:0; }
   .sel-item-nv{ flex:0 0 auto; min-width:44px; text-align:center; font-size:10.5px; font-weight:700; color:var(--gray-text); background:var(--gray-light); border-radius:999px; padding:2px 8px; white-space:nowrap; }
   .sel-item.sel .sel-item-nv{ color:#fff; background:rgba(255,255,255,0.22); }
-  .sel-item-rev{ color:#0f4c9c; font-size:12px; }
+  .sel-item-rev{ color:var(--accent); font-size:12px; }
   .sel-item.sel .sel-item-rev{ color:#ffd35a; }
   .sel-vazio{ padding:18px; text-align:center; color:var(--gray-text); font-size:13px; }
   .modal-desc{
@@ -340,7 +382,7 @@
   }
   .modal-desc .md-title{ font-family:var(--font-display); font-weight:700; font-size:15px; text-transform:uppercase; color:var(--ink); display:block; margin-bottom:2px; }
   .modal-desc .md-meta{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; color:var(--gray-text); display:block; margin-bottom:8px; }
-  .modal-desc .md-rev{ display:inline-block; background:#0f4c9c; color:#fff; font-size:9.5px; font-weight:700; text-transform:uppercase; padding:2px 7px; border-radius:999px; margin-left:6px; letter-spacing:0.4px; }
+  .modal-desc .md-rev{ display:inline-block; background:var(--accent); color:#fff; font-size:9.5px; font-weight:700; text-transform:uppercase; padding:2px 7px; border-radius:999px; margin-left:6px; letter-spacing:0.4px; }
   .modal-foot{ display:flex; justify-content:flex-end; gap:10px; padding:12px 18px; border-top:1px solid var(--border); }
   .modal-btn{
     font-family:var(--font-body); font-weight:600; font-size:14px; border-radius:999px;
@@ -353,7 +395,7 @@
   .rl-chk{ display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; cursor:pointer; }
   .rl-segs{ display:flex; gap:6px; }
   .rl-seg{ flex:1; padding:9px 10px; border:1px solid var(--border); border-radius:8px; background:var(--input-bg); font-weight:700; font-size:13px; cursor:pointer; font-family:var(--font-body); transition:background 90ms ease; }
-  .rl-seg:hover:not(.active){ background:#eef3fb; }
+  .rl-seg:hover:not(.active){ background:var(--calc-bg); }
   .rl-seg.active{ background:var(--bar-bg); color:#fff; border-color:var(--bar-bg); }
   .rl-nota{ font-size:11px; color:var(--gray-text); font-style:italic; margin-top:6px; line-height:1.4; }
   .ficha-topbar{
@@ -389,7 +431,7 @@
     padding:4px 8px; transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
   }
   .cla-trigger:hover{ background:#fff; }
-  .cla-trigger:focus{ outline:none; border-color:#b8bac0; background:#fff; box-shadow:0 0 0 3px rgba(20,20,25,0.06); }
+  .cla-trigger:focus{ outline:none; border-color:var(--border-strong); background:#fff; box-shadow:0 0 0 3px rgba(20,20,25,0.06); }
   .cla-trigger .cla-label{ flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .cla-trigger .cla-chevron{ flex:0 0 auto; font-size:11px; color:var(--gray-text); transition:transform .15s ease; }
   .cla-trigger.open .cla-chevron{ transform:rotate(180deg); }
@@ -401,7 +443,7 @@
   .cla-menu.open{ display:block; animation:modalIn 150ms cubic-bezier(.2,.8,.2,1); }
   .cla-grp{ position:sticky; top:0; background:var(--gray-light); color:var(--gray-text); font-family:var(--font-display); font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px; padding:6px 10px; margin:2px 0; border-radius:6px; z-index:1; }
   .cla-opt{ padding:8px 10px; border-radius:8px; cursor:pointer; font-size:13px; color:var(--ink); transition:background 90ms ease; white-space:nowrap; }
-  .cla-opt:hover{ background:#eef3fb; }
+  .cla-opt:hover{ background:var(--calc-bg); }
   .cla-opt.sel{ background:var(--bar-bg); color:#fff; }
 
   /* ---------- animação de rolagem de dados ---------- */
@@ -488,11 +530,11 @@
   }
   .jutsu-efeito-btn:hover{ opacity:0.9; }
   .if-equip-row{ display:flex; align-items:center; gap:7px; margin:2px 0 9px 0; padding:6px 10px; border-radius:999px;
-    background:#eef3fb; border:1px solid var(--border); font-size:11px; font-weight:600; color:var(--ink); cursor:pointer; }
+    background:var(--calc-bg); border:1px solid var(--border); font-size:11px; font-weight:600; color:var(--ink); cursor:pointer; }
   .if-equip-row input{ width:auto !important; margin:0; cursor:pointer; }
   .item-tipo-row select.if-kind{ flex:1; min-width:0; padding:5px 8px; border:1px solid var(--input-border); background:var(--input-bg);
     border-radius:8px; font-family:var(--font-body); font-size:12px; font-weight:600; color:var(--ink); cursor:pointer; }
-  .item-tipo-row select.if-kind:focus{ outline:none; border-color:#b8bac0; background:#fff; }
+  .item-tipo-row select.if-kind:focus{ outline:none; border-color:var(--border-strong); background:#fff; }
   .bd-siglas{ border:1px solid var(--border); border-top:none; box-shadow:var(--shadow-sm); padding:10px 14px; }
   .bd-sigla-linha{ font-size:12px; color:#333; line-height:1.7; }
   .bd-sigla-linha b{ color:var(--ink); }
@@ -533,7 +575,7 @@
   .btn-add-row:active, .bd-add:active, .modal-btn:active, .st-ok:active{ transform: translateY(1px); }
   @keyframes flashStat{ 0%{ box-shadow:0 0 0 3px rgba(255,193,7,0.75); } 100%{ box-shadow:0 0 0 3px rgba(255,193,7,0); } }
   .stat-flash{ animation: flashStat 650ms ease; border-radius:6px; }
-  .per-row:hover, .hc-row:hover, .bd-table tbody tr:hover, .dtable tbody tr:hover{ background: rgba(15,98,172,0.05); }
+  .per-row:hover, .hc-row:hover, .bd-table tbody tr:hover, .dtable tbody tr:hover{ background: rgba(120,90,45,0.08); }
   @media (prefers-reduced-motion: reduce){ .stat-flash{ animation:none; } }
   /* ===================== RESULTADO DE ROLAGEM (bonito, reutilizável) ===================== */
   .roll-out{ text-align:left; }
@@ -582,7 +624,7 @@
   .qroll-foot{ display:flex; align-items:center; gap:10px; padding:12px 18px; border-top:1px solid var(--border); }
   .qroll-dif{ font-size:11px; font-weight:700; text-transform:uppercase; color:var(--gray-text); display:flex; align-items:center; gap:6px; margin-right:auto; }
   .qroll-dif input{ width:52px; text-align:center; font-size:13px; font-weight:700; padding:5px 6px; border:1px solid var(--input-border); background:var(--input-bg); border-radius:8px; }
-  .qroll-dif input:focus{ outline:none; border-color:#b8bac0; background:#fff; }
+  .qroll-dif input:focus{ outline:none; border-color:var(--border-strong); background:#fff; }
 
   /* botãozinho de rolar (🎲) reutilizado em atributos, perícias, HC e iniciativa */
   .test-roll{ cursor:pointer; user-select:none; font-size:13px; opacity:0.55; transition:opacity .12s, transform .12s; flex:0 0 auto; }
@@ -696,7 +738,7 @@
           <span class="test-roll sc-roll" data-roll="ini" title="Rolar Iniciativa (1d8 + Agilidade + Prontidão)">🎲</span>
           <span class="sc-name">Iniciativa</span>
           <span class="sc-cap">PRO + AGI</span>
-          <input class="auto" data-calc="iniciativa" title="Calculado: Prontidão + Agilidade. Digite para sobrescrever; limpe para voltar ao automático." value="">
+          <input class="auto" data-calc="iniciativa" title="Calculado: Prontidão + Agilidade + bônus de aptidões (ex.: Diligente +3). Digite para sobrescrever; limpe para voltar ao automático." value="">
         </div>
         <div class="stats-combate-cell">
           <span class="sc-name">Reação de Esquiva</span>
@@ -723,16 +765,16 @@
           <div class="bar">Atributos Sociais <span class="pt-counter" id="pt_soc"></span></div>
           <div class="social-cols">
             <div class="social-col">
-              <div class="social-col-head" title="Carisma">CAR <input class="soc-attr" data-socattr="Carisma" value="0"></div>
-              <div class="social-item"><span>Atuação</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Atuação"></div>
-              <div class="social-item"><span>Barganhar</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Barganhar"></div>
-              <div class="social-item"><span>*Obter Informações</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Obter Informações"></div>
+              <div class="social-col-head" title="Yin — natureza passiva: observação, empatia, receptividade, cooperação e intuição (Guia Avançado p.91)">YIN <input class="soc-attr" data-socattr="Yin" value="0"></div>
+              <div class="social-item" title="Ler sentimentos, emoções e honestidade. Yin + ½ Percepção"><span>Empatia</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Empatia"></div>
+              <div class="social-item" title="Acalmar quem está em surto ou sob forte emoção. Yin + ½ (Inteligência ou Espírito)"><span>Acalmar</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Acalmar"></div>
+              <div class="social-item" title="Manter-se firme; resistir a Convencer, Enganar, Intimidar, Provocar. Yin + ½ (Inteligência ou Espírito)"><span>Compostura</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Compostura"></div>
             </div>
             <div class="social-col">
-              <div class="social-col-head" title="Manipulação">MAN <input class="soc-attr" data-socattr="Manipulação" value="0"></div>
-              <div class="social-item"><span>Intimidar</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Intimidar"></div>
-              <div class="social-item"><span>Blefar</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Blefar"></div>
-              <div class="social-item"><span>Mudar Atitude</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Mudar Atitude"></div>
+              <div class="social-col-head" title="Yang — natureza proativa: ação, presença, manipulação, convencimento e competição (Guia Avançado p.91)">YANG <input class="soc-attr" data-socattr="Yang" value="0"></div>
+              <div class="social-item" title="Convencer pela conversa, argumentando ou pelo carisma. Yang + ½ (Inteligência ou Espírito)"><span>Convencer</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Convencer"></div>
+              <div class="social-item" title="Enganar, blefar, mentir sem ser notado. Yang + ½ (Percepção ou Inteligência)"><span>Enganar</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Enganar"></div>
+              <div class="social-item" title="Intimidar pela ameaça ou demonstração. Yang + ½ (Inteligência ou Espírito); ½ Força em demonstração física"><span>Intimidar</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Intimidar"></div>
             </div>
           </div>
         </div>
@@ -791,7 +833,7 @@
     <div style="flex:1;">
       <div class="bar">Poderes <span class="pt-counter" id="pt_pod"></span></div>
       <table class="dtable">
-        <tr><th style="width:24%;">Poder</th><th style="width:14%;">Nível</th><th>Efeitos</th><th class="del-th"></th></tr>
+        <tr><th style="width:34%;">Poder</th><th style="width:9%;">Nível</th><th>Efeitos</th><th class="del-th"></th></tr>
         <tbody id="poderes_rows"></tbody>
       </table>
       <button class="btn-add-row" data-catalogo="poderes" data-add="poderes_rows">+ Escolher poder</button>
@@ -822,7 +864,7 @@
 
   <div class="bar" style="margin-top:14px;">Calculadora de Dano - Jutsus com Dano Comum do Poder</div>
   <table class="dtable">
-    <tr><th>Jutsu</th><th>Custo</th><th title="Nível usado do Poder">Nv. Poder</th><th>Dureza</th><th title="Dano Elemental (bônus do elemento)">Dano Elem.</th><th title="Bônus de Dano (manual)">Bônus</th><th>Dano Base</th><th class="del-th" style="width:64px;"></th></tr>
+    <tr><th style="width:28%;">Jutsu</th><th style="width:11%;">Custo</th><th style="width:11%;" title="Nível usado do Poder">Nv. Poder</th><th style="width:10%;">Dureza</th><th style="width:11%;" title="Dano Elemental (bônus do elemento)">Dano Elem.</th><th style="width:10%;" title="Bônus de Dano (manual)">Bônus</th><th style="width:11%;">Dano Base</th><th class="del-th" style="width:64px;"></th></tr>
     <tbody id="calc_jutsu_rows"></tbody>
   </table>
   <button class="btn-add-row" data-add="calc_jutsu_rows" data-cols="7">+ Adicionar linha</button>
@@ -843,7 +885,7 @@
     <div style="flex:1;">
       <div class="bar">Calculadora de Dano — Ataques Armados / Desarmado</div>
       <table class="dtable">
-        <tr><th>Nome</th><th>Dano</th><th title="Bônus de Dano (manual)">Bônus</th><th>Alcance</th><th>Crítico</th><th>Dureza</th><th>Dano Base</th><th class="del-th" style="width:64px;"></th></tr>
+        <tr><th style="width:28%;">Nome</th><th style="width:10%;">Dano</th><th style="width:10%;" title="Bônus de Dano (manual)">Bônus</th><th style="width:12%;">Alcance</th><th style="width:12%;">Crítico</th><th style="width:9%;">Dureza</th><th style="width:11%;">Dano Base</th><th class="del-th" style="width:64px;"></th></tr>
         <tbody id="calc_armado_rows"></tbody>
       </table>
       <button class="btn-add-row" data-add="calc_armado_rows" data-cols="7">+ Adicionar linha</button>
@@ -1655,7 +1697,7 @@ const SIGLAS = {
   "Inteligência":"INT", "Vigor":"VIG", "Espírito":"ESP",
   "Combate Corporal":"CC", "Combate à Distância":"CD", "Esquiva":"ESQ", "Ler Movimento":"LM",
   "Iniciativa":"INI", "Reação de Esquiva":"REA", "Deslocamento":"DESL",
-  "Vitalidade":"VIT", "Chakra":"CHA", "Carisma":"CAR", "Manipulação":"MAN"
+  "Vitalidade":"VIT", "Chakra":"CHA", "Yin":"YIN", "Yang":"YANG"
 };
 
 const attrsRow = document.getElementById("attrs_row");
@@ -1716,7 +1758,8 @@ function criarLinhaTabela(nCols){
   const tr = document.createElement("tr");
   for (let c = 0; c < nCols; c++){
     const td = document.createElement("td");
-    td.innerHTML = '<input type="text">';
+    td.innerHTML = '<input type="text"' + (c === 0 ? ' class="col-nome"' : '') + '>';
+    if(c === 0) td.className = "td-nome";
     tr.appendChild(td);
   }
   const tdDel = document.createElement("td");
@@ -1786,7 +1829,7 @@ function criarLinhaCalcJutsu(jid){
   const tbody = document.getElementById("calc_jutsu_rows");
   const tr = document.createElement("tr");
   if(jid) tr.dataset.jid = jid;
-  const cj = celInput(""); cj.querySelector("input").className = "cj-jutsu"; tr.appendChild(cj);   // Jutsu
+  const cj = celInput(""); cj.querySelector("input").className = "cj-jutsu col-nome"; cj.className = "td-nome"; tr.appendChild(cj);   // Jutsu
   const cc = celInput(""); cc.querySelector("input").className = "cj-custo"; tr.appendChild(cc);   // Custo
   const cn = celInput(""); cn.querySelector("input").className = "cj-nv"; tr.appendChild(cn);      // Nv. Usado do Poder
   const cd = celInput(""); cd.querySelector("input").className = "cj-dureza calc-ro"; cd.querySelector("input").readOnly = true; tr.appendChild(cd);  // Dureza
@@ -2050,6 +2093,11 @@ function bonusDasAptidoes(){
   });
   return bonus;
 }
+/* o personagem tem a aptidão X na grade? (compara sem acento/asterisco/caixa) */
+function temAptidao(nome){
+  const alvo = normNome(nome);
+  return Array.from(document.querySelectorAll("#apt_rows .apt-nome")).some(i => normNome(i.value) === alvo);
+}
 function normNome(s){ return semAcento(String(s||"")).replace(/^\*+/,"").trim().toLowerCase(); }
 function compsDe(txt){
   if(txt == null) return 0;
@@ -2078,13 +2126,17 @@ function bonusPericias(){
   return b;
 }
 
+/* Regras Sociais Revisadas — Yin e Yang (Guia Avançado do Shinobi p.90-95).
+   Ações = Yin/Yang + ½ Atributo. Quando o Guia oferece "Atributo A ou B", o
+   sistema usa o melhor dos dois (tipo "attrMax"), que é o teto útil na mesa;
+   o mestre pode pedir um atributo específico conforme a situação. */
 const SOCIAIS = {
-  "Atuação":            {base:"Carisma",     meio:{tipo:"peri", nome:"Arte"}},
-  "Barganhar":          {base:"Carisma",     meio:{tipo:"attr", nome:"Percepção"}},
-  "Obter Informações":  {base:"Carisma",     meio:{tipo:"attr", nome:"Inteligência"}},
-  "Intimidar":          {base:"Manipulação", meio:{tipo:"attr", nome:"Percepção"}},
-  "Blefar":             {base:"Manipulação", meio:{tipo:"attr", nome:"Inteligência"}},
-  "Mudar Atitude":      {base:"Manipulação", meio:{tipo:"attr", nome:"Percepção"}}
+  "Empatia":    {base:"Yin",  meio:{tipo:"attr",    nome:"Percepção"}},
+  "Acalmar":    {base:"Yin",  meio:{tipo:"attrMax", nomes:["Inteligência","Espírito"]}},
+  "Compostura": {base:"Yin",  meio:{tipo:"attrMax", nomes:["Inteligência","Espírito"]}},
+  "Convencer":  {base:"Yang", meio:{tipo:"attrMax", nomes:["Inteligência","Espírito"]}},
+  "Enganar":    {base:"Yang", meio:{tipo:"attrMax", nomes:["Percepção","Inteligência"]}},
+  "Intimidar":  {base:"Yang", meio:{tipo:"attrMax", nomes:["Inteligência","Espírito"]}}
 };
 
 let periTotais = {};
@@ -2157,7 +2209,10 @@ function recalc(){
     if(el.dataset.over === "1") return;
     const def = SOCIAIS[el.dataset.social]; if(!def) return;
     const baseV = socAttr(def.base);
-    const meioV = def.meio.tipo === "attr" ? attrVal(def.meio.nome) : (periTotais[def.meio.nome]||0);
+    let meioV;
+    if(def.meio.tipo === "attr")         meioV = attrVal(def.meio.nome);
+    else if(def.meio.tipo === "attrMax") meioV = Math.max.apply(null, def.meio.nomes.map(attrVal));
+    else                                 meioV = (periTotais[def.meio.nome]||0);
     el.value = baseV + metadeCima(meioV);
   });
 
@@ -2182,7 +2237,7 @@ function recalc(){
     const el = tr.querySelector(".apt-pts"); if(el) el.value = p;
     podGasto += p;
   });
-  const socGasto = socAttr("Carisma") + socAttr("Manipulação");
+  const socGasto = socAttr("Yin") + socAttr("Yang");
 
   setCounter("pt_atr", atrGasto, orc.atr, "mín " + orc.min + " · máx " + orc.max);
   setCounter("pt_per", perGasto, orc.per, "máx " + orc.limitePP + "/perícia");
@@ -2232,7 +2287,14 @@ function recalc(){
   const sct = document.getElementById("st_chakra_total"); if(sct && chaTot) sct.textContent = chaTot.value;
   atualizarMunicoes();
   atualizarEstadoVital();
+  /* Nome sempre revelável: title = valor atual, para tooltip no hover/foco
+     quando o nome for longo demais para a coluna (Poderes e Calculadoras). */
+  document.querySelectorAll(".col-nome").forEach(i => { i.setAttribute("data-tip", i.value || ""); });
 }
+/* Atualiza o tooltip do nome em tempo real enquanto se digita. */
+document.addEventListener("input", (e) => {
+  if(e.target.classList && e.target.classList.contains("col-nome")) e.target.setAttribute("data-tip", e.target.value || "");
+});
 
 /* Ferimentos e Morte (Básico p.258-259) + aviso de Chakra abaixo de zero (p.260) */
 /* Ferimentos e Morte (Básico p.258-259) + aviso de Chakra abaixo de zero (p.260) */
@@ -2451,7 +2513,7 @@ function celInput(val){
 function adicionarPoder(it){
   const tbody = document.getElementById("poderes_rows");
   const tr = document.createElement("tr");
-  tr.appendChild(celInput(it.nome));
+  const cNomeP = celInput(it.nome); cNomeP.querySelector("input").className = "pod-nome col-nome"; cNomeP.className = "td-nome"; tr.appendChild(cNomeP);
   const tdNivel = celInput(""); tdNivel.querySelector("input").className = "pod-nivel"; tr.appendChild(tdNivel);
   tr.appendChild(celInput(corpoDe(it)));
   const tdDel = document.createElement("td");
@@ -2523,7 +2585,7 @@ function adicionarLinhaArmado(raw, jid){
   tr.dataset.atrdano = (raw.classe === "Disparo") ? "Destreza" : "Força";
   tr.dataset.classe = raw.classe || "";
   tr.dataset.uso = raw.uso || usoPadraoPorClasse(raw.classe);
-  tr.appendChild(celInput(raw.nome||""));     // Nome
+  const cNomeA = celInput(raw.nome||""); cNomeA.querySelector("input").className = "ca-nome col-nome"; cNomeA.className = "td-nome"; tr.appendChild(cNomeA);     // Nome
   const cD = celInput(raw.dano||""); cD.querySelector("input").className = "ca-dano"; tr.appendChild(cD);  // Dano
   const cB1 = celInput(""); cB1.querySelector("input").className = "ca-bonus"; tr.appendChild(cB1);  // Bônus de Dano (manual)
   tr.appendChild(celInput(raw.alcance||""));  // Alcance
@@ -2540,7 +2602,7 @@ function adicionarLinhaDesarmado(){
   tr.dataset.atrdano = "Força";
   tr.dataset.classe = d.classe || "Base";
   tr.dataset.uso = d.uso || "CC";
-  tr.appendChild(celInput(d.nome));
+  const cNomeD = celInput(d.nome); cNomeD.querySelector("input").className = "ca-nome col-nome"; cNomeD.className = "td-nome"; tr.appendChild(cNomeD);
   const cD = celInput(d.dano||"+0"); cD.querySelector("input").className = "ca-dano"; tr.appendChild(cD);
   const cB0 = celInput(""); cB0.querySelector("input").className = "ca-bonus"; tr.appendChild(cB0);  // Bônus de Dano
   tr.appendChild(celInput(d.alcance||"---"));
@@ -2721,7 +2783,7 @@ function bdCalcHtml(){
     ['Iniciativa', 'Prontidão + Agilidade', 'Básico p.20'],
     ['Reação de Esquiva', 'Esquiva + '+ccNum('reacaoConst'), 'Básico p.20'],
     ['Deslocamento', ccNum('deslocBase')+'m + Agilidade ÷ '+ccNum('deslocDiv')+' (arred. p/ cima)', 'Básico p.262'],
-    ['Testes Sociais', 'Carisma/Manipulação + ½ (atributo ou perícia; usa o mesmo divisor de Perícias acima)', 'Básico p.53-55'],
+    ['Testes Sociais', 'Yin/Yang + ½ atributo (regras sociais revisadas; "A ou B" usa o melhor dos dois)', 'Guia Avançado p.90-95'],
     ['Dano Base — Ataque Corporal', '(Força ÷ divisor de Perícias, arred. p/ cima) + Dano da Arma', 'Básico p.257'],
     ['Dano Base — Ataque à Distância Armado', '(Destreza ÷ divisor de Perícias, arred. p/ cima) + Dano da Arma', 'Básico p.257'],
     ['Dano Base — Ninpou / Elementos', '(Espírito ÷ divisor de Perícias, arred. p/ cima) + Nível usado do Poder', 'Básico p.257 / 91'],
@@ -2761,7 +2823,7 @@ function bdSiglasHtml(){
   const grupos = [
     ["Atributos", "FOR Força · DES Destreza · AGI Agilidade · PER Percepção · INT Inteligência · VIG Vigor · ESP Espírito"],
     ["Habilidades", "CC Combate Corporal · CD Combate à Distância · ESQ Esquiva · LM Ler Movimento"],
-    ["Derivados / bônus", "INI Iniciativa · REA Reação de Esquiva · DESL Deslocamento · VIT Vitalidade · CHA Chakra · CAR Carisma · MAN Manipulação"]
+    ["Derivados / bônus", "INI Iniciativa · REA Reação de Esquiva · DESL Deslocamento · VIT Vitalidade · CHA Chakra · YIN Yin · YANG Yang"]
   ];
   const linhas = grupos.map(g => '<div class="bd-sigla-linha"><b>'+g[0]+':</b> '+g[1]+'</div>').join('');
   return '<div class="bd-section"><div class="bar">Siglas</div><div class="bd-siglas">'+linhas+'</div></div>';
@@ -3021,6 +3083,7 @@ function rolarQuick(){
     if(cfg.modo === "iniciativa"){
       badge = { texto: "Iniciativa " + total, classe: "ini" };
       linhas = ["Ordene os turnos do maior total para o menor."];
+      if(Array.isArray(cfg.extraLinhas)) linhas = linhas.concat(cfg.extraLinhas);
     } else {
       const g = grauDe(soma);
       const difEl = document.getElementById("qroll_dif");
@@ -3055,7 +3118,11 @@ document.addEventListener("click", (e) => {
   if(!rb) return;
   const tipo = rb.dataset.roll;
   if(tipo === "ini"){
-    abrirQuickRoll({ titulo: "Iniciativa", nDados: 1, modo: "iniciativa", bonusRotulo: "AGI+PRO", bonus: () => attrVal("Agilidade") + periTotalDe("Prontidão") });
+    const aptIni = bonusDasAptidoes().iniciativa || 0;   // Diligente (+3) e afins somam no teste (Básico p.63)
+    abrirQuickRoll({ titulo: "Iniciativa", nDados: 1, modo: "iniciativa",
+      bonusRotulo: "AGI+PRO" + (aptIni ? "+Aptidões" : ""),
+      bonus: () => attrVal("Agilidade") + periTotalDe("Prontidão") + (bonusDasAptidoes().iniciativa || 0),
+      extraLinhas: temAptidao("diligente") ? ["Diligente: 1x por cena você pode rolar a Iniciativa de novo (aceitando o 2º resultado)."] : [] });
   } else if(tipo === "attr"){
     const nome = rb.dataset.nome;
     abrirQuickRoll({ titulo: "Teste de " + nome, nDados: 2, modo: "teste", bonusRotulo: SIGLAS[nome] || nome, bonus: () => attrVal(nome) });
@@ -3720,6 +3787,96 @@ recalc();
       t = setTimeout(() => salvarNomeFichaNaNuvem(inNome.value.trim() || "Ficha sem nome"), 700);
     });
   }
+})();
+
+/* ===================== TOOLTIP CUSTOMIZADO (controlador) =====================
+   Lê os atributos title/data-tip já existentes e mostra um balão estilizado.
+   - hover e foco de teclado; Esc fecha; some ao rolar/redimensionar
+   - delay na 1ª aparição, instantâneo nas seguintes (padrão de toolbars)
+   - posiciona acima e vira pra baixo se não houver espaço; nunca corta na borda
+   - campos de texto só recebem tooltip no hover (não cobre enquanto digita)     */
+(function(){
+  const tip = document.createElement("div");
+  tip.id = "tip"; tip.setAttribute("role","tooltip"); tip.dataset.pos = "top";
+  const body = document.createElement("span"); body.className = "tip-body";
+  const arrow = document.createElement("span"); arrow.className = "tip-arrow";
+  tip.appendChild(body); tip.appendChild(arrow);
+  document.body.appendChild(tip);
+
+  let cur = null, showTimer = null, lastHide = 0, visible = false;
+  const FIRST_DELAY = 340, GRACE = 320, GAP = 9;
+
+  function textoDe(el){
+    if(el.getAttribute && el.getAttribute("title")){        // adota o title nativo uma vez
+      const t = el.getAttribute("title");
+      if(t && t.trim()) el.setAttribute("data-tip", t);
+      el.removeAttribute("title");
+    }
+    const dt = el.getAttribute ? el.getAttribute("data-tip") : "";
+    return (dt && dt.trim()) ? dt : "";
+  }
+  function editavel(el){
+    const tag = el.tagName;
+    return tag === "SELECT" || tag === "TEXTAREA" ||
+      (tag === "INPUT" && !/^(button|checkbox|radio|submit|reset)$/i.test(el.type||"text"));
+  }
+  function posicionar(el){
+    const r = el.getBoundingClientRect();
+    const vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+    tip.style.maxWidth = Math.min(300, vw - 16) + "px";
+    const tw = tip.offsetWidth, th = tip.offsetHeight;
+    let pos = "top", top = r.top - th - GAP;
+    if(top < 8){ pos = "bottom"; top = r.bottom + GAP; }
+    if(pos === "bottom" && top + th > vh - 8 && (r.top - th - GAP) >= 8){ pos = "top"; top = r.top - th - GAP; }
+    let left = r.left + r.width/2 - tw/2;
+    left = Math.max(8, Math.min(left, vw - tw - 8));
+    tip.style.left = Math.round(left) + "px";
+    tip.style.top  = Math.round(top) + "px";
+    tip.dataset.pos = pos;
+    let ax = (r.left + r.width/2) - left; ax = Math.max(10, Math.min(ax, tw - 10));
+    arrow.style.left = (ax - 4) + "px";
+  }
+  function mostrar(el){
+    const txt = textoDe(el); if(!txt){ esconder(); return; }
+    cur = el; body.textContent = txt; posicionar(el);
+    tip.classList.add("show"); visible = true;
+    try{ el.setAttribute("aria-describedby","tip"); }catch(e){}
+  }
+  function esconder(){
+    clearTimeout(showTimer); showTimer = null;
+    if(visible) lastHide = Date.now();
+    tip.classList.remove("show"); visible = false;
+    if(cur){ try{ if(cur.getAttribute("aria-describedby")==="tip") cur.removeAttribute("aria-describedby"); }catch(e){} }
+    cur = null;
+  }
+  function agendar(el){
+    clearTimeout(showTimer); cur = el;
+    if((Date.now() - lastHide) < GRACE) mostrar(el);
+    else showTimer = setTimeout(() => mostrar(el), FIRST_DELAY);
+  }
+
+  document.addEventListener("mouseover", (e) => {
+    const t = e.target.closest && e.target.closest("[data-tip],[title]");
+    if(!t || t === cur) return;
+    if(!textoDe(t)) return;
+    esconder(); agendar(t);
+  });
+  document.addEventListener("mouseout", (e) => {
+    if(!cur){ clearTimeout(showTimer); showTimer = null; return; }
+    const to = e.relatedTarget;
+    if(to && cur.contains && cur.contains(to)) return;   // ainda dentro do mesmo gatilho
+    esconder();
+  });
+  document.addEventListener("focusin", (e) => {
+    const t = e.target.closest && e.target.closest("[data-tip],[title]");
+    if(!t || editavel(t)) return;        // campos de texto: só no hover
+    if(!textoDe(t)) return;
+    esconder(); mostrar(t);              // foco de teclado: instantâneo (a11y)
+  });
+  document.addEventListener("focusout", () => { if(cur) esconder(); });
+  document.addEventListener("keydown", (e) => { if(e.key === "Escape" && visible) esconder(); });
+  window.addEventListener("scroll", () => { if(visible || showTimer) esconder(); }, true);
+  window.addEventListener("resize", () => { if(visible || showTimer) esconder(); });
 })();
 
 /* ===== BOOTSTRAP: com nuvem ativa, carrega os dados antes de montar; senão, monta na hora ===== */
