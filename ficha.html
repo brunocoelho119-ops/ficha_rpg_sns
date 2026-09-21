@@ -546,6 +546,12 @@
   .calc-acoes{ white-space:nowrap; text-align:center; }
   .roll-btn{ cursor:pointer; font-size:14px; margin-right:5px; user-select:none; vertical-align:middle; }
   .roll-btn:hover{ filter:brightness(1.15); }
+  /* toggle CC/CD (define o atributo do Dano Base da arma) */
+  .mode-toggle{ display:inline-flex; vertical-align:middle; margin-right:6px; border:1px solid var(--border-strong); border-radius:6px; overflow:hidden; }
+  .mode-seg{ font-family:var(--font-display); font-weight:700; font-size:9.5px; letter-spacing:.03em; line-height:1; padding:3px 5px; cursor:pointer; border:none; background:var(--input-bg); color:var(--gray-text); }
+  .mode-seg + .mode-seg{ border-left:1px solid var(--border-strong); }
+  .mode-seg.active{ background:var(--bar-bg); color:#f3ead0; }
+  .mode-seg:hover:not(.active){ background:var(--calc-bg); }
   /* ===================== BARRA DE STATUS (sempre visível) ===================== */
   .status-bar{ max-width:950px; margin:0 auto 14px auto; display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px;
     background:var(--bar-bg); color:#fff; border-radius:12px; padding:9px 16px; box-shadow:var(--shadow-sm); }
@@ -885,7 +891,7 @@
     <div style="flex:1;">
       <div class="bar">Calculadora de Dano — Ataques Armados / Desarmado</div>
       <table class="dtable">
-        <tr><th style="width:28%;">Nome</th><th style="width:10%;">Dano</th><th style="width:10%;" title="Bônus de Dano (manual)">Bônus</th><th style="width:12%;">Alcance</th><th style="width:12%;">Crítico</th><th style="width:9%;">Dureza</th><th style="width:11%;">Dano Base</th><th class="del-th" style="width:64px;"></th></tr>
+        <tr><th style="width:28%;">Nome</th><th style="width:10%;">Dano</th><th style="width:10%;" title="Bônus de Dano (manual)">Bônus</th><th style="width:12%;">Alcance</th><th style="width:12%;">Crítico</th><th style="width:9%;">Dureza</th><th style="width:11%;">Dano Base</th><th class="del-th" style="width:120px;"></th></tr>
         <tbody id="calc_armado_rows"></tbody>
       </table>
       <button class="btn-add-row" data-add="calc_armado_rows" data-cols="7">+ Adicionar linha</button>
@@ -2098,6 +2104,14 @@ function temAptidao(nome){
   const alvo = normNome(nome);
   return Array.from(document.querySelectorAll("#apt_rows .apt-nome")).some(i => normNome(i.value) === alvo);
 }
+/* Acuidade: Combate Corporal usa Destreza no lugar de Força (Weapon Finesse) */
+function acuidadeAtiva(){ return temAptidao("acuidade"); }
+/* modo padrão de uma arma pelo seu uso (CC, CD ou CC/CD) */
+function modoPadraoArma(uso){ return (String(uso||"").toUpperCase() === "CD") ? "CD" : "CC"; }
+/* atributo do Dano Base conforme o modo do ataque: CD=Destreza; CC=Força (Destreza com Acuidade) */
+function atributoDanoPorModo(modo){
+  return (String(modo).toUpperCase() === "CD") ? "Destreza" : (acuidadeAtiva() ? "Destreza" : "Força");
+}
 function normNome(s){ return semAcento(String(s||"")).replace(/^\*+/,"").trim().toLowerCase(); }
 function compsDe(txt){
   if(txt == null) return 0;
@@ -2179,11 +2193,18 @@ function recalc(){
     periTotais[nome] = total;
   });
   let esqTotal = 0;
+  const _acu = acuidadeAtiva();
   document.querySelectorAll(".hc-row").forEach(row => {
     const base = num(row.querySelector(".base").value);
     const outro = num(row.querySelector(".outro").value);
-    const total = base + attrVal(row.dataset.attr) + outro + (bonus[row.dataset.cod] || 0) - compExcesso;
+    /* Acuidade: Combate Corporal passa a usar Destreza (afeta acerto, dano e bloqueio) */
+    const atrRow = (_acu && row.dataset.cod === "CC") ? "Destreza" : row.dataset.attr;
+    const total = base + attrVal(atrRow) + outro + (bonus[row.dataset.cod] || 0) - compExcesso;
     row.querySelector(".hc-total").textContent = total;
+    if(row.dataset.cod === "CC"){
+      const tag = row.querySelector(".attr-tag");
+      if(tag){ tag.textContent = SIGLAS[atrRow] || atrRow; tag.title = atrRow + (_acu ? " (Acuidade)" : ""); }
+    }
     if(row.dataset.cod === "ESQ") esqTotal = total;
   });
   const ncEl = document.getElementById("in_nc");
@@ -2262,7 +2283,11 @@ function recalc(){
   document.querySelectorAll("#calc_armado_rows tr").forEach(tr => {
     const dbEl = tr.querySelector(".ca-dbase"); if(!dbEl) return;
     const danoEl = tr.querySelector(".ca-dano");
-    const atr = tr.dataset.atrdano || "Força";
+    const modo = (tr.dataset.modo || modoPadraoArma(tr.dataset.uso)).toUpperCase();
+    tr.dataset.modo = modo;
+    tr.querySelectorAll(".mode-seg").forEach(s => s.classList.toggle("active", s.dataset.modo === modo));
+    const atr = atributoDanoPorModo(modo);   // CD->Destreza; CC->Forca (Destreza c/ Acuidade)
+    tr.dataset.atrdano = atr;
     dbEl.value = Math.max(0, metadeCima(attrVal(atr)) + num(danoEl ? danoEl.value : 0));
   });
 
@@ -2270,7 +2295,8 @@ function recalc(){
   document.querySelectorAll("#item_grid .item-card").forEach(card => {
     const dbEl = card.querySelector(".if-danobase"); if(!dbEl) return;
     const danoEl = card.querySelector(".if-dano");
-    const atr = card.dataset.atrdano || "Força";
+    const atr = atributoDanoPorModo(modoPadraoArma(card.dataset.uso));
+    card.dataset.atrdano = atr;
     dbEl.value = Math.max(0, metadeCima(attrVal(atr)) + num(danoEl ? danoEl.value : 0));
     const ptEl = card.querySelector(".if-peso-total");
     if(ptEl){ const q = num((card.querySelector(".if-qtd")||{}).value), p = num((card.querySelector(".if-peso")||{}).value); ptEl.value = +(q * p).toFixed(2); }
@@ -2585,6 +2611,7 @@ function adicionarLinhaArmado(raw, jid){
   tr.dataset.atrdano = (raw.classe === "Disparo") ? "Destreza" : "Força";
   tr.dataset.classe = raw.classe || "";
   tr.dataset.uso = raw.uso || usoPadraoPorClasse(raw.classe);
+  tr.dataset.modo = modoPadraoArma(tr.dataset.uso);
   const cNomeA = celInput(raw.nome||""); cNomeA.querySelector("input").className = "ca-nome col-nome"; cNomeA.className = "td-nome"; tr.appendChild(cNomeA);     // Nome
   const cD = celInput(raw.dano||""); cD.querySelector("input").className = "ca-dano"; tr.appendChild(cD);  // Dano
   const cB1 = celInput(""); cB1.querySelector("input").className = "ca-bonus"; tr.appendChild(cB1);  // Bônus de Dano (manual)
@@ -2602,6 +2629,7 @@ function adicionarLinhaDesarmado(){
   tr.dataset.atrdano = "Força";
   tr.dataset.classe = d.classe || "Base";
   tr.dataset.uso = d.uso || "CC";
+  tr.dataset.modo = modoPadraoArma(tr.dataset.uso);
   const cNomeD = celInput(d.nome); cNomeD.querySelector("input").className = "ca-nome col-nome"; cNomeD.className = "td-nome"; tr.appendChild(cNomeD);
   const cD = celInput(d.dano||"+0"); cD.querySelector("input").className = "ca-dano"; tr.appendChild(cD);
   const cB0 = celInput(""); cB0.querySelector("input").className = "ca-bonus"; tr.appendChild(cB0);  // Bônus de Dano
@@ -2986,10 +3014,26 @@ function rolarDano(tr, tipo){
 function celAcoesCalc(tipo, comDelete){
   const td = document.createElement("td");
   td.className = "del-cell calc-acoes";
-  td.innerHTML = '<span class="roll-btn" data-tipo="' + tipo + '" title="Rolar dano (2d8 → grau × dano base)">🎲</span>' +
+  const toggle = (tipo === "armado")
+    ? '<span class="mode-toggle" title="Como o ataque é rolado — define o atributo do Dano Base (CC = Força / CD = Destreza; Acuidade faz o CC usar Destreza)">' +
+        '<button type="button" class="mode-seg" data-modo="CC">CC</button>' +
+        '<button type="button" class="mode-seg" data-modo="CD">CD</button>' +
+      '</span>'
+    : '';
+  td.innerHTML = toggle +
+    '<span class="roll-btn" data-tipo="' + tipo + '" title="Rolar dano (2d8 → grau × dano base)">🎲</span>' +
     (comDelete ? '<span class="del-row-btn" title="Remover linha">×</span>' : '');
   return td;
 }
+/* alterna o modo CC/CD de uma linha de arma (define o atributo do dano) */
+document.addEventListener("click", (e) => {
+  const seg = e.target.closest(".mode-seg");
+  if(!seg) return;
+  const tr = seg.closest("tr"); if(!tr) return;
+  tr.dataset.modo = seg.dataset.modo;
+  tr.querySelectorAll(".mode-seg").forEach(s => s.classList.toggle("active", s === seg));
+  recalc(); if(typeof agendarSalvar === "function") agendarSalvar();
+});
 document.addEventListener("click", (e) => {
   const rb = e.target.closest(".roll-btn");
   if(rb){ const tr = rb.closest("tr"); if(tr) rolarDano(tr, rb.dataset.tipo); }
