@@ -1225,29 +1225,35 @@ async function carregarDaNuvem(){
 async function popularSeletorSala(){
   const sel = document.getElementById("ft_sala");
   if(!sel) return;
+  try{
+    const { data: minhasSalas } = await sb.from("salas").select("id, nome").eq("mestre_id", _meuUserId);
+    const { data: membrosLinhas } = await sb.from("sala_membros").select("sala_id").eq("user_id", _meuUserId);
 
-  const [{ data: minhasSalas }, { data: membresias }] = await Promise.all([
-    sb.from("salas").select("id, nome").eq("mestre_id", _meuUserId),
-    sb.from("sala_membros").select("sala_id, salas(id, nome)").eq("user_id", _meuUserId)
-  ]);
+    const salasPorId = {};
+    (minhasSalas || []).forEach(s => { salasPorId[s.id] = s.nome; });
 
-  const salasPorId = {};
-  (minhasSalas || []).forEach(s => { salasPorId[s.id] = s.nome; });
-  (membresias || []).forEach(m => { if(m.salas) salasPorId[m.salas.id] = m.salas.nome; });
+    const idsMembro = (membrosLinhas || []).map(m => m.sala_id).filter(id => !(id in salasPorId));
+    if(idsMembro.length){
+      const { data: salasMembro } = await sb.from("salas").select("id, nome").in("id", idsMembro);
+      (salasMembro || []).forEach(s => { salasPorId[s.id] = s.nome; });
+    }
 
-  sel.innerHTML = '<option value="">— nenhuma sala —</option>' +
-    Object.keys(salasPorId).map(id => '<option value="' + id + '">' + escapeHtml(salasPorId[id]) + '</option>').join("");
-  sel.value = _salaVinculada || "";
+    sel.innerHTML = '<option value="">— nenhuma sala —</option>' +
+      Object.keys(salasPorId).map(id => '<option value="' + id + '">' + escapeHtml(salasPorId[id]) + '</option>').join("");
+    sel.value = _salaVinculada || "";
 
-  if(_souDono){
-    sel.addEventListener("change", async () => {
-      const novoId = sel.value || null;
-      const { error } = await sb.from("fichas").update({ sala_id: novoId }).eq("id", FICHA_ID);
-      if(error){ alert("Não foi possível vincular a sala: " + error.message); return; }
-      _salaVinculada = novoId;
-    });
-  } else {
-    sel.disabled = true;
+    if(_souDono){
+      sel.addEventListener("change", async () => {
+        const novoId = sel.value || null;
+        const { error } = await sb.from("fichas").update({ sala_id: novoId }).eq("id", FICHA_ID);
+        if(error){ alert("Não foi possível vincular a sala: " + error.message); return; }
+        _salaVinculada = novoId;
+      });
+    } else {
+      sel.disabled = true;
+    }
+  }catch(e){
+    console.error("Falha ao popular seletor de sala:", e);
   }
 }
 function salvarNomeFichaNaNuvem(nome){
