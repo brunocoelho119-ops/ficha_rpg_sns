@@ -79,6 +79,7 @@
   <div style="display:flex; align-items:center; gap:16px;">
     <div class="presenca" id="area_presenca"></div>
     <button class="btn-mapa" id="btn_trocar_mapa" style="display:none;">Trocar mapa</button>
+    <button class="btn-mapa" id="btn_add_token" style="display:none;">+ Token</button>
     <input type="file" id="input_mapa" accept="image/*" style="display:none;">
     <button class="sair" id="btn_sair">Sair</button>
   </div>
@@ -103,6 +104,8 @@ let canal = null;
 
 let mapaImg = null;
 let cam = { x: 0, y: 0, escala: 1 }; // x,y = deslocamento em pixels de tela; escala = zoom
+let tokensAtuais = [];
+const paletaCores = ["#c0392b","#2980b9","#27ae60","#f39c12","#8e44ad","#16a085","#d35400","#2c3e50"];
 
 const canvas = document.getElementById("mapa");
 const ctx = canvas.getContext("2d");
@@ -136,12 +139,14 @@ async function iniciar(){
   document.getElementById("nome_sala").textContent = sala.nome;
   if(sala.mestre_id === meuId){
     document.getElementById("btn_trocar_mapa").style.display = "inline-block";
+    document.getElementById("btn_add_token").style.display = "inline-block";
   }
 
   if(sala.cena_ativa){
     const { data: cena } = await sb.from("cenas").select("*").eq("id", sala.cena_ativa).single();
     cenaAtual = cena || null;
   }
+  if(cenaAtual) await carregarTokens();
   atualizarSub();
   prepararCanvas();
   carregarMapa();
@@ -231,6 +236,52 @@ function desenhar(){
   if(mapaImg){
     ctx.drawImage(mapaImg, cam.x, cam.y, mapaImg.width * cam.escala, mapaImg.height * cam.escala);
   }
+  if(cenaAtual) desenharGrid();
+  desenharTokens();
+}
+
+function desenharGrid(){
+  const gridPx = (cenaAtual.grid_px || 70) * cam.escala;
+  if(gridPx < 6) return;
+  ctx.strokeStyle = "rgba(0,0,0,0.18)";
+  ctx.lineWidth = 1;
+  const offsetX = cam.x % gridPx;
+  const offsetY = cam.y % gridPx;
+  ctx.beginPath();
+  for(let x = offsetX; x < canvas.width; x += gridPx){
+    ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+  }
+  for(let y = offsetY; y < canvas.height; y += gridPx){
+    ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+  }
+  ctx.stroke();
+}
+
+function desenharTokens(){
+  const gridPx = cenaAtual ? (cenaAtual.grid_px || 70) : 70;
+  tokensAtuais.forEach(t => {
+    const sx = cam.x + t.x * cam.escala;
+    const sy = cam.y + t.y * cam.escala;
+    const raio = (gridPx / 2) * 0.8 * cam.escala * (t.tam || 1);
+
+    ctx.beginPath();
+    ctx.arc(sx, sy, raio, 0, Math.PI * 2);
+    ctx.fillStyle = t.cor || "#555";
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#fff";
+    ctx.stroke();
+
+    ctx.font = "600 11px Inter, Arial, sans-serif";
+    ctx.textAlign = "center";
+    const texto = t.nome || "";
+    const ty = sy + raio + 13;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "rgba(255,255,255,0.9)";
+    ctx.strokeText(texto, sx, ty);
+    ctx.fillStyle = "#1a1a1a";
+    ctx.fillText(texto, sx, ty);
+  });
 }
 
 async function carregarMapa(){
@@ -268,6 +319,52 @@ async function carregarMapa(){
     document.getElementById("estado_vazio_texto").textContent = "Não foi possível carregar a imagem do mapa.";
   };
   img.src = objectUrl;
+}
+
+/* ===== Tokens ===== */
+
+async function carregarTokens(){
+  if(!cenaAtual){ tokensAtuais = []; return; }
+  const { data, error } = await sb.from("tokens").select("*").eq("cena_id", cenaAtual.id);
+  tokensAtuais = error ? [] : (data || []);
+  desenhar();
+}
+
+document.getElementById("btn_add_token").addEventListener("click", criarToken);
+
+async function criarToken(){
+  if(!cenaAtual){ alert("Suba um mapa antes de adicionar tokens (crie a cena primeiro)."); return; }
+
+  const nome = prompt("Nome do token:", "Novo token");
+  if(nome == null) return;
+
+  const { data: membros } = await sb.from("sala_membros").select("user_id").eq("sala_id", salaId);
+  let donoId = null;
+  if(membros && membros.length){
+    const ids = membros.map(m => m.user_id);
+    const { data: perfisMembros } = await sb.from("perfis").select("id, nome").in("id", ids);
+    if(perfisMembros && perfisMembros.length){
+      let listaTexto = "Atribuir a qual jogador? Digite o número (ou deixe em branco pra não atribuir):\n";
+      perfisMembros.forEach((p, i) => { listaTexto += (i + 1) + ". " + p.nome + "\n"; });
+      const escolha = prompt(listaTexto);
+      if(escolha){
+        const idx = parseInt(escolha, 10) - 1;
+        if(perfisMembros[idx]) donoId = perfisMembros[idx].id;
+      }
+    }
+  }
+
+  const gridPx = cenaAtual.grid_px || 70;
+  const mapX = (canvas.width / 2 - cam.x) / cam.escala;
+  const mapY = (canvas.height / 2 - cam.y) / cam.escala;
+  const x = Math.round(mapX / gridPx) * gridPx + gridPx / 2;
+  const y = Math.round(mapY / gridPx) * gridPx + gridPx / 2;
+  const cor = paletaCores[tokensAtuais.length % paletaCores.length];
+
+  const { error } = await sb.from("tokens").insert({
+    cena_id: cenaAtual.id, dono_id: donoId, nome: nome.trim() || "Token", x, y, cor
+  });
+  if(error) alert("Não foi possível criar o token: " + error.message);
 }
 
 /* ===== Mestre: trocar mapa ===== */
@@ -340,6 +437,7 @@ function conectarPresenca(){
       if(salaAtual.cena_ativa && salaAtual.cena_ativa !== (cenaAtual && cenaAtual.id)){
         const { data: cena } = await sb.from("cenas").select("*").eq("id", salaAtual.cena_ativa).single();
         cenaAtual = cena || null;
+        await carregarTokens();
         atualizarSub();
         carregarMapa();
       }
@@ -357,6 +455,17 @@ function conectarPresenca(){
       }
     }
   );
+
+  /* novos tokens criados na cena atual */
+  if(cenaAtual){
+    canal.on("postgres_changes",
+      { event: "INSERT", schema: "public", table: "tokens", filter: "cena_id=eq." + cenaAtual.id },
+      (payload) => {
+        tokensAtuais.push(payload.new);
+        desenhar();
+      }
+    );
+  }
 
   canal.subscribe(async (status) => {
     if(status === "SUBSCRIBED"){
