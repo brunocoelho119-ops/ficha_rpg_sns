@@ -47,6 +47,10 @@
     padding:11px 20px; cursor:pointer; font-family:var(--font-body);
   }
   .btn-nova:hover{ filter:brightness(1.1); }
+  .secao-titulo{
+    font-family:var(--font-display); text-transform:uppercase; letter-spacing:0.4px; font-size:16px;
+    font-weight:800; margin:0 0 12px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
   .grupo-titulo{
     font-family:var(--font-display); text-transform:uppercase; letter-spacing:0.4px; font-size:14px;
     color:var(--gray-text); font-weight:700; margin:22px 0 10px;
@@ -59,15 +63,42 @@
   .card:hover{ border-color:var(--border-strong); }
   .card .nome{ font-family:var(--font-display); font-size:18px; font-weight:700; text-transform:uppercase; }
   .card .meta{ font-size:11.5px; color:var(--gray-text); font-weight:600; }
-  .card .acoes{ display:flex; gap:8px; margin-top:6px; }
+  .card .acoes{ display:flex; gap:8px; margin-top:6px; flex-wrap:wrap; }
   .card .acoes button{
     font-size:11.5px; font-weight:700; border-radius:999px; padding:6px 12px; cursor:pointer;
     border:1px solid var(--border-strong); background:var(--gray-light); color:var(--ink); font-family:var(--font-body);
   }
+  .card .acoes button.primaria{ background:#0f4c9c; color:#fff; border-color:#0f4c9c; }
   .card .acoes button.apagar{ color:#a32020; }
   .card .acoes button:hover{ filter:brightness(0.97); }
   .vazio{ padding:40px 20px; text-align:center; color:var(--gray-text); font-size:13.5px; }
   .carregando{ padding:40px 20px; text-align:center; color:var(--gray-text); font-size:13.5px; }
+  .bloco-salas{ margin-bottom:30px; }
+
+  .overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center;
+    z-index:50; padding:16px;
+  }
+  .modal{
+    background:var(--bg); border-radius:var(--radius); max-width:420px; width:100%; max-height:82vh;
+    overflow-y:auto; box-shadow:var(--shadow); display:flex; flex-direction:column;
+  }
+  .modal .cab{
+    background:var(--bar-bg); color:#fff; padding:14px 18px; display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--font-display); text-transform:uppercase; font-weight:700; font-size:15px; flex-shrink:0;
+  }
+  .modal .cab button{ background:transparent; border:none; color:#fff; font-size:18px; cursor:pointer; line-height:1; }
+  .modal .corpo{ padding:14px 18px; overflow-y:auto; }
+  .linha-membro{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); font-size:13.5px; }
+  .linha-membro:last-child{ border-bottom:none; }
+  .linha-membro input{ width:16px; height:16px; }
+  .linha-membro .papel{ margin-left:auto; font-size:11px; color:var(--gray-text); font-weight:700; text-transform:uppercase; }
+  .modal .rodape{ padding:14px 18px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px; flex-shrink:0; }
+  .modal .rodape button{
+    border:none; border-radius:999px; padding:9px 18px; font-weight:700; font-size:13px; cursor:pointer; font-family:var(--font-body);
+  }
+  .modal .rodape .salvar{ background:#0f4c9c; color:#fff; }
+  .modal .rodape .cancelar{ background:var(--gray-light); color:var(--ink); border:1px solid var(--border-strong); }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
@@ -83,12 +114,22 @@
 </div>
 
 <div class="wrap">
+  <div class="bloco-salas">
+    <div class="secao-titulo">
+      <span>Salas</span>
+      <button class="btn-nova" id="btn_nova_sala" style="display:none;">+ Nova Sala</button>
+    </div>
+    <div id="area_salas"><div class="carregando">Carregando salas…</div></div>
+  </div>
+
   <div class="barra-acoes">
     <span class="badge-role" id="badge_role">—</span>
     <button class="btn-nova" id="btn_nova">+ Nova Ficha</button>
   </div>
   <div id="area_listas"><div class="carregando">Carregando suas fichas…</div></div>
 </div>
+
+<div class="overlay" id="overlay_membros" style="display:none;"></div>
 
 <script>
 let meuId = null, meuRole = "player";
@@ -116,8 +157,147 @@ async function iniciar(){
   badge.textContent = (meuRole === "mestre") ? "Mestre" : "Player";
   badge.classList.toggle("mestre", meuRole === "mestre");
 
+  if(meuRole === "mestre"){
+    document.getElementById("btn_nova_sala").style.display = "inline-block";
+  }
+
+  await carregarSalas();
   await carregarFichas();
 }
+
+/* ===== Salas ===== */
+
+async function carregarSalas(){
+  const area = document.getElementById("area_salas");
+  area.innerHTML = '<div class="carregando">Carregando salas…</div>';
+
+  const { data: todasSalas, error } = await sb.from("salas").select("*").order("criado_em", { ascending:false });
+  if(error){ area.innerHTML = '<div class="vazio">Erro ao carregar salas: ' + escapeHtml(error.message) + '</div>'; return; }
+
+  const { data: minhasMembresias } = await sb.from("sala_membros").select("sala_id").eq("user_id", meuId);
+  const idsSouMembro = new Set((minhasMembresias || []).map(m => m.sala_id));
+
+  const minhasSalas = (todasSalas || []).filter(s => s.mestre_id === meuId);
+  const salasQueParticipo = (todasSalas || []).filter(s => s.mestre_id !== meuId && idsSouMembro.has(s.id));
+
+  let html = "";
+
+  if(meuRole === "mestre"){
+    html += '<div class="grupo-titulo">Minhas salas (como mestre)</div>';
+    if(minhasSalas.length === 0){
+      html += '<div class="vazio">Você ainda não criou nenhuma sala.</div>';
+    } else {
+      html += '<div class="grid">' + minhasSalas.map(s => cardSalaHtml(s, true)).join("") + '</div>';
+    }
+  }
+
+  if(salasQueParticipo.length > 0){
+    html += '<div class="grupo-titulo">Salas que participo</div>';
+    html += '<div class="grid">' + salasQueParticipo.map(s => cardSalaHtml(s, false)).join("") + '</div>';
+  }
+
+  if(html === ""){
+    html = '<div class="vazio">Nenhuma sala ainda.</div>';
+  }
+
+  area.innerHTML = html;
+  ligarCliquesSalas();
+}
+
+function cardSalaHtml(s, souDono){
+  return '<div class="card" data-sala-id="' + s.id + '" data-sala-nome="' + escapeHtml(s.nome) + '">' +
+    '<div class="nome">' + escapeHtml(s.nome) + '</div>' +
+    '<div class="meta">Criada em ' + formatarData(s.criado_em) + '</div>' +
+    '<div class="acoes">' +
+      '<button type="button" class="primaria entrar">Entrar</button>' +
+      (souDono ? '<button type="button" class="jogadores">Jogadores</button>' : '') +
+    '</div>' +
+  '</div>';
+}
+
+function ligarCliquesSalas(){
+  document.querySelectorAll("#area_salas .card").forEach(card => {
+    const id = card.dataset.salaId;
+    const nome = card.dataset.salaNome;
+    card.querySelector(".entrar").addEventListener("click", (e) => {
+      e.stopPropagation();
+      location.href = "mesa.html?sala=" + id;
+    });
+    const btnJogadores = card.querySelector(".jogadores");
+    if(btnJogadores){
+      btnJogadores.addEventListener("click", (e) => {
+        e.stopPropagation();
+        abrirModalMembros(id, nome);
+      });
+    }
+  });
+}
+
+document.getElementById("btn_nova_sala").addEventListener("click", async () => {
+  const nome = prompt("Nome da nova sala:", "Nova Sala");
+  if(nome == null) return;
+  const { error } = await sb.from("salas").insert({ mestre_id: meuId, nome: nome.trim() || "Sala sem nome" });
+  if(error){ alert("Não foi possível criar a sala: " + error.message); return; }
+  carregarSalas();
+});
+
+/* ===== Gerenciar jogadores da sala ===== */
+
+async function abrirModalMembros(salaId, salaNome){
+  const overlay = document.getElementById("overlay_membros");
+  overlay.innerHTML = '<div class="modal"><div class="cab"><span>Carregando…</span></div></div>';
+  overlay.style.display = "flex";
+
+  const { data: perfis } = await sb.from("perfis").select("id, nome, role").order("nome");
+  const { data: atuais } = await sb.from("sala_membros").select("user_id").eq("sala_id", salaId);
+  const idsAtuais = new Set((atuais || []).map(m => m.user_id));
+
+  const lista = (perfis || []).filter(p => p.id !== meuId);
+
+  const linhasHtml = lista.map(p =>
+    '<label class="linha-membro">' +
+      '<input type="checkbox" value="' + p.id + '"' + (idsAtuais.has(p.id) ? ' checked' : '') + '>' +
+      '<span>' + escapeHtml(p.nome) + '</span>' +
+      '<span class="papel">' + (p.role === "mestre" ? "Mestre" : "Player") + '</span>' +
+    '</label>'
+  ).join("") || '<div class="vazio">Nenhum outro perfil cadastrado ainda.</div>';
+
+  overlay.innerHTML =
+    '<div class="modal">' +
+      '<div class="cab"><span>Jogadores — ' + escapeHtml(salaNome) + '</span><button type="button" id="btn_fechar_membros">✕</button></div>' +
+      '<div class="corpo">' + linhasHtml + '</div>' +
+      '<div class="rodape">' +
+        '<button type="button" class="cancelar" id="btn_cancelar_membros">Cancelar</button>' +
+        '<button type="button" class="salvar" id="btn_salvar_membros">Salvar</button>' +
+      '</div>' +
+    '</div>';
+
+  const fechar = () => { overlay.style.display = "none"; overlay.innerHTML = ""; };
+  overlay.addEventListener("click", (e) => { if(e.target === overlay) fechar(); }, { once:true });
+  document.getElementById("btn_fechar_membros").addEventListener("click", fechar);
+  document.getElementById("btn_cancelar_membros").addEventListener("click", fechar);
+
+  document.getElementById("btn_salvar_membros").addEventListener("click", async () => {
+    const marcados = new Set(
+      Array.from(overlay.querySelectorAll('input[type="checkbox"]:checked')).map(el => el.value)
+    );
+
+    const adicionar = [...marcados].filter(id => !idsAtuais.has(id));
+    const remover = [...idsAtuais].filter(id => !marcados.has(id));
+
+    if(adicionar.length){
+      const { error } = await sb.from("sala_membros").insert(adicionar.map(uid => ({ sala_id: salaId, user_id: uid })));
+      if(error){ alert("Não foi possível adicionar alguém: " + error.message); return; }
+    }
+    if(remover.length){
+      const { error } = await sb.from("sala_membros").delete().eq("sala_id", salaId).in("user_id", remover);
+      if(error){ alert("Não foi possível remover alguém: " + error.message); return; }
+    }
+    fechar();
+  });
+}
+
+/* ===== Fichas ===== */
 
 async function carregarFichas(){
   const area = document.getElementById("area_listas");
@@ -173,7 +353,7 @@ function cardHtml(f){
 }
 
 function ligarCliques(){
-  document.querySelectorAll(".card").forEach(card => {
+  document.querySelectorAll("#area_listas .card").forEach(card => {
     const id = card.dataset.id;
     card.querySelector(".abrir").addEventListener("click", (e) => { e.stopPropagation(); abrirFicha(id); });
     card.addEventListener("click", () => abrirFicha(id));
