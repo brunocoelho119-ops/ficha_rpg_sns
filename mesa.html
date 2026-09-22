@@ -30,6 +30,12 @@
     padding:7px 16px; font-size:12.5px; font-weight:700; cursor:pointer; font-family:var(--font-body);
   }
   .sair:hover{ background:rgba(255,255,255,0.12); }
+  .btn-mapa{
+    background:#0f4c9c; border:none; color:#fff; border-radius:999px;
+    padding:7px 16px; font-size:12.5px; font-weight:700; cursor:pointer; font-family:var(--font-body);
+  }
+  .btn-mapa:hover{ filter:brightness(1.1); }
+  .btn-mapa:disabled{ opacity:0.6; cursor:not-allowed; }
 
   .presenca{ display:flex; align-items:center; gap:6px; }
   .avatar{
@@ -72,6 +78,8 @@
   </div>
   <div style="display:flex; align-items:center; gap:16px;">
     <div class="presenca" id="area_presenca"></div>
+    <button class="btn-mapa" id="btn_trocar_mapa" style="display:none;">Trocar mapa</button>
+    <input type="file" id="input_mapa" accept="image/*" style="display:none;">
     <button class="sair" id="btn_sair">Sair</button>
   </div>
 </div>
@@ -126,6 +134,9 @@ async function iniciar(){
   }
   salaAtual = sala;
   document.getElementById("nome_sala").textContent = sala.nome;
+  if(sala.mestre_id === meuId){
+    document.getElementById("btn_trocar_mapa").style.display = "inline-block";
+  }
 
   if(sala.cena_ativa){
     const { data: cena } = await sb.from("cenas").select("*").eq("id", sala.cena_ativa).single();
@@ -222,7 +233,7 @@ function desenhar(){
   }
 }
 
-function carregarMapa(){
+async function carregarMapa(){
   const vazio = document.getElementById("estado_vazio");
   if(!cenaAtual || !cenaAtual.mapa_url){
     vazio.style.display = "block";
@@ -234,20 +245,80 @@ function carregarMapa(){
     mostrarZoomInfo();
     return;
   }
+
+  /* bucket "mapas" é privado: baixamos com o client autenticado (RLS libera pra membros) */
+  const { data: blob, error } = await sb.storage.from("mapas").download(cenaAtual.mapa_url);
+  if(error || !blob){
+    vazio.style.display = "block";
+    document.getElementById("estado_vazio_texto").textContent = "Não foi possível carregar a imagem do mapa.";
+    return;
+  }
   vazio.style.display = "none";
+  const objectUrl = URL.createObjectURL(blob);
   const img = new Image();
   img.onload = () => {
     mapaImg = img;
     centralizarMapa();
     desenhar();
     mostrarZoomInfo();
+    URL.revokeObjectURL(objectUrl);
   };
   img.onerror = () => {
     vazio.style.display = "block";
     document.getElementById("estado_vazio_texto").textContent = "Não foi possível carregar a imagem do mapa.";
   };
-  img.src = cenaAtual.mapa_url;
+  img.src = objectUrl;
 }
+
+/* ===== Mestre: trocar mapa ===== */
+
+document.getElementById("btn_trocar_mapa").addEventListener("click", () => {
+  document.getElementById("input_mapa").click();
+});
+
+document.getElementById("input_mapa").addEventListener("change", async (e) => {
+  const arquivo = e.target.files[0];
+  e.target.value = "";
+  if(!arquivo) return;
+
+  const btn = document.getElementById("btn_trocar_mapa");
+  btn.disabled = true;
+  btn.textContent = "Enviando…";
+
+  try{
+    const extensao = (arquivo.name.split(".").pop() || "png").toLowerCase();
+    const caminho = salaId + "/" + Date.now() + "." + extensao;
+
+    const { error: errUpload } = await sb.storage.from("mapas").upload(caminho, arquivo, { upsert: false });
+    if(errUpload) throw errUpload;
+
+    if(cenaAtual){
+      /* já existe cena ativa: só troca a imagem dela */
+      const { error: errUpdate } = await sb.from("cenas").update({ mapa_url: caminho }).eq("id", cenaAtual.id);
+      if(errUpdate) throw errUpdate;
+      cenaAtual.mapa_url = caminho;
+    } else {
+      /* primeira cena da sala */
+      const { data: novaCena, error: errCena } = await sb.from("cenas")
+        .insert({ sala_id: salaId, nome: "Cena 1", mapa_url: caminho })
+        .select("*").single();
+      if(errCena) throw errCena;
+      cenaAtual = novaCena;
+
+      const { error: errSala } = await sb.from("salas").update({ cena_ativa: novaCena.id }).eq("id", salaId);
+      if(errSala) throw errSala;
+      salaAtual.cena_ativa = novaCena.id;
+    }
+
+    atualizarSub();
+    carregarMapa();
+  }catch(err){
+    alert("Não foi possível trocar o mapa: " + err.message);
+  }finally{
+    btn.disabled = false;
+    btn.textContent = "Trocar mapa";
+  }
+});
 
 /* ===== Presença (Supabase Realtime) ===== */
 
@@ -260,6 +331,32 @@ function conectarPresenca(){
     const estado = canal.presenceState();
     renderizarPresenca(estado);
   });
+
+  /* troca de cena ativa na sala (ex.: mestre trocou de mapa/cena) */
+  canal.on("postgres_changes",
+    { event: "UPDATE", schema: "public", table: "salas", filter: "id=eq." + salaId },
+    async (payload) => {
+      salaAtual = payload.new;
+      if(salaAtual.cena_ativa && salaAtual.cena_ativa !== (cenaAtual && cenaAtual.id)){
+        const { data: cena } = await sb.from("cenas").select("*").eq("id", salaAtual.cena_ativa).single();
+        cenaAtual = cena || null;
+        atualizarSub();
+        carregarMapa();
+      }
+    }
+  );
+
+  /* a própria cena ativa foi atualizada (ex.: trocou a imagem do mapa) */
+  canal.on("postgres_changes",
+    { event: "UPDATE", schema: "public", table: "cenas", filter: "sala_id=eq." + salaId },
+    (payload) => {
+      if(cenaAtual && payload.new.id === cenaAtual.id){
+        cenaAtual = payload.new;
+        atualizarSub();
+        carregarMapa();
+      }
+    }
+  );
 
   canal.subscribe(async (status) => {
     if(status === "SUBSCRIBED"){
