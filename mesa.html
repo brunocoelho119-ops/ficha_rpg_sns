@@ -164,24 +164,55 @@ function prepararCanvas(){
   redimensionar();
   window.addEventListener("resize", redimensionar);
 
-  let arrastando = false;
+  let arrastandoMapa = false;
+  let tokenArrastando = null;
   let ultimoX = 0, ultimoY = 0;
 
   palco.addEventListener("pointerdown", (e) => {
-    arrastando = true;
+    const rect = palco.getBoundingClientRect();
+    const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+    const alvo = encontrarTokenEm(cx, cy);
+
+    if(alvo && podeArrastarToken(alvo)){
+      tokenArrastando = alvo;
+      palco.setPointerCapture(e.pointerId);
+      return;
+    }
+
+    arrastandoMapa = true;
     ultimoX = e.clientX; ultimoY = e.clientY;
     palco.classList.add("arrastando");
     palco.setPointerCapture(e.pointerId);
   });
+
   palco.addEventListener("pointermove", (e) => {
-    if(!arrastando) return;
+    if(tokenArrastando){
+      const rect = palco.getBoundingClientRect();
+      const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+      tokenArrastando.x = (cx - cam.x) / cam.escala;
+      tokenArrastando.y = (cy - cam.y) / cam.escala;
+      desenhar();
+      enviarMovimentoToken(tokenArrastando);
+      return;
+    }
+    if(!arrastandoMapa) return;
     cam.x += e.clientX - ultimoX;
     cam.y += e.clientY - ultimoY;
     ultimoX = e.clientX; ultimoY = e.clientY;
     desenhar();
   });
+
   function soltar(e){
-    arrastando = false;
+    if(tokenArrastando){
+      const gridPx = cenaAtual.grid_px || 70;
+      tokenArrastando.x = Math.round((tokenArrastando.x - gridPx / 2) / gridPx) * gridPx + gridPx / 2;
+      tokenArrastando.y = Math.round((tokenArrastando.y - gridPx / 2) / gridPx) * gridPx + gridPx / 2;
+      desenhar();
+      salvarPosicaoToken(tokenArrastando);
+      tokenArrastando = null;
+      return;
+    }
+    arrastandoMapa = false;
     palco.classList.remove("arrastando");
   }
   palco.addEventListener("pointerup", soltar);
@@ -323,6 +354,37 @@ async function carregarMapa(){
 
 /* ===== Tokens ===== */
 
+let ultimoEnvioMoveMs = 0;
+
+function encontrarTokenEm(clickX, clickY){
+  const gridPx = cenaAtual ? (cenaAtual.grid_px || 70) : 70;
+  for(let i = tokensAtuais.length - 1; i >= 0; i--){
+    const t = tokensAtuais[i];
+    const sx = cam.x + t.x * cam.escala;
+    const sy = cam.y + t.y * cam.escala;
+    const raio = (gridPx / 2) * 0.8 * cam.escala * (t.tam || 1);
+    const dx = clickX - sx, dy = clickY - sy;
+    if(dx * dx + dy * dy <= raio * raio) return t;
+  }
+  return null;
+}
+
+function podeArrastarToken(t){
+  return !!salaAtual && (salaAtual.mestre_id === meuId || t.dono_id === meuId);
+}
+
+function enviarMovimentoToken(t){
+  const agora = Date.now();
+  if(agora - ultimoEnvioMoveMs < 40) return; /* limita a ~25 envios/seg */
+  ultimoEnvioMoveMs = agora;
+  if(canal) canal.send({ type: "broadcast", event: "mover_token", payload: { id: t.id, x: t.x, y: t.y } });
+}
+
+async function salvarPosicaoToken(t){
+  const { error } = await sb.from("tokens").update({ x: t.x, y: t.y }).eq("id", t.id);
+  if(error) alert("Não foi possível salvar a posição do token: " + error.message);
+}
+
 async function carregarTokens(){
   if(!cenaAtual){ tokensAtuais = []; return; }
   const { data, error } = await sb.from("tokens").select("*").eq("cena_id", cenaAtual.id);
@@ -456,12 +518,33 @@ function conectarPresenca(){
     }
   );
 
+  /* movimento ao vivo (efêmero, não grava no banco) */
+  canal.on("broadcast", { event: "mover_token" }, (msg) => {
+    const t = tokensAtuais.find(tk => tk.id === msg.payload.id);
+    if(t){
+      t.x = msg.payload.x;
+      t.y = msg.payload.y;
+      desenhar();
+    }
+  });
+
   /* novos tokens criados na cena atual */
   if(cenaAtual){
     canal.on("postgres_changes",
       { event: "INSERT", schema: "public", table: "tokens", filter: "cena_id=eq." + cenaAtual.id },
       (payload) => {
         tokensAtuais.push(payload.new);
+        desenhar();
+      }
+    );
+
+    /* posição final gravada (snap ao grid), sincroniza pra quem entrou depois */
+    canal.on("postgres_changes",
+      { event: "UPDATE", schema: "public", table: "tokens", filter: "cena_id=eq." + cenaAtual.id },
+      (payload) => {
+        const t = tokensAtuais.find(tk => tk.id === payload.new.id);
+        if(t) Object.assign(t, payload.new);
+        else tokensAtuais.push(payload.new);
         desenhar();
       }
     );
