@@ -7,23 +7,23 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-    :root{
-    /* ---- Paleta de PERGAMINHO CLARO ---- */
-    --ink:#3a2e1d;            /* tinta sépia */
-    --bar-bg:#4f3d26;         /* barras/cabeçalhos (marrom, mais claro que antes) */
-    --bg:#fbf7ee;             /* papel off-white (cards/superfícies) */
-    --page-bg:#efe8d7;        /* FUNDO da ficha (off-white quente) */
-    --gray-light:#f3ecd6;     /* headers de tabela, fundos sutis */
-    --gray-mid:#e8dcc0;
-    --gray-text:#786748;      /* sépia mutado (labels/secundário) */
-    --border:#dccca2;         /* borda tan clara */
-    --border-strong:#c2ac80;
-    --input-bg:#f6efdb;       /* input creme (levemente recuado) */
-    --input-border:#dccca2;
+  :root{
+    /* ---- Paleta de PERGAMINHO ANTIGO ---- */
+    --ink:#33281a;            /* tinta sépia escura */
+    --bar-bg:#3b2f20;         /* faixa marrom escuro (cabeçalhos/barras) */
+    --bg:#f5ecd4;             /* papel creme (superfícies de conteúdo) */
+    --page-bg:#c8b68b;        /* pergaminho de fundo (cards se destacam) */
+    --gray-light:#efe3c5;     /* creme quente (headers de tabela, fundos sutis) */
+    --gray-mid:#e2d3ad;
+    --gray-text:#7a6947;      /* sépia mutado (labels/secundário) */
+    --border:#cbb88a;         /* borda tan */
+    --border-strong:#b19a6b;
+    --input-bg:#fbf4de;       /* input creme claro */
+    --input-border:#d8c69c;
     --accent:#8e3b2a;         /* selo vermelho-tijolo (destaques) */
-    --calc-bg:#f0e7c4;        /* campo calculado (dourado claro) */
-    --shadow: 0 1px 3px rgba(80,60,30,0.10), 0 8px 20px rgba(80,60,30,0.08);
-    --shadow-sm: 0 1px 2px rgba(80,60,30,0.08);
+    --calc-bg:#ecdfb4;        /* campo calculado (tom dourado sutil) */
+    --shadow: 0 1px 3px rgba(70,52,24,0.12), 0 8px 20px rgba(70,52,24,0.10);
+    --shadow-sm: 0 1px 2px rgba(70,52,24,0.10);
     --radius:14px;
     --radius-sm:8px;
     --font-display:'Barlow Condensed', Arial, sans-serif;
@@ -313,6 +313,19 @@
   .tabs-nav button:hover:not(.active){ background:var(--gray-light); color:var(--ink); }
   .tab-content{ display:none; }
   .tab-content.active{ display:block; }
+  /* ===================== MODO VISUALIZAÇÃO / EDIÇÃO + ANOTAÇÕES DO MESTRE ===================== */
+  body.modo-leitura #stage input, body.modo-leitura #stage textarea, body.modo-leitura #stage select{ pointer-events:none !important; }
+  body.modo-leitura .modal-overlay input, body.modo-leitura .modal-overlay textarea, body.modo-leitura .modal-overlay select,
+  body.modo-leitura .qroll-overlay input, body.modo-leitura .qroll-overlay textarea, body.modo-leitura .qroll-overlay select{ pointer-events:auto !important; }
+  body.modo-leitura .btn-add-row, body.modo-leitura .del-row-btn, body.modo-leitura .del-cell,
+  body.modo-leitura .mode-toggle, body.modo-leitura .foto-btn, body.modo-leitura .bd-add, body.modo-leitura .del-bd-btn{ display:none !important; }
+  .ft-modo{ font-family:var(--font-body); font-size:11px; font-weight:700; color:#f3ead0; background:var(--accent); border:none; border-radius:999px; padding:5px 12px; cursor:pointer; margin-right:8px; }
+  .ft-modo.ativo{ background:var(--bar-bg); }
+  .nm-panel{ max-width:950px; margin:14px auto 0; background:linear-gradient(180deg,#fff8e4,#f3e6c2); border:1px solid var(--border-strong); border-left:5px solid var(--accent); border-radius:10px; box-shadow:var(--shadow-sm); padding:10px 14px; box-sizing:border-box; }
+  .nm-head{ display:flex; align-items:center; gap:8px; font-family:var(--font-display); font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--accent); font-size:13px; margin-bottom:6px; }
+  .nm-status{ margin-left:auto; font-family:var(--font-body); font-weight:600; font-size:10px; color:var(--gray-text); text-transform:none; letter-spacing:0; }
+  .nm-txt{ width:100%; min-height:54px; resize:vertical; font-family:var(--font-body); font-size:13px; line-height:1.5; color:var(--ink); background:rgba(255,255,255,.6); border:1px solid var(--border); border-radius:8px; padding:8px 10px; box-sizing:border-box; }
+  .nm-txt[readonly]{ background:rgba(255,255,255,.32); cursor:default; }
 
   /* ===================== BOTOES DE ADICIONAR / REMOVER LINHA ===================== */
   .btn-add-row{
@@ -1092,6 +1105,7 @@ const FICHA_ID = new URLSearchParams(location.search).get("id");
 let _nuvemTimer = null;
 
 let _minhaFichaOwnerId = null, _meuUserId = null;
+let _souMestre = false, _souDono = true, _notasMestre = "", _modoEdicao = true;
 
 async function carregarDaNuvem(){
   try{
@@ -1104,6 +1118,17 @@ async function carregarDaNuvem(){
     if(error){ alert("Erro ao carregar a ficha: " + error.message); location.href = "home.html"; return false; }
 
     _minhaFichaOwnerId = data.user_id;
+    _souDono = (_meuUserId === _minhaFichaOwnerId);
+    /* papel do usuário logado (tabela perfis: role = 'mestre' | 'player') */
+    try{
+      const { data: perfil } = await sb.from("perfis").select("role").eq("id", _meuUserId).single();
+      _souMestre = !!(perfil && perfil.role === "mestre");
+    }catch(e){ _souMestre = false; }
+    /* anotações do mestre (coluna separada; tolerante caso a coluna ainda não exista) */
+    try{
+      const { data: fn } = await sb.from("fichas").select("notas_mestre").eq("id", FICHA_ID).single();
+      _notasMestre = (fn && fn.notas_mestre) || "";
+    }catch(e){ _notasMestre = ""; }
     const d = data.dados || {};
     /* sempre define (ou limpa) os dois — senão uma ficha nova/vazia herdaria
        o que sobrou no localStorage da última ficha aberta neste navegador */
@@ -1126,6 +1151,7 @@ function salvarNomeFichaNaNuvem(nome){
 }
 function salvarNaNuvem(){
   if(!NUVEM_ATIVA || typeof sb === "undefined" || !FICHA_ID) return;
+  if(!(_souDono || _souMestre)) return;           // visitante não grava os dados da ficha (RLS reforça no servidor)
   const st = document.getElementById("ft_status"); if(st) st.textContent = "Salvando…";
   clearTimeout(_nuvemTimer);
   _nuvemTimer = setTimeout(async () => {
@@ -1139,6 +1165,58 @@ function salvarNaNuvem(){
       if(error) console.error(error);
     }catch(e){ console.error(e); if(st) st.textContent = "Erro ao salvar"; }
   }, 1200);
+}
+
+/* ===== Anotações do Mestre: salva só a coluna notas_mestre (nunca o dados) ===== */
+let _notasTimer = null;
+function salvarNotasMestre(){
+  if(!NUVEM_ATIVA || typeof sb === "undefined" || !FICHA_ID || !_souMestre) return;
+  const st = document.getElementById("nm_status"); if(st) st.textContent = "Salvando…";
+  clearTimeout(_notasTimer);
+  _notasTimer = setTimeout(async () => {
+    const txt = (document.getElementById("nm_txt") || {}).value || "";
+    try{
+      const { error } = await sb.from("fichas").update({ notas_mestre: txt }).eq("id", FICHA_ID);
+      if(st) st.textContent = error ? "Erro ao salvar" : "Salvo";
+      if(error) console.error(error);
+    }catch(e){ console.error(e); if(st) st.textContent = "Erro ao salvar"; }
+  }, 800);
+}
+/* ===== Modo Visualização / Edição ===== */
+function aplicarModo(editando){
+  _modoEdicao = editando;
+  document.body.classList.toggle("modo-leitura", !editando);
+  const btn = document.getElementById("ft_modo");
+  if(btn){ btn.textContent = editando ? "✏️ Editando" : "🔒 Visualizando"; btn.classList.toggle("ativo", !editando); }
+}
+/* injeta o botão de modo e o painel de anotações (fora do #stage, para não entrar no save por índice) */
+function montarControlesMestre(){
+  const podeEditar = _souDono || _souMestre;
+  const topbar = document.getElementById("ficha_topbar");
+  if(topbar && podeEditar && !document.getElementById("ft_modo")){
+    const b = document.createElement("button");
+    b.type = "button"; b.id = "ft_modo"; b.className = "ft-modo";
+    b.title = "Alternar entre visualizar (travado) e editar";
+    b.addEventListener("click", () => aplicarModo(!_modoEdicao));
+    const sair = document.getElementById("ft_sair");
+    if(sair) topbar.insertBefore(b, sair); else topbar.appendChild(b);
+  }
+  const scaler = document.getElementById("scaler");
+  const mostrarPainel = _souMestre || (_notasMestre && _notasMestre.trim() !== "");
+  if(scaler && mostrarPainel && !document.getElementById("nm_panel")){
+    const p = document.createElement("div");
+    p.className = "nm-panel"; p.id = "nm_panel";
+    p.innerHTML =
+      '<div class="nm-head">📜 Anotações do Mestre <span class="nm-status" id="nm_status"></span></div>' +
+      '<textarea class="nm-txt" id="nm_txt" placeholder="' + (_souMestre ? "Deixe um bilhete para o jogador…" : "") + '"></textarea>';
+    scaler.parentNode.insertBefore(p, scaler);
+    const ta = p.querySelector("#nm_txt");
+    ta.value = _notasMestre || "";
+    if(_souMestre){ ta.addEventListener("input", (e) => { e.stopPropagation(); salvarNotasMestre(); }); }
+    else { ta.readOnly = true; }
+  }
+  /* modo inicial: dono começa editando; visitante (mestre em ficha alheia) começa travado */
+  aplicarModo(_souDono);
 }
 
 /* ===== A ficha inteira roda dentro desta função, para poder esperar a nuvem ===== */
@@ -3789,6 +3867,7 @@ restaurarEstado();
 migrarCardsItens();
 refreshLinhagensUI();
 recalc();
+montarControlesMestre();
 
 /* ===== MOTOR DE ESCALA PROPORCIONAL ===== */
 (function(){
