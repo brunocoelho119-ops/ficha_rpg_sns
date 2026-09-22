@@ -21,6 +21,12 @@
     font-family:var(--font-body); background:var(--page-bg); color:var(--ink);
     display:flex; align-items:center; justify-content:center; padding:18px;
   }
+  /* imagem de fundo sutil (Konoha) — baixa opacidade, atrás de todo o conteúdo */
+  body::before{
+    content:""; position:fixed; top:0; right:0; bottom:0; left:0; z-index:-1; pointer-events:none;
+    background:url('konoha-bg.jpg') center center / cover no-repeat;
+    opacity:0.14;
+  }
   .card{
     width:100%; max-width:400px; background:var(--bg); border-radius:var(--radius);
     box-shadow:var(--shadow); overflow:hidden;
