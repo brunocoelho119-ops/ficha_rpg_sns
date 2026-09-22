@@ -36,6 +36,7 @@
   }
   .btn-mapa:hover{ filter:brightness(1.1); }
   .btn-mapa:disabled{ opacity:0.6; cursor:not-allowed; }
+  .btn-mapa.ativo{ background:#a32020; }
 
   .presenca{ display:flex; align-items:center; gap:6px; }
   .avatar{
@@ -127,6 +128,8 @@
     <div class="presenca" id="area_presenca"></div>
     <button class="btn-mapa" id="btn_trocar_mapa" style="display:none;">Trocar mapa</button>
     <button class="btn-mapa" id="btn_add_token" style="display:none;">+ Token</button>
+    <button class="btn-mapa" id="btn_fog_revelar" style="display:none;">Revelar</button>
+    <button class="btn-mapa" id="btn_fog_esconder" style="display:none;">Esconder</button>
     <input type="file" id="input_mapa" accept="image/*" style="display:none;">
     <button class="sair" id="btn_sair">Sair</button>
   </div>
@@ -172,7 +175,7 @@
       <button type="button" id="btn_rolar">Rolar</button>
     </div>
     <div class="form-rolagem">
-      <input type="text" id="in_mensagem" placeholder="Escreva uma mensagem…" maxlength="500">
+      <input type="text" id="in_mensagem" placeholder="Mensagem… ou /r 1d20" maxlength="500">
       <button type="button" id="btn_enviar_msg">Enviar</button>
     </div>
   </div>
@@ -190,6 +193,9 @@ let mapaImg = null;
 let cam = { x: 0, y: 0, escala: 1 }; // x,y = deslocamento em pixels de tela; escala = zoom
 let tokensAtuais = [];
 const paletaCores = ["#c0392b","#2980b9","#27ae60","#f39c12","#8e44ad","#16a085","#d35400","#2c3e50"];
+let fogRevelado = new Set();
+let modoFog = null; // null | "revelar" | "esconder"
+let selecaoFog = null;
 
 const canvas = document.getElementById("mapa");
 const ctx = canvas.getContext("2d");
@@ -224,6 +230,8 @@ async function iniciar(){
   if(sala.mestre_id === meuId){
     document.getElementById("btn_trocar_mapa").style.display = "inline-block";
     document.getElementById("btn_add_token").style.display = "inline-block";
+    document.getElementById("btn_fog_revelar").style.display = "inline-block";
+    document.getElementById("btn_fog_esconder").style.display = "inline-block";
   }
 
   if(sala.cena_ativa){
@@ -231,6 +239,7 @@ async function iniciar(){
     cenaAtual = cena || null;
   }
   if(cenaAtual) await carregarTokens();
+  await carregarFog();
   await carregarFeed();
   atualizarSub();
   prepararCanvas();
@@ -257,6 +266,13 @@ function prepararCanvas(){
     if(e.target.closest("button, input, .painel-dados, .icon-bar")) return;
 
     const rect = palco.getBoundingClientRect();
+
+    if(modoFog){
+      selecaoFog = { x0: e.clientX - rect.left, y0: e.clientY - rect.top, x1: e.clientX - rect.left, y1: e.clientY - rect.top };
+      palco.setPointerCapture(e.pointerId);
+      return;
+    }
+
     const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
     const alvo = encontrarTokenEm(cx, cy);
 
@@ -273,6 +289,13 @@ function prepararCanvas(){
   });
 
   palco.addEventListener("pointermove", (e) => {
+    if(selecaoFog){
+      const rect = palco.getBoundingClientRect();
+      selecaoFog.x1 = e.clientX - rect.left;
+      selecaoFog.y1 = e.clientY - rect.top;
+      desenhar();
+      return;
+    }
     if(tokenArrastando){
       const rect = palco.getBoundingClientRect();
       const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
@@ -290,6 +313,12 @@ function prepararCanvas(){
   });
 
   function soltar(e){
+    if(selecaoFog){
+      aplicarSelecaoFog();
+      selecaoFog = null;
+      desenhar();
+      return;
+    }
     if(tokenArrastando){
       const gridPx = cenaAtual.grid_px || 70;
       tokenArrastando.x = Math.round((tokenArrastando.x - gridPx / 2) / gridPx) * gridPx + gridPx / 2;
@@ -356,6 +385,8 @@ function desenhar(){
   }
   if(cenaAtual) desenharGrid();
   desenharTokens();
+  if(cenaAtual) desenharFog();
+  desenharSelecaoFog();
 }
 
 function desenharGrid(){
@@ -516,6 +547,93 @@ async function criarToken(){
   if(error) alert("Não foi possível criar o token: " + error.message);
 }
 
+/* ===== Névoa de guerra ===== */
+
+async function carregarFog(){
+  fogRevelado = new Set();
+  if(!cenaAtual) return;
+  const { data } = await sb.from("fog").select("revelado").eq("cena_id", cenaAtual.id).single();
+  if(data && Array.isArray(data.revelado)){
+    data.revelado.forEach(par => fogRevelado.add(par[0] + "," + par[1]));
+  }
+}
+
+async function salvarFog(){
+  if(!cenaAtual) return;
+  const lista = Array.from(fogRevelado).map(chave => chave.split(",").map(Number));
+  const { error } = await sb.from("fog").upsert({ cena_id: cenaAtual.id, revelado: lista }, { onConflict: "cena_id" });
+  if(error) alert("Não foi possível salvar a névoa: " + error.message);
+}
+
+function aplicarSelecaoFog(){
+  if(!selecaoFog || !cenaAtual) return;
+  const gridPx = cenaAtual.grid_px || 70;
+  const cellScreen = gridPx * cam.escala;
+  if(cellScreen <= 0) return;
+
+  const sxMin = Math.min(selecaoFog.x0, selecaoFog.x1);
+  const sxMax = Math.max(selecaoFog.x0, selecaoFog.x1);
+  const syMin = Math.min(selecaoFog.y0, selecaoFog.y1);
+  const syMax = Math.max(selecaoFog.y0, selecaoFog.y1);
+
+  const gxIni = Math.floor((sxMin - cam.x) / cellScreen);
+  const gxFim = Math.floor((sxMax - cam.x) / cellScreen);
+  const gyIni = Math.floor((syMin - cam.y) / cellScreen);
+  const gyFim = Math.floor((syMax - cam.y) / cellScreen);
+
+  for(let gx = gxIni; gx <= gxFim; gx++){
+    for(let gy = gyIni; gy <= gyFim; gy++){
+      const chave = gx + "," + gy;
+      if(modoFog === "revelar") fogRevelado.add(chave);
+      else fogRevelado.delete(chave);
+    }
+  }
+  salvarFog();
+}
+
+function desenharFog(){
+  const gridPx = cenaAtual.grid_px || 70;
+  const cellScreen = gridPx * cam.escala;
+  if(cellScreen < 2) return;
+  const souMestre = !!salaAtual && salaAtual.mestre_id === meuId;
+
+  const gxIni = Math.floor(-cam.x / cellScreen) - 1;
+  const gxFim = Math.ceil((canvas.width - cam.x) / cellScreen) + 1;
+  const gyIni = Math.floor(-cam.y / cellScreen) - 1;
+  const gyFim = Math.ceil((canvas.height - cam.y) / cellScreen) + 1;
+
+  ctx.fillStyle = souMestre ? "rgba(0,0,0,0.45)" : "#000";
+  for(let gx = gxIni; gx <= gxFim; gx++){
+    for(let gy = gyIni; gy <= gyFim; gy++){
+      if(fogRevelado.has(gx + "," + gy)) continue;
+      const sx = cam.x + gx * cellScreen;
+      const sy = cam.y + gy * cellScreen;
+      ctx.fillRect(sx, sy, cellScreen + 1, cellScreen + 1);
+    }
+  }
+}
+
+function desenharSelecaoFog(){
+  if(!selecaoFog) return;
+  const x = Math.min(selecaoFog.x0, selecaoFog.x1);
+  const y = Math.min(selecaoFog.y0, selecaoFog.y1);
+  const w = Math.abs(selecaoFog.x1 - selecaoFog.x0);
+  const h = Math.abs(selecaoFog.y1 - selecaoFog.y0);
+  ctx.fillStyle = modoFog === "revelar" ? "rgba(39,174,96,0.25)" : "rgba(192,57,43,0.25)";
+  ctx.strokeStyle = modoFog === "revelar" ? "#27ae60" : "#c0392b";
+  ctx.lineWidth = 2;
+  ctx.fillRect(x, y, w, h);
+  ctx.strokeRect(x, y, w, h);
+}
+
+function setModoFog(modo){
+  modoFog = (modoFog === modo) ? null : modo;
+  document.getElementById("btn_fog_revelar").classList.toggle("ativo", modoFog === "revelar");
+  document.getElementById("btn_fog_esconder").classList.toggle("ativo", modoFog === "esconder");
+}
+document.getElementById("btn_fog_revelar").addEventListener("click", () => setModoFog("revelar"));
+document.getElementById("btn_fog_esconder").addEventListener("click", () => setModoFog("esconder"));
+
 /* ===== Dados (rolagens) + Chat (mensagens), num feed único ===== */
 
 let feedEventos = [];
@@ -580,6 +698,13 @@ async function rolarFormula(formula){
 async function enviarMensagem(texto){
   const t = (texto || "").trim();
   if(!t) return;
+
+  const comando = t.match(/^\/(r|roll)\s+(.+)$/i);
+  if(comando){
+    await rolarFormula(comando[2]);
+    return;
+  }
+
   const { error } = await sb.from("mensagens").insert({ sala_id: salaId, user_id: meuId, texto: t });
   if(error) alert("Não foi possível enviar a mensagem: " + error.message);
 }
@@ -683,6 +808,7 @@ function conectarPresenca(){
         const { data: cena } = await sb.from("cenas").select("*").eq("id", salaAtual.cena_ativa).single();
         cenaAtual = cena || null;
         await carregarTokens();
+        await carregarFog();
         atualizarSub();
         carregarMapa();
       }
@@ -747,6 +873,17 @@ function conectarPresenca(){
         if(t) Object.assign(t, payload.new);
         else tokensAtuais.push(payload.new);
         desenhar();
+      }
+    );
+
+    /* névoa revelada/escondida pelo mestre */
+    canal.on("postgres_changes",
+      { event: "*", schema: "public", table: "fog", filter: "cena_id=eq." + cenaAtual.id },
+      (payload) => {
+        if(payload.new && Array.isArray(payload.new.revelado)){
+          fogRevelado = new Set(payload.new.revelado.map(par => par[0] + "," + par[1]));
+          desenhar();
+        }
       }
     );
   }
