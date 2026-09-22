@@ -102,6 +102,8 @@
   .log-item .quem{ font-weight:700; }
   .log-item .formula{ color:var(--gray-text); }
   .log-item .total{ font-weight:800; color:#0f4c9c; }
+  .log-item.mensagem .quem{ color:#1c1c1e; }
+  .log-item.mensagem .texto{ color:var(--ink); }
   .log-vazio{ color:var(--gray-text); font-size:12.5px; text-align:center; padding:14px 0; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -131,15 +133,11 @@
   </div>
   <div class="zoom-info" id="zoom_info" style="display:none;"></div>
 
-  <button class="btn-dados-toggle" id="btn_dados_toggle" title="Rolar dados">🎲</button>
+  <button class="btn-dados-toggle" id="btn_dados_toggle" title="Chat e dados">🎲</button>
   <div class="painel-dados" id="painel_dados">
     <div class="cab">
-      <span>Dados</span>
+      <span>Mesa</span>
       <button type="button" id="btn_fechar_dados">✕</button>
-    </div>
-    <div class="form-rolagem">
-      <input type="text" id="in_formula" placeholder="ex: 1d20+5" maxlength="20">
-      <button type="button" id="btn_rolar">Rolar</button>
     </div>
     <div class="atalhos">
       <button type="button" data-f="1d4">d4</button>
@@ -151,7 +149,15 @@
       <button type="button" data-f="1d100">d100</button>
     </div>
     <div class="log-rolagens" id="log_rolagens">
-      <div class="log-vazio">Nenhuma rolagem ainda.</div>
+      <div class="log-vazio">Nenhuma atividade ainda.</div>
+    </div>
+    <div class="form-rolagem">
+      <input type="text" id="in_formula" placeholder="ex: 1d20+5" maxlength="20">
+      <button type="button" id="btn_rolar">Rolar</button>
+    </div>
+    <div class="form-rolagem">
+      <input type="text" id="in_mensagem" placeholder="Escreva uma mensagem…" maxlength="500">
+      <button type="button" id="btn_enviar_msg">Enviar</button>
     </div>
   </div>
 </div>
@@ -209,7 +215,7 @@ async function iniciar(){
     cenaAtual = cena || null;
   }
   if(cenaAtual) await carregarTokens();
-  await carregarRolagens();
+  await carregarFeed();
   atualizarSub();
   prepararCanvas();
   carregarMapa();
@@ -492,9 +498,9 @@ async function criarToken(){
   if(error) alert("Não foi possível criar o token: " + error.message);
 }
 
-/* ===== Dados (rolagens) ===== */
+/* ===== Dados (rolagens) + Chat (mensagens), num feed único ===== */
 
-let logRolagens = [];
+let feedEventos = [];
 let nomesCache = {};
 
 async function nomeDoUsuario(uid){
@@ -505,23 +511,43 @@ async function nomeDoUsuario(uid){
   return nome;
 }
 
-async function carregarRolagens(){
+async function carregarFeed(){
   nomesCache[meuId] = meuNome;
-  const { data, error } = await sb.from("rolagens").select("*").eq("sala_id", salaId)
-    .order("criado_em", { ascending:false }).limit(30);
-  logRolagens = error ? [] : (data || []).reverse();
-  for(const r of logRolagens){ await nomeDoUsuario(r.user_id); }
-  renderizarLog();
+
+  const [{ data: rolagens }, { data: mensagens }] = await Promise.all([
+    sb.from("rolagens").select("*").eq("sala_id", salaId).order("criado_em", { ascending:false }).limit(30),
+    sb.from("mensagens").select("*").eq("sala_id", salaId).order("criado_em", { ascending:false }).limit(30)
+  ]);
+
+  const eventos = [
+    ...((rolagens || []).map(r => ({ tipo:"rolagem", ...r }))),
+    ...((mensagens || []).map(m => ({ tipo:"mensagem", ...m })))
+  ];
+  eventos.sort((a, b) => new Date(a.criado_em) - new Date(b.criado_em));
+  feedEventos = eventos.slice(-40);
+
+  for(const ev of feedEventos){ await nomeDoUsuario(ev.user_id); }
+  renderizarFeed();
 }
 
-function renderizarLog(){
+function empilharEvento(ev){
+  feedEventos.push(ev);
+  if(feedEventos.length > 40) feedEventos.shift();
+  renderizarFeed();
+}
+
+function renderizarFeed(){
   const area = document.getElementById("log_rolagens");
-  if(!logRolagens.length){ area.innerHTML = '<div class="log-vazio">Nenhuma rolagem ainda.</div>'; return; }
-  area.innerHTML = logRolagens.map(r => {
-    const nome = nomesCache[r.user_id] || "Jogador";
-    const total = (r.resultado && r.resultado.total != null) ? r.resultado.total : "?";
-    return '<div class="log-item"><span class="quem">' + escapeHtml(nome) + '</span> rolou ' +
-      '<span class="formula">' + escapeHtml(r.formula) + '</span> → <span class="total">' + total + '</span></div>';
+  if(!feedEventos.length){ area.innerHTML = '<div class="log-vazio">Nenhuma atividade ainda.</div>'; return; }
+  area.innerHTML = feedEventos.map(ev => {
+    const nome = nomesCache[ev.user_id] || "Jogador";
+    if(ev.tipo === "rolagem"){
+      const total = (ev.resultado && ev.resultado.total != null) ? ev.resultado.total : "?";
+      return '<div class="log-item"><span class="quem">' + escapeHtml(nome) + '</span> rolou ' +
+        '<span class="formula">' + escapeHtml(ev.formula) + '</span> → <span class="total">' + total + '</span></div>';
+    }
+    return '<div class="log-item mensagem"><span class="quem">' + escapeHtml(nome) + ':</span> ' +
+      '<span class="texto">' + escapeHtml(ev.texto) + '</span></div>';
   }).join("");
   area.scrollTop = area.scrollHeight;
 }
@@ -531,6 +557,13 @@ async function rolarFormula(formula){
   if(!f) return;
   const { error } = await sb.rpc("rolar_dados", { p_sala: salaId, p_formula: f });
   if(error) alert("Não foi possível rolar: " + error.message);
+}
+
+async function enviarMensagem(texto){
+  const t = (texto || "").trim();
+  if(!t) return;
+  const { error } = await sb.from("mensagens").insert({ sala_id: salaId, user_id: meuId, texto: t });
+  if(error) alert("Não foi possível enviar a mensagem: " + error.message);
 }
 
 document.getElementById("btn_dados_toggle").addEventListener("click", () => {
@@ -546,6 +579,14 @@ document.getElementById("btn_rolar").addEventListener("click", () => {
 });
 document.getElementById("in_formula").addEventListener("keydown", (e) => {
   if(e.key === "Enter") document.getElementById("btn_rolar").click();
+});
+document.getElementById("btn_enviar_msg").addEventListener("click", () => {
+  const input = document.getElementById("in_mensagem");
+  enviarMensagem(input.value);
+  input.value = "";
+});
+document.getElementById("in_mensagem").addEventListener("keydown", (e) => {
+  if(e.key === "Enter") document.getElementById("btn_enviar_msg").click();
 });
 document.querySelectorAll(".atalhos button").forEach(btn => {
   btn.addEventListener("click", () => rolarFormula(btn.dataset.f));
@@ -645,9 +686,16 @@ function conectarPresenca(){
     { event: "INSERT", schema: "public", table: "rolagens", filter: "sala_id=eq." + salaId },
     async (payload) => {
       await nomeDoUsuario(payload.new.user_id);
-      logRolagens.push(payload.new);
-      if(logRolagens.length > 30) logRolagens.shift();
-      renderizarLog();
+      empilharEvento({ tipo: "rolagem", ...payload.new });
+    }
+  );
+
+  /* novas mensagens de chat da sala */
+  canal.on("postgres_changes",
+    { event: "INSERT", schema: "public", table: "mensagens", filter: "sala_id=eq." + salaId },
+    async (payload) => {
+      await nomeDoUsuario(payload.new.user_id);
+      empilharEvento({ tipo: "mensagem", ...payload.new });
     }
   );
 
