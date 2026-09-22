@@ -238,6 +238,8 @@ function prepararCanvas(){
   let ultimoX = 0, ultimoY = 0;
 
   palco.addEventListener("pointerdown", (e) => {
+    if(e.target.closest("button, input, .painel-dados")) return;
+
     const rect = palco.getBoundingClientRect();
     const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
     const alvo = encontrarTokenEm(cx, cy);
