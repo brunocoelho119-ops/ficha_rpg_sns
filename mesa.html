@@ -152,6 +152,15 @@
         <circle cx="12" cy="12" r="1"></circle>
       </svg>
     </button>
+    <button type="button" id="btn_ping_toggle" title="Ping no mapa">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <line x1="12" y1="2" x2="12" y2="6"></line>
+        <line x1="12" y1="18" x2="12" y2="22"></line>
+        <line x1="2" y1="12" x2="6" y2="12"></line>
+        <line x1="18" y1="12" x2="22" y2="12"></line>
+      </svg>
+    </button>
   </div>
   <div class="painel-dados" id="painel_dados">
     <div class="cab">
@@ -169,10 +178,6 @@
     </div>
     <div class="log-rolagens" id="log_rolagens">
       <div class="log-vazio">Nenhuma atividade ainda.</div>
-    </div>
-    <div class="form-rolagem">
-      <input type="text" id="in_formula" placeholder="ex: 1d20+5" maxlength="20">
-      <button type="button" id="btn_rolar">Rolar</button>
     </div>
     <div class="form-rolagem">
       <input type="text" id="in_mensagem" placeholder="Mensagem… ou /r 1d20" maxlength="500">
@@ -196,6 +201,16 @@ const paletaCores = ["#c0392b","#2980b9","#27ae60","#f39c12","#8e44ad","#16a085"
 let fogRevelado = new Set();
 let modoFog = null; // null | "revelar" | "esconder"
 let selecaoFog = null;
+let modoPing = false;
+let espacoPressionado = false;
+let pingsAtivos = [];
+let animandoPings = false;
+let cursorMestre = null;
+let ultimoEnvioCursorMs = 0;
+
+function souMestreDaSala(){
+  return !!salaAtual && salaAtual.mestre_id === meuId;
+}
 
 const canvas = document.getElementById("mapa");
 const ctx = canvas.getContext("2d");
@@ -274,6 +289,14 @@ function prepararCanvas(){
     }
 
     const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+
+    if(modoPing || espacoPressionado){
+      const mapX = (cx - cam.x) / cam.escala;
+      const mapY = (cy - cam.y) / cam.escala;
+      dispararPing(mapX, mapY);
+      return;
+    }
+
     const alvo = encontrarTokenEm(cx, cy);
 
     if(alvo && podeArrastarToken(alvo)){
@@ -289,16 +312,20 @@ function prepararCanvas(){
   });
 
   palco.addEventListener("pointermove", (e) => {
+    const rect = palco.getBoundingClientRect();
+    const cx0 = e.clientX - rect.left, cy0 = e.clientY - rect.top;
+    if(souMestreDaSala()){
+      enviarCursorMestre((cx0 - cam.x) / cam.escala, (cy0 - cam.y) / cam.escala);
+    }
+
     if(selecaoFog){
-      const rect = palco.getBoundingClientRect();
-      selecaoFog.x1 = e.clientX - rect.left;
-      selecaoFog.y1 = e.clientY - rect.top;
+      selecaoFog.x1 = cx0;
+      selecaoFog.y1 = cy0;
       desenhar();
       return;
     }
     if(tokenArrastando){
-      const rect = palco.getBoundingClientRect();
-      const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+      const cx = cx0, cy = cy0;
       tokenArrastando.x = (cx - cam.x) / cam.escala;
       tokenArrastando.y = (cy - cam.y) / cam.escala;
       desenhar();
@@ -344,6 +371,17 @@ function prepararCanvas(){
   mostrarZoomInfo();
 }
 
+document.addEventListener("keydown", (e) => {
+  if(e.code !== "Space") return;
+  const alvo = e.target;
+  if(alvo && (alvo.tagName === "INPUT" || alvo.tagName === "TEXTAREA")) return;
+  espacoPressionado = true;
+  e.preventDefault();
+});
+document.addEventListener("keyup", (e) => {
+  if(e.code === "Space") espacoPressionado = false;
+});
+
 function redimensionar(){
   canvas.width = palco.clientWidth;
   canvas.height = palco.clientHeight;
@@ -387,6 +425,8 @@ function desenhar(){
   desenharTokens();
   if(cenaAtual) desenharFog();
   desenharSelecaoFog();
+  desenharPings();
+  desenharCursorMestre();
 }
 
 function desenharGrid(){
@@ -634,6 +674,81 @@ function setModoFog(modo){
 document.getElementById("btn_fog_revelar").addEventListener("click", () => setModoFog("revelar"));
 document.getElementById("btn_fog_esconder").addEventListener("click", () => setModoFog("esconder"));
 
+/* ===== Pings e cursor do mestre ===== */
+
+function dispararPing(mapX, mapY){
+  adicionarPing(mapX, mapY);
+  if(canal) canal.send({ type: "broadcast", event: "ping", payload: { x: mapX, y: mapY } });
+}
+
+function adicionarPing(mapX, mapY){
+  pingsAtivos.push({ x: mapX, y: mapY, inicio: Date.now() });
+  if(!animandoPings){
+    animandoPings = true;
+    requestAnimationFrame(loopPings);
+  }
+}
+
+function loopPings(){
+  const agora = Date.now();
+  pingsAtivos = pingsAtivos.filter(p => agora - p.inicio < 2000);
+  desenhar();
+  if(pingsAtivos.length > 0){
+    requestAnimationFrame(loopPings);
+  } else {
+    animandoPings = false;
+  }
+}
+
+function desenharPings(){
+  if(!pingsAtivos.length) return;
+  const agora = Date.now();
+  pingsAtivos.forEach(p => {
+    const t = Math.min(1, (agora - p.inicio) / 2000);
+    const sx = cam.x + p.x * cam.escala;
+    const sy = cam.y + p.y * cam.escala;
+    const raio = 10 + t * 46;
+    ctx.beginPath();
+    ctx.arc(sx, sy, raio, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(241,196,15," + (1 - t).toFixed(2) + ")";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(sx, sy, 4, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(241,196,15," + (1 - t * 0.5).toFixed(2) + ")";
+    ctx.fill();
+  });
+}
+
+function enviarCursorMestre(mapX, mapY){
+  const agora = Date.now();
+  if(agora - ultimoEnvioCursorMs < 60) return;
+  ultimoEnvioCursorMs = agora;
+  if(canal) canal.send({ type: "broadcast", event: "cursor_mestre", payload: { x: mapX, y: mapY } });
+}
+
+function desenharCursorMestre(){
+  if(!cursorMestre || souMestreDaSala()) return;
+  const sx = cam.x + cursorMestre.x * cam.escala;
+  const sy = cam.y + cursorMestre.y * cam.escala;
+  ctx.beginPath();
+  ctx.arc(sx, sy, 6, 0, Math.PI * 2);
+  ctx.fillStyle = "#0f4c9c";
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#fff";
+  ctx.stroke();
+  ctx.font = "600 10px Inter, Arial, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#0f4c9c";
+  ctx.fillText("Mestre", sx, sy - 11);
+}
+
+document.getElementById("btn_ping_toggle").addEventListener("click", () => {
+  modoPing = !modoPing;
+  document.getElementById("btn_ping_toggle").classList.toggle("ativo", modoPing);
+});
+
 /* ===== Dados (rolagens) + Chat (mensagens), num feed único ===== */
 
 let feedEventos = [];
@@ -716,14 +831,6 @@ document.getElementById("btn_dados_toggle").addEventListener("click", () => {
 document.getElementById("btn_fechar_dados").addEventListener("click", () => {
   document.getElementById("painel_dados").classList.remove("aberto");
   document.getElementById("btn_dados_toggle").classList.remove("ativo");
-});
-document.getElementById("btn_rolar").addEventListener("click", () => {
-  const input = document.getElementById("in_formula");
-  rolarFormula(input.value);
-  input.value = "";
-});
-document.getElementById("in_formula").addEventListener("keydown", (e) => {
-  if(e.key === "Enter") document.getElementById("btn_rolar").click();
 });
 document.getElementById("btn_enviar_msg").addEventListener("click", () => {
   const input = document.getElementById("in_mensagem");
@@ -844,6 +951,17 @@ function conectarPresenca(){
       empilharEvento({ tipo: "mensagem", ...payload.new });
     }
   );
+
+  /* ping no mapa (efêmero, não grava no banco) */
+  canal.on("broadcast", { event: "ping" }, (msg) => {
+    adicionarPing(msg.payload.x, msg.payload.y);
+  });
+
+  /* cursor do mestre, só pros jogadores (efêmero) */
+  canal.on("broadcast", { event: "cursor_mestre" }, (msg) => {
+    cursorMestre = { x: msg.payload.x, y: msg.payload.y };
+    desenhar();
+  });
 
   /* movimento ao vivo (efêmero, não grava no banco) */
   canal.on("broadcast", { event: "mover_token" }, (msg) => {
