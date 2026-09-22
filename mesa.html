@@ -37,6 +37,11 @@
   .btn-mapa:hover{ filter:brightness(1.1); }
   .btn-mapa:disabled{ opacity:0.6; cursor:not-allowed; }
   .btn-mapa.ativo{ background:#a32020; }
+  .grid-ajuste{ display:flex; align-items:center; gap:6px; color:#fff; font-size:11.5px; font-weight:700; }
+  .grid-ajuste input{
+    width:56px; padding:5px 6px; border-radius:6px; border:1px solid rgba(255,255,255,0.3);
+    background:rgba(255,255,255,0.12); color:#fff; font-size:12px; font-weight:700; font-family:var(--font-body);
+  }
 
   .presenca{ display:flex; align-items:center; gap:6px; }
   .avatar{
@@ -78,6 +83,15 @@
   .icon-bar button svg{ width:20px; height:20px; }
   .icon-bar button:hover{ opacity:0.9; background:rgba(255,255,255,0.08); }
   .icon-bar button.ativo{ opacity:1; background:rgba(255,255,255,0.16); }
+  .icon-bar .swatch{
+    width:20px; height:20px; border-radius:50%; border:2px solid rgba(255,255,255,0.6);
+    padding:0; opacity:1; background:#f1c40f;
+  }
+  .icon-bar .swatch:hover{ opacity:1; border-color:#fff; }
+  .submenu-formas{ display:flex; flex-direction:column; gap:4px; }
+  .submenu-formas .forma-btn{ width:32px; height:32px; border-radius:8px; }
+  .submenu-formas .forma-btn svg{ width:16px; height:16px; }
+  .submenu-formas .forma-btn.selecionada{ opacity:1; background:rgba(255,255,255,0.22); }
 
   .painel-dados{
     position:absolute; top:0; left:52px; bottom:0; width:300px; max-width:calc(100vw - 52px);
@@ -110,9 +124,36 @@
   .log-item .quem{ font-weight:700; }
   .log-item .formula{ color:var(--gray-text); }
   .log-item .total{ font-weight:800; color:#0f4c9c; }
+  .dados-visual{ display:inline-flex; align-items:center; gap:4px; margin:3px 6px 3px 0; vertical-align:middle; }
+  .dado-cubo{
+    display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px; padding:0 3px;
+    border-radius:5px; background:#eef4fc; border:1.5px solid #0f4c9c; color:#0f4c9c; font-size:11px; font-weight:800;
+  }
+  .modificador{ font-size:11.5px; color:var(--gray-text); font-weight:700; }
   .log-item.mensagem .quem{ color:#1c1c1e; }
   .log-item.mensagem .texto{ color:var(--ink); }
   .log-vazio{ color:var(--gray-text); font-size:12.5px; text-align:center; padding:14px 0; }
+
+  .item-iniciativa{ display:flex; align-items:center; gap:8px; padding:8px 4px; border-bottom:1px solid var(--border); font-size:13px; }
+  .item-iniciativa:last-child{ border-bottom:none; }
+  .item-iniciativa.atual{ background:#fff6d8; border-radius:8px; }
+  .item-iniciativa .pos{ width:18px; color:var(--gray-text); font-weight:700; font-size:11px; flex-shrink:0; }
+  .item-iniciativa .nome{ flex:1; font-weight:600; }
+  .item-iniciativa .valor{ font-weight:800; color:#0f4c9c; min-width:24px; text-align:right; }
+  .item-iniciativa .remover-iniciativa{
+    background:transparent; border:none; color:#a32020; cursor:pointer; font-size:13px; padding:2px 4px;
+  }
+
+  .item-mapa{ display:flex; align-items:center; gap:8px; padding:9px 4px; border-bottom:1px solid var(--border); font-size:13px; }
+  .item-mapa:last-child{ border-bottom:none; }
+  .item-mapa.ativo{ background:#e9f2fe; border-radius:8px; }
+  .item-mapa .nome-mapa{ flex:1; font-weight:600; }
+  .item-mapa .ativar-mapa{
+    font-size:11px; font-weight:700; border-radius:999px; padding:5px 11px; cursor:pointer;
+    border:1px solid var(--border-strong); background:var(--gray-light); color:var(--ink); font-family:var(--font-body);
+  }
+  .item-mapa .tag-ativo{ font-size:10.5px; font-weight:800; color:#0f4c9c; text-transform:uppercase; }
+  .item-mapa .apagar-mapa{ background:transparent; border:none; color:#a32020; cursor:pointer; font-size:14px; padding:2px 4px; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
@@ -126,8 +167,11 @@
   </div>
   <div style="display:flex; align-items:center; gap:16px;">
     <div class="presenca" id="area_presenca"></div>
-    <button class="btn-mapa" id="btn_trocar_mapa" style="display:none;">Trocar mapa</button>
     <button class="btn-mapa" id="btn_add_token" style="display:none;">+ Token</button>
+    <div class="grid-ajuste" id="grid_ajuste" style="display:none;">
+      <label for="in_grid_px">Grid</label>
+      <input type="number" id="in_grid_px" min="10" max="500" step="1">
+    </div>
     <button class="btn-mapa" id="btn_fog_revelar" style="display:none;">Revelar</button>
     <button class="btn-mapa" id="btn_fog_esconder" style="display:none;">Esconder</button>
     <input type="file" id="input_mapa" accept="image/*" style="display:none;">
@@ -144,12 +188,26 @@
   <div class="zoom-info" id="zoom_info" style="display:none;"></div>
 
   <div class="icon-bar">
-    <button type="button" id="btn_dados_toggle" title="Chat e dados">
+    <button type="button" class="btn-painel" id="btn_dados_toggle" title="Chat e dados">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <rect x="4" y="4" width="16" height="16" rx="3"></rect>
         <circle cx="8.5" cy="8.5" r="1"></circle>
         <circle cx="15.5" cy="15.5" r="1"></circle>
         <circle cx="12" cy="12" r="1"></circle>
+      </svg>
+    </button>
+    <button type="button" class="btn-painel" id="btn_iniciativa_toggle" title="Iniciativa">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4" y1="6" x2="20" y2="6"></line>
+        <line x1="4" y1="12" x2="20" y2="12"></line>
+        <line x1="4" y1="18" x2="14" y2="18"></line>
+      </svg>
+    </button>
+    <button type="button" class="btn-painel" id="btn_mapas_toggle" title="Mapas" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 4 L3 6 L3 20 L9 18 L15 20 L21 18 L21 4 L15 6 L9 4 Z"></path>
+        <line x1="9" y1="4" x2="9" y2="18"></line>
+        <line x1="15" y1="6" x2="15" y2="20"></line>
       </svg>
     </button>
     <button type="button" id="btn_ping_toggle" title="Ping no mapa">
@@ -159,6 +217,35 @@
         <line x1="12" y1="18" x2="12" y2="22"></line>
         <line x1="2" y1="12" x2="6" y2="12"></line>
         <line x1="18" y1="12" x2="22" y2="12"></line>
+      </svg>
+    </button>
+    <button type="button" id="btn_cor_ping" class="swatch" title="Cor do seu ping"></button>
+    <input type="color" id="input_cor_ping" style="display:none;" value="#f1c40f">
+    <button type="button" id="btn_medir_toggle" title="Medir / Área">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="9" width="18" height="6" rx="1" transform="rotate(-45 12 12)"></rect>
+        <line x1="8" y1="8" x2="10" y2="10" transform="rotate(-45 12 12)"></line>
+        <line x1="12" y1="8" x2="14" y2="10" transform="rotate(-45 12 12)"></line>
+        <line x1="16" y1="8" x2="18" y2="10" transform="rotate(-45 12 12)"></line>
+      </svg>
+    </button>
+    <div class="submenu-formas" id="submenu_formas" style="display:none;">
+      <button type="button" class="forma-btn selecionada" data-forma="linha" title="Linha">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="20" x2="20" y2="4"></line></svg>
+      </button>
+      <button type="button" class="forma-btn" data-forma="cone" title="Cone">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 4 L20 20 L4 20 Z"></path></svg>
+      </button>
+      <button type="button" class="forma-btn" data-forma="circulo" title="Círculo / Esfera">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"></circle></svg>
+      </button>
+      <button type="button" class="forma-btn" data-forma="quadrado" title="Quadrado / Cubo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14"></rect></svg>
+      </button>
+    </div>
+    <button type="button" id="btn_cursor_toggle" title="Mostrar meu cursor pros jogadores" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51z"></path>
       </svg>
     </button>
   </div>
@@ -184,6 +271,38 @@
       <button type="button" id="btn_enviar_msg">Enviar</button>
     </div>
   </div>
+
+  <div class="painel-dados" id="painel_iniciativa">
+    <div class="cab">
+      <span>Iniciativa</span>
+      <button type="button" id="btn_fechar_iniciativa">✕</button>
+    </div>
+    <div class="log-rolagens" id="lista_iniciativa">
+      <div class="log-vazio">Ninguém na lista ainda.</div>
+    </div>
+    <div class="form-rolagem" id="form_add_iniciativa" style="display:none;">
+      <input type="text" id="in_nome_iniciativa" placeholder="Nome" style="flex:2;">
+      <input type="number" id="in_valor_iniciativa" placeholder="Valor" style="flex:1; min-width:0;">
+      <button type="button" id="btn_add_iniciativa">+</button>
+    </div>
+    <div class="form-rolagem" id="controles_iniciativa" style="display:none;">
+      <button type="button" id="btn_iniciativa_avancar" style="flex:1;">Avançar vez</button>
+      <button type="button" id="btn_iniciativa_limpar" style="flex:1; background:#a32020;">Limpar</button>
+    </div>
+  </div>
+
+  <div class="painel-dados" id="painel_mapas">
+    <div class="cab">
+      <span>Mapas</span>
+      <button type="button" id="btn_fechar_mapas">✕</button>
+    </div>
+    <div class="form-rolagem">
+      <button type="button" id="btn_novo_mapa" style="flex:1;">+ Novo mapa</button>
+    </div>
+    <div class="log-rolagens" id="lista_mapas">
+      <div class="log-vazio">Nenhum mapa salvo ainda.</div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -207,6 +326,14 @@ let pingsAtivos = [];
 let animandoPings = false;
 let cursorMestre = null;
 let ultimoEnvioCursorMs = 0;
+let meuCor = "#f1c40f";
+let compartilharCursor = false;
+let iniciativaOrdem = [];
+let iniciativaAtual = 0;
+let modoMedir = false;
+let formaSelecionada = "linha"; // "linha" | "cone" | "circulo" | "quadrado"
+let formaAtiva = null;
+const METROS_POR_CASA = 1.5;
 
 function souMestreDaSala(){
   return !!salaAtual && salaAtual.mestre_id === meuId;
@@ -231,8 +358,11 @@ async function iniciar(){
   if(!sess.session){ location.href = "index.html"; return; }
   meuId = sess.session.user.id;
 
-  const { data: perfil } = await sb.from("perfis").select("nome").eq("id", meuId).single();
+  const { data: perfil } = await sb.from("perfis").select("nome, cor").eq("id", meuId).single();
   meuNome = (perfil && perfil.nome) || sess.session.user.email || "Jogador";
+  meuCor = (perfil && perfil.cor) || "#f1c40f";
+  document.getElementById("btn_cor_ping").style.background = meuCor;
+  document.getElementById("input_cor_ping").value = meuCor;
 
   const { data: sala, error: errSala } = await sb.from("salas").select("*").eq("id", salaId).single();
   if(errSala || !sala){
@@ -243,10 +373,14 @@ async function iniciar(){
   salaAtual = sala;
   document.getElementById("nome_sala").textContent = sala.nome;
   if(sala.mestre_id === meuId){
-    document.getElementById("btn_trocar_mapa").style.display = "inline-block";
     document.getElementById("btn_add_token").style.display = "inline-block";
+    document.getElementById("grid_ajuste").style.display = "flex";
+    document.getElementById("btn_mapas_toggle").style.display = "inline-flex";
     document.getElementById("btn_fog_revelar").style.display = "inline-block";
     document.getElementById("btn_fog_esconder").style.display = "inline-block";
+    document.getElementById("btn_cursor_toggle").style.display = "inline-flex";
+    document.getElementById("form_add_iniciativa").style.display = "flex";
+    document.getElementById("controles_iniciativa").style.display = "flex";
   }
 
   if(sala.cena_ativa){
@@ -255,6 +389,7 @@ async function iniciar(){
   }
   if(cenaAtual) await carregarTokens();
   await carregarFog();
+  await carregarIniciativa();
   await carregarFeed();
   atualizarSub();
   prepararCanvas();
@@ -265,6 +400,8 @@ async function iniciar(){
 
 function atualizarSub(){
   document.getElementById("sub_sala").textContent = cenaAtual ? cenaAtual.nome : "Nenhuma cena ativa";
+  const inGrid = document.getElementById("in_grid_px");
+  if(inGrid) inGrid.value = cenaAtual ? (cenaAtual.grid_px || 70) : 70;
 }
 
 /* ===== Canvas: mapa + zoom + pan ===== */
@@ -290,6 +427,13 @@ function prepararCanvas(){
 
     const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
 
+    if(modoMedir){
+      const mapX0 = (cx - cam.x) / cam.escala, mapY0 = (cy - cam.y) / cam.escala;
+      formaAtiva = { x0: mapX0, y0: mapY0, x1: mapX0, y1: mapY0 };
+      palco.setPointerCapture(e.pointerId);
+      return;
+    }
+
     if(modoPing || espacoPressionado){
       const mapX = (cx - cam.x) / cam.escala;
       const mapY = (cy - cam.y) / cam.escala;
@@ -314,13 +458,19 @@ function prepararCanvas(){
   palco.addEventListener("pointermove", (e) => {
     const rect = palco.getBoundingClientRect();
     const cx0 = e.clientX - rect.left, cy0 = e.clientY - rect.top;
-    if(souMestreDaSala()){
+    if(souMestreDaSala() && compartilharCursor){
       enviarCursorMestre((cx0 - cam.x) / cam.escala, (cy0 - cam.y) / cam.escala);
     }
 
     if(selecaoFog){
       selecaoFog.x1 = cx0;
       selecaoFog.y1 = cy0;
+      desenhar();
+      return;
+    }
+    if(formaAtiva){
+      formaAtiva.x1 = (cx0 - cam.x) / cam.escala;
+      formaAtiva.y1 = (cy0 - cam.y) / cam.escala;
       desenhar();
       return;
     }
@@ -340,6 +490,11 @@ function prepararCanvas(){
   });
 
   function soltar(e){
+    if(formaAtiva){
+      formaAtiva = null;
+      desenhar();
+      return;
+    }
     if(selecaoFog){
       aplicarSelecaoFog();
       selecaoFog = null;
@@ -427,6 +582,7 @@ function desenhar(){
   desenharSelecaoFog();
   desenharPings();
   desenharCursorMestre();
+  desenharFormaMedicao();
 }
 
 function desenharGrid(){
@@ -677,12 +833,12 @@ document.getElementById("btn_fog_esconder").addEventListener("click", () => setM
 /* ===== Pings e cursor do mestre ===== */
 
 function dispararPing(mapX, mapY){
-  adicionarPing(mapX, mapY);
-  if(canal) canal.send({ type: "broadcast", event: "ping", payload: { x: mapX, y: mapY } });
+  adicionarPing(mapX, mapY, meuCor);
+  if(canal) canal.send({ type: "broadcast", event: "ping", payload: { x: mapX, y: mapY, cor: meuCor } });
 }
 
-function adicionarPing(mapX, mapY){
-  pingsAtivos.push({ x: mapX, y: mapY, inicio: Date.now() });
+function adicionarPing(mapX, mapY, cor){
+  pingsAtivos.push({ x: mapX, y: mapY, inicio: Date.now(), cor: cor || "#f1c40f" });
   if(!animandoPings){
     animandoPings = true;
     requestAnimationFrame(loopPings);
@@ -700,6 +856,15 @@ function loopPings(){
   }
 }
 
+function hexParaRgba(hex, alpha){
+  let h = (hex || "#f1c40f").replace("#", "");
+  if(h.length === 3) h = h.split("").map(c => c + c).join("");
+  const r = parseInt(h.substring(0, 2), 16) || 0;
+  const g = parseInt(h.substring(2, 4), 16) || 0;
+  const b = parseInt(h.substring(4, 6), 16) || 0;
+  return "rgba(" + r + "," + g + "," + b + "," + alpha.toFixed(2) + ")";
+}
+
 function desenharPings(){
   if(!pingsAtivos.length) return;
   const agora = Date.now();
@@ -710,12 +875,12 @@ function desenharPings(){
     const raio = 10 + t * 46;
     ctx.beginPath();
     ctx.arc(sx, sy, raio, 0, Math.PI * 2);
-    ctx.strokeStyle = "rgba(241,196,15," + (1 - t).toFixed(2) + ")";
+    ctx.strokeStyle = hexParaRgba(p.cor, 1 - t);
     ctx.lineWidth = 3;
     ctx.stroke();
     ctx.beginPath();
     ctx.arc(sx, sy, 4, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(241,196,15," + (1 - t * 0.5).toFixed(2) + ")";
+    ctx.fillStyle = hexParaRgba(p.cor, 1 - t * 0.5);
     ctx.fill();
   });
 }
@@ -744,9 +909,196 @@ function desenharCursorMestre(){
   ctx.fillText("Mestre", sx, sy - 11);
 }
 
+function desenharFormaMedicao(){
+  if(!formaAtiva) return;
+  const gridPx = cenaAtual ? (cenaAtual.grid_px || 70) : 70;
+  const dx = formaAtiva.x1 - formaAtiva.x0, dy = formaAtiva.y1 - formaAtiva.y0;
+  const distPx = Math.hypot(dx, dy);
+  const casas = distPx / gridPx;
+  const metros = casas * METROS_POR_CASA;
+
+  const s0x = cam.x + formaAtiva.x0 * cam.escala, s0y = cam.y + formaAtiva.y0 * cam.escala;
+  const s1x = cam.x + formaAtiva.x1 * cam.escala, s1y = cam.y + formaAtiva.y1 * cam.escala;
+
+  ctx.save();
+  ctx.fillStyle = "rgba(15,76,156,0.22)";
+  ctx.strokeStyle = "#0f4c9c";
+  ctx.lineWidth = 2;
+
+  let rotulo = casas.toFixed(1) + " casas (~" + metros.toFixed(1) + "m)";
+
+  if(formaSelecionada === "linha"){
+    ctx.setLineDash([6, 5]);
+    ctx.beginPath();
+    ctx.moveTo(s0x, s0y);
+    ctx.lineTo(s1x, s1y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    [[s0x, s0y], [s1x, s1y]].forEach(([px, py]) => {
+      ctx.beginPath();
+      ctx.arc(px, py, 4, 0, Math.PI * 2);
+      ctx.fillStyle = "#0f4c9c";
+      ctx.fill();
+    });
+  } else if(formaSelecionada === "circulo"){
+    const raioTela = distPx * cam.escala;
+    ctx.beginPath();
+    ctx.arc(s0x, s0y, raioTela, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    rotulo = "raio " + rotulo;
+  } else if(formaSelecionada === "quadrado"){
+    const lado = Math.max(Math.abs(dx), Math.abs(dy));
+    const ladoTela = lado * cam.escala;
+    const sinalX = dx < 0 ? -1 : 1, sinalY = dy < 0 ? -1 : 1;
+    ctx.beginPath();
+    ctx.rect(s0x, s0y, ladoTela * sinalX, ladoTela * sinalY);
+    ctx.fill();
+    ctx.stroke();
+    const casasLado = lado / gridPx;
+    rotulo = casasLado.toFixed(1) + " casas de lado (~" + (casasLado * METROS_POR_CASA).toFixed(1) + "m)";
+  } else if(formaSelecionada === "cone"){
+    const anguloBase = Math.atan2(dy, dx);
+    const abertura = (55 * Math.PI / 180) / 2;
+    const comp = distPx * cam.escala;
+    ctx.beginPath();
+    ctx.moveTo(s0x, s0y);
+    ctx.arc(s0x, s0y, comp, anguloBase - abertura, anguloBase + abertura);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  const mx = (s0x + s1x) / 2, my = (s0y + s1y) / 2;
+  ctx.font = "700 12px Inter, Arial, sans-serif";
+  const largura = ctx.measureText(rotulo).width;
+  ctx.fillStyle = "rgba(15,76,156,0.92)";
+  ctx.fillRect(mx - largura / 2 - 6, my - 22, largura + 12, 20);
+  ctx.fillStyle = "#fff";
+  ctx.textAlign = "center";
+  ctx.fillText(rotulo, mx, my - 8);
+}
+
+document.getElementById("btn_medir_toggle").addEventListener("click", () => {
+  modoMedir = !modoMedir;
+  document.getElementById("btn_medir_toggle").classList.toggle("ativo", modoMedir);
+  document.getElementById("submenu_formas").style.display = modoMedir ? "flex" : "none";
+});
+
+document.querySelectorAll(".forma-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    formaSelecionada = btn.dataset.forma;
+    document.querySelectorAll(".forma-btn").forEach(b => b.classList.remove("selecionada"));
+    btn.classList.add("selecionada");
+  });
+});
+
 document.getElementById("btn_ping_toggle").addEventListener("click", () => {
   modoPing = !modoPing;
   document.getElementById("btn_ping_toggle").classList.toggle("ativo", modoPing);
+});
+
+document.getElementById("btn_cor_ping").addEventListener("click", () => {
+  document.getElementById("input_cor_ping").click();
+});
+document.getElementById("input_cor_ping").addEventListener("input", (e) => {
+  meuCor = e.target.value;
+  document.getElementById("btn_cor_ping").style.background = meuCor;
+});
+document.getElementById("input_cor_ping").addEventListener("change", async (e) => {
+  const { error } = await sb.from("perfis").update({ cor: e.target.value }).eq("id", meuId);
+  if(error) console.error(error);
+});
+
+document.getElementById("btn_cursor_toggle").addEventListener("click", () => {
+  compartilharCursor = !compartilharCursor;
+  document.getElementById("btn_cursor_toggle").classList.toggle("ativo", compartilharCursor);
+  if(!compartilharCursor && canal){
+    canal.send({ type: "broadcast", event: "cursor_mestre_limpar", payload: {} });
+  }
+});
+
+/* ===== Iniciativa ===== */
+
+async function carregarIniciativa(){
+  const { data } = await sb.from("iniciativa").select("*").eq("sala_id", salaId).single();
+  iniciativaOrdem = (data && Array.isArray(data.ordem)) ? data.ordem : [];
+  iniciativaAtual = (data && typeof data.atual === "number") ? data.atual : 0;
+  renderizarIniciativa();
+}
+
+async function salvarIniciativa(){
+  const { error } = await sb.from("iniciativa")
+    .upsert({ sala_id: salaId, ordem: iniciativaOrdem, atual: iniciativaAtual }, { onConflict: "sala_id" });
+  if(error) alert("Não foi possível salvar a iniciativa: " + error.message);
+}
+
+function renderizarIniciativa(){
+  const area = document.getElementById("lista_iniciativa");
+  if(!iniciativaOrdem.length){ area.innerHTML = '<div class="log-vazio">Ninguém na lista ainda.</div>'; return; }
+  area.innerHTML = iniciativaOrdem.map((item, i) => {
+    const ehAtual = i === iniciativaAtual;
+    return '<div class="item-iniciativa' + (ehAtual ? " atual" : "") + '" data-idx="' + i + '">' +
+      '<span class="pos">' + (i + 1) + 'º</span>' +
+      '<span class="nome">' + escapeHtml(item.nome) + '</span>' +
+      '<span class="valor">' + item.valor + '</span>' +
+      (souMestreDaSala() ? '<button type="button" class="remover-iniciativa" data-idx="' + i + '">✕</button>' : '') +
+    '</div>';
+  }).join("");
+
+  if(souMestreDaSala()){
+    area.querySelectorAll(".remover-iniciativa").forEach(btn => {
+      btn.addEventListener("click", () => removerIniciativa(parseInt(btn.dataset.idx, 10)));
+    });
+  }
+}
+
+function ordenarIniciativa(){
+  let atualRef = iniciativaOrdem[iniciativaAtual];
+  iniciativaOrdem.sort((a, b) => b.valor - a.valor);
+  if(atualRef){
+    const novoIdx = iniciativaOrdem.indexOf(atualRef);
+    iniciativaAtual = novoIdx >= 0 ? novoIdx : 0;
+  }
+}
+
+document.getElementById("btn_add_iniciativa").addEventListener("click", async () => {
+  const inNome = document.getElementById("in_nome_iniciativa");
+  const inValor = document.getElementById("in_valor_iniciativa");
+  const nome = inNome.value.trim();
+  const valor = parseInt(inValor.value, 10);
+  if(!nome || isNaN(valor)) return;
+
+  iniciativaOrdem.push({ nome, valor });
+  ordenarIniciativa();
+  renderizarIniciativa();
+  await salvarIniciativa();
+  inNome.value = "";
+  inValor.value = "";
+  inNome.focus();
+});
+
+async function removerIniciativa(idx){
+  iniciativaOrdem.splice(idx, 1);
+  if(iniciativaAtual >= iniciativaOrdem.length) iniciativaAtual = 0;
+  renderizarIniciativa();
+  await salvarIniciativa();
+}
+
+document.getElementById("btn_iniciativa_avancar").addEventListener("click", async () => {
+  if(!iniciativaOrdem.length) return;
+  iniciativaAtual = (iniciativaAtual + 1) % iniciativaOrdem.length;
+  renderizarIniciativa();
+  await salvarIniciativa();
+});
+
+document.getElementById("btn_iniciativa_limpar").addEventListener("click", async () => {
+  if(!confirm("Limpar toda a lista de iniciativa?")) return;
+  iniciativaOrdem = [];
+  iniciativaAtual = 0;
+  renderizarIniciativa();
+  await salvarIniciativa();
 });
 
 /* ===== Dados (rolagens) + Chat (mensagens), num feed único ===== */
@@ -794,8 +1146,22 @@ function renderizarFeed(){
     const nome = nomesCache[ev.user_id] || "Jogador";
     if(ev.tipo === "rolagem"){
       const total = (ev.resultado && ev.resultado.total != null) ? ev.resultado.total : "?";
-      return '<div class="log-item"><span class="quem">' + escapeHtml(nome) + '</span> rolou ' +
-        '<span class="formula">' + escapeHtml(ev.formula) + '</span> → <span class="total">' + total + '</span></div>';
+      const listaDados = (ev.resultado && Array.isArray(ev.resultado.dados)) ? ev.resultado.dados : null;
+      const mod = (ev.resultado && ev.resultado.modificador) ? ev.resultado.modificador : 0;
+
+      let visual = "";
+      if(listaDados && listaDados.length){
+        visual = '<div class="dados-visual">' +
+          listaDados.map(d => '<span class="dado-cubo">' + d + '</span>').join("") +
+          (mod ? '<span class="modificador">' + (mod > 0 ? "+" : "") + mod + '</span>' : "") +
+          '</div>';
+      }
+
+      return '<div class="log-item">' +
+        '<span class="quem">' + escapeHtml(nome) + '</span> rolou <span class="formula">' + escapeHtml(ev.formula) + '</span>' +
+        visual +
+        '<span class="total">= ' + total + '</span>' +
+      '</div>';
     }
     return '<div class="log-item mensagem"><span class="quem">' + escapeHtml(nome) + ':</span> ' +
       '<span class="texto">' + escapeHtml(ev.texto) + '</span></div>';
@@ -824,13 +1190,40 @@ async function enviarMensagem(texto){
   if(error) alert("Não foi possível enviar a mensagem: " + error.message);
 }
 
+function togglePainel(painelId, btnId){
+  const painel = document.getElementById(painelId);
+  const abrindo = !painel.classList.contains("aberto");
+  document.querySelectorAll(".painel-dados").forEach(p => p.classList.remove("aberto"));
+  document.querySelectorAll(".btn-painel").forEach(b => b.classList.remove("ativo"));
+  if(abrindo){
+    painel.classList.add("aberto");
+    document.getElementById(btnId).classList.add("ativo");
+  }
+}
+
 document.getElementById("btn_dados_toggle").addEventListener("click", () => {
-  document.getElementById("painel_dados").classList.add("aberto");
-  document.getElementById("btn_dados_toggle").classList.add("ativo");
+  togglePainel("painel_dados", "btn_dados_toggle");
 });
 document.getElementById("btn_fechar_dados").addEventListener("click", () => {
   document.getElementById("painel_dados").classList.remove("aberto");
   document.getElementById("btn_dados_toggle").classList.remove("ativo");
+});
+
+document.getElementById("btn_iniciativa_toggle").addEventListener("click", () => {
+  togglePainel("painel_iniciativa", "btn_iniciativa_toggle");
+});
+document.getElementById("btn_fechar_iniciativa").addEventListener("click", () => {
+  document.getElementById("painel_iniciativa").classList.remove("aberto");
+  document.getElementById("btn_iniciativa_toggle").classList.remove("ativo");
+});
+
+document.getElementById("btn_mapas_toggle").addEventListener("click", () => {
+  togglePainel("painel_mapas", "btn_mapas_toggle");
+  carregarListaMapas();
+});
+document.getElementById("btn_fechar_mapas").addEventListener("click", () => {
+  document.getElementById("painel_mapas").classList.remove("aberto");
+  document.getElementById("btn_mapas_toggle").classList.remove("ativo");
 });
 document.getElementById("btn_enviar_msg").addEventListener("click", () => {
   const input = document.getElementById("in_mensagem");
@@ -844,9 +1237,24 @@ document.querySelectorAll(".atalhos button").forEach(btn => {
   btn.addEventListener("click", () => rolarFormula(btn.dataset.f));
 });
 
-/* ===== Mestre: trocar mapa ===== */
+/* ===== Mestre: ajustar tamanho do grid ===== */
 
-document.getElementById("btn_trocar_mapa").addEventListener("click", () => {
+let timerGrid = null;
+document.getElementById("in_grid_px").addEventListener("input", (e) => {
+  const val = parseInt(e.target.value, 10);
+  if(!cenaAtual || isNaN(val) || val < 10) return;
+  cenaAtual.grid_px = val;
+  desenhar();
+  clearTimeout(timerGrid);
+  timerGrid = setTimeout(async () => {
+    const { error } = await sb.from("cenas").update({ grid_px: val }).eq("id", cenaAtual.id);
+    if(error) console.error(error);
+  }, 500);
+});
+
+/* ===== Mestre: banco de mapas ===== */
+
+document.getElementById("btn_novo_mapa").addEventListener("click", () => {
   document.getElementById("input_mapa").click();
 });
 
@@ -855,7 +1263,10 @@ document.getElementById("input_mapa").addEventListener("change", async (e) => {
   e.target.value = "";
   if(!arquivo) return;
 
-  const btn = document.getElementById("btn_trocar_mapa");
+  const nomeMapa = prompt("Nome desse mapa:", "Novo mapa");
+  if(nomeMapa == null) return;
+
+  const btn = document.getElementById("btn_novo_mapa");
   btn.disabled = true;
   btn.textContent = "Enviando…";
 
@@ -866,33 +1277,65 @@ document.getElementById("input_mapa").addEventListener("change", async (e) => {
     const { error: errUpload } = await sb.storage.from("mapas").upload(caminho, arquivo, { upsert: false });
     if(errUpload) throw errUpload;
 
-    if(cenaAtual){
-      /* já existe cena ativa: só troca a imagem dela */
-      const { error: errUpdate } = await sb.from("cenas").update({ mapa_url: caminho }).eq("id", cenaAtual.id);
-      if(errUpdate) throw errUpdate;
-      cenaAtual.mapa_url = caminho;
-    } else {
-      /* primeira cena da sala */
-      const { data: novaCena, error: errCena } = await sb.from("cenas")
-        .insert({ sala_id: salaId, nome: "Cena 1", mapa_url: caminho })
-        .select("*").single();
-      if(errCena) throw errCena;
-      cenaAtual = novaCena;
+    const { data: novaCena, error: errCena } = await sb.from("cenas")
+      .insert({ sala_id: salaId, nome: nomeMapa.trim() || "Mapa sem nome", mapa_url: caminho })
+      .select("*").single();
+    if(errCena) throw errCena;
 
-      const { error: errSala } = await sb.from("salas").update({ cena_ativa: novaCena.id }).eq("id", salaId);
-      if(errSala) throw errSala;
-      salaAtual.cena_ativa = novaCena.id;
-    }
+    const { error: errSala } = await sb.from("salas").update({ cena_ativa: novaCena.id }).eq("id", salaId);
+    if(errSala) throw errSala;
 
+    cenaAtual = novaCena;
+    salaAtual.cena_ativa = novaCena.id;
+    await carregarTokens();
+    await carregarFog();
     atualizarSub();
     carregarMapa();
+    carregarListaMapas();
   }catch(err){
-    alert("Não foi possível trocar o mapa: " + err.message);
+    alert("Não foi possível subir o mapa: " + err.message);
   }finally{
     btn.disabled = false;
-    btn.textContent = "Trocar mapa";
+    btn.textContent = "+ Novo mapa";
   }
 });
+
+async function carregarListaMapas(){
+  const area = document.getElementById("lista_mapas");
+  const { data: cenas, error } = await sb.from("cenas").select("id, nome").eq("sala_id", salaId).order("criado_em", { ascending:true });
+  if(error){ area.innerHTML = '<div class="log-vazio">Erro ao carregar: ' + escapeHtml(error.message) + '</div>'; return; }
+  if(!cenas || !cenas.length){ area.innerHTML = '<div class="log-vazio">Nenhum mapa salvo ainda.</div>'; return; }
+
+  area.innerHTML = cenas.map(c => {
+    const ehAtivo = cenaAtual && c.id === cenaAtual.id;
+    return '<div class="item-mapa' + (ehAtivo ? " ativo" : "") + '" data-id="' + c.id + '">' +
+      '<span class="nome-mapa">' + escapeHtml(c.nome) + '</span>' +
+      (ehAtivo
+        ? '<span class="tag-ativo">Ativo</span>'
+        : '<button type="button" class="ativar-mapa" data-id="' + c.id + '">Ativar</button>') +
+      '<button type="button" class="apagar-mapa" data-id="' + c.id + '" title="Apagar mapa">✕</button>' +
+    '</div>';
+  }).join("");
+
+  area.querySelectorAll(".ativar-mapa").forEach(btn => {
+    btn.addEventListener("click", () => ativarMapa(btn.dataset.id));
+  });
+  area.querySelectorAll(".apagar-mapa").forEach(btn => {
+    btn.addEventListener("click", () => apagarMapa(btn.dataset.id));
+  });
+}
+
+async function ativarMapa(cenaId){
+  const { error } = await sb.from("salas").update({ cena_ativa: cenaId }).eq("id", salaId);
+  if(error) alert("Não foi possível ativar esse mapa: " + error.message);
+}
+
+async function apagarMapa(cenaId){
+  if(!confirm("Apagar este mapa? Os tokens e a névoa dele também serão apagados.")) return;
+  const { error } = await sb.from("cenas").delete().eq("id", cenaId);
+  if(error){ alert("Não foi possível apagar: " + error.message); return; }
+  carregarListaMapas();
+}
 
 /* ===== Presença (Supabase Realtime) ===== */
 
@@ -906,31 +1349,67 @@ function conectarPresenca(){
     renderizarPresenca(estado);
   });
 
-  /* troca de cena ativa na sala (ex.: mestre trocou de mapa/cena) */
+  /* troca de cena ativa na sala (ex.: mestre trocou de mapa/cena, ou apagou a cena ativa) */
   canal.on("postgres_changes",
     { event: "UPDATE", schema: "public", table: "salas", filter: "id=eq." + salaId },
     async (payload) => {
       salaAtual = payload.new;
-      if(salaAtual.cena_ativa && salaAtual.cena_ativa !== (cenaAtual && cenaAtual.id)){
-        const { data: cena } = await sb.from("cenas").select("*").eq("id", salaAtual.cena_ativa).single();
-        cenaAtual = cena || null;
-        await carregarTokens();
-        await carregarFog();
+      if(salaAtual.cena_ativa){
+        if(salaAtual.cena_ativa !== (cenaAtual && cenaAtual.id)){
+          const { data: cena } = await sb.from("cenas").select("*").eq("id", salaAtual.cena_ativa).single();
+          cenaAtual = cena || null;
+          await carregarTokens();
+          await carregarFog();
+          atualizarSub();
+          carregarMapa();
+        }
+      } else if(cenaAtual){
+        cenaAtual = null;
+        tokensAtuais = [];
+        fogRevelado = new Set();
         atualizarSub();
         carregarMapa();
       }
+      if(document.getElementById("painel_mapas").classList.contains("aberto")) carregarListaMapas();
     }
   );
 
-  /* a própria cena ativa foi atualizada (ex.: trocou a imagem do mapa) */
+  /* a própria cena ativa foi atualizada (ex.: trocou a imagem, ou só o grid mudou) */
   canal.on("postgres_changes",
     { event: "UPDATE", schema: "public", table: "cenas", filter: "sala_id=eq." + salaId },
     (payload) => {
       if(cenaAtual && payload.new.id === cenaAtual.id){
+        const mapaMudou = payload.new.mapa_url !== cenaAtual.mapa_url;
         cenaAtual = payload.new;
         atualizarSub();
-        carregarMapa();
+        if(mapaMudou) carregarMapa(); else desenhar();
       }
+      if(document.getElementById("painel_mapas").classList.contains("aberto")) carregarListaMapas();
+    }
+  );
+
+  /* lista de mapas: novo mapa criado ou apagado por outra aba/pessoa */
+  canal.on("postgres_changes",
+    { event: "INSERT", schema: "public", table: "cenas", filter: "sala_id=eq." + salaId },
+    () => { if(document.getElementById("painel_mapas").classList.contains("aberto")) carregarListaMapas(); }
+  );
+  canal.on("postgres_changes",
+    { event: "DELETE", schema: "public", table: "cenas", filter: "sala_id=eq." + salaId },
+    () => { if(document.getElementById("painel_mapas").classList.contains("aberto")) carregarListaMapas(); }
+  );
+
+  /* iniciativa da sala */
+  canal.on("postgres_changes",
+    { event: "*", schema: "public", table: "iniciativa", filter: "sala_id=eq." + salaId },
+    (payload) => {
+      if(payload.new){
+        iniciativaOrdem = Array.isArray(payload.new.ordem) ? payload.new.ordem : [];
+        iniciativaAtual = typeof payload.new.atual === "number" ? payload.new.atual : 0;
+      } else {
+        iniciativaOrdem = [];
+        iniciativaAtual = 0;
+      }
+      renderizarIniciativa();
     }
   );
 
@@ -954,12 +1433,16 @@ function conectarPresenca(){
 
   /* ping no mapa (efêmero, não grava no banco) */
   canal.on("broadcast", { event: "ping" }, (msg) => {
-    adicionarPing(msg.payload.x, msg.payload.y);
+    adicionarPing(msg.payload.x, msg.payload.y, msg.payload.cor);
   });
 
   /* cursor do mestre, só pros jogadores (efêmero) */
   canal.on("broadcast", { event: "cursor_mestre" }, (msg) => {
     cursorMestre = { x: msg.payload.x, y: msg.payload.y };
+    desenhar();
+  });
+  canal.on("broadcast", { event: "cursor_mestre_limpar" }, () => {
+    cursorMestre = null;
     desenhar();
   });
 
