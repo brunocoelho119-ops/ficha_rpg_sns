@@ -1221,28 +1221,32 @@ async function carregarDaNuvem(){
   }catch(e){ console.error(e); alert("Falha ao conectar na nuvem."); return false; }
 }
 
-/* ===== Sala vinculada: liga esta ficha a uma sala do VTT, pra rolagens de 🎲 aparecerem no log da mesa ===== */
+/* ===== Sala vinculada: liga esta ficha a uma sala do VTT, pra rolagens de 🎲 aparecerem no log da mesa.
+   Só o MESTRE define isso (ele organiza a mesa) — o dono da ficha só vê, não edita. ===== */
+function _escSala(s){
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 async function popularSeletorSala(){
   const sel = document.getElementById("ft_sala");
   if(!sel) return;
   try{
-    const { data: minhasSalas } = await sb.from("salas").select("id, nome").eq("mestre_id", _meuUserId);
-    const { data: membrosLinhas } = await sb.from("sala_membros").select("sala_id").eq("user_id", _meuUserId);
+    const opcoes = {};
 
-    const salasPorId = {};
-    (minhasSalas || []).forEach(s => { salasPorId[s.id] = s.nome; });
+    if(_souMestre){
+      const { data: minhasSalas } = await sb.from("salas").select("id, nome").eq("mestre_id", _meuUserId);
+      (minhasSalas || []).forEach(s => { opcoes[s.id] = s.nome; });
+    }
 
-    const idsMembro = (membrosLinhas || []).map(m => m.sala_id).filter(id => !(id in salasPorId));
-    if(idsMembro.length){
-      const { data: salasMembro } = await sb.from("salas").select("id, nome").in("id", idsMembro);
-      (salasMembro || []).forEach(s => { salasPorId[s.id] = s.nome; });
+    if(_salaVinculada && !(_salaVinculada in opcoes)){
+      const { data: salaLigada } = await sb.from("salas").select("id, nome").eq("id", _salaVinculada).single();
+      if(salaLigada) opcoes[salaLigada.id] = salaLigada.nome;
     }
 
     sel.innerHTML = '<option value="">— nenhuma sala —</option>' +
-      Object.keys(salasPorId).map(id => '<option value="' + id + '">' + escapeHtml(salasPorId[id]) + '</option>').join("");
+      Object.keys(opcoes).map(id => '<option value="' + id + '">' + _escSala(opcoes[id]) + '</option>').join("");
     sel.value = _salaVinculada || "";
 
-    if(_souDono){
+    if(_souMestre){
       sel.addEventListener("change", async () => {
         const novoId = sel.value || null;
         const { error } = await sb.from("fichas").update({ sala_id: novoId }).eq("id", FICHA_ID);
