@@ -21,6 +21,8 @@
     --input-bg:#fbf4de;       /* input creme claro */
     --input-border:#d8c69c;
     --accent:#8e3b2a;         /* selo vermelho-tijolo (destaques) */
+    --bonus:#1f8b3a;          /* verde — bônus */
+    --penal:#c62828;          /* vermelho claro — penalidade (distinto do sépia) */
     --calc-bg:#ecdfb4;        /* campo calculado (tom dourado sutil) */
     --shadow: 0 1px 3px rgba(70,52,24,0.12), 0 8px 20px rgba(70,52,24,0.10);
     --shadow-sm: 0 1px 2px rgba(70,52,24,0.10);
@@ -245,7 +247,7 @@
     box-shadow:0 10px 30px rgba(10,12,16,.34), 0 2px 6px rgba(10,12,16,.24);
     pointer-events:none; opacity:0; transform:translateY(4px) scale(.98);
     transition:opacity .13s ease, transform .13s ease; will-change:transform,opacity;
-    white-space:normal; overflow-wrap:anywhere;
+    white-space:pre-line; overflow-wrap:anywhere;
   }
   #tip.show{ opacity:1; transform:translateY(0) scale(1); }
   #tip .tip-arrow{
@@ -422,6 +424,12 @@
     color:#fff; border-radius:8px; padding:7px 10px; font-size:13px; font-weight:700; font-family:var(--font-body);
   }
   .ficha-topbar .ft-nome::placeholder{ color:rgba(255,255,255,0.6); }
+  .ficha-topbar .ft-sala{
+    background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25);
+    color:#fff; border-radius:8px; padding:7px 8px; font-size:12px; font-weight:700;
+    font-family:var(--font-body); max-width:150px; flex-shrink:0;
+  }
+  .ficha-topbar .ft-sala option{ color:#1a1a1a; }
   .ficha-topbar .ft-status{ font-size:11px; color:rgba(255,255,255,0.65); font-weight:600; white-space:nowrap; }
   .ficha-topbar .ft-sair{
     background:transparent; border:1px solid rgba(255,255,255,0.35); color:#fff; border-radius:999px;
@@ -559,6 +567,29 @@
   .calc-acoes{ white-space:nowrap; text-align:center; }
   .roll-btn{ cursor:pointer; font-size:14px; margin-right:5px; user-select:none; vertical-align:middle; }
   .roll-btn:hover{ filter:brightness(1.15); }
+  .dtable input.usar-nome{ cursor:pointer; color:var(--accent) !important; text-decoration:underline; text-decoration-style:dotted; text-underline-offset:2px; }
+  .dtable input.usar-nome:hover{ background:var(--calc-bg) !important; }
+  /* nomes que rolam dado viram botão (e escondemos os 🎲 — o clique no nome dispara a rolagem) */
+  .test-roll{ display:none !important; }
+  .rolavel-nome, .attr-name, .hc-name, .pr-name{
+    cursor:pointer; border:1px solid var(--border-strong); border-radius:6px;
+    background:var(--gray-light); box-shadow:var(--shadow-sm); padding:3px 7px;
+    transition:background .12s ease, border-color .12s ease, box-shadow .12s ease, transform .08s ease;
+  }
+  .rolavel-nome:hover, .attr-name:hover, .hc-name:hover, .pr-name:hover{
+    background:var(--calc-bg); border-color:var(--bar-bg); box-shadow:0 1px 4px rgba(60,45,20,.18);
+  }
+  .rolavel-nome:active, .attr-name:active, .hc-name:active, .pr-name:active{ transform:translateY(1px); }
+  /* Iniciativa (regra separada por causa do :has, pra não invalidar as de cima em navegadores antigos) */
+  .stats-combate-cell:has(.sc-roll) .sc-name{
+    cursor:pointer; border:1px solid var(--border-strong); border-radius:6px;
+    background:var(--gray-light); box-shadow:var(--shadow-sm); padding:3px 7px;
+    transition:background .12s ease, border-color .12s ease, box-shadow .12s ease, transform .08s ease;
+  }
+  .stats-combate-cell:has(.sc-roll) .sc-name:hover{ background:var(--calc-bg); border-color:var(--bar-bg); box-shadow:0 1px 4px rgba(60,45,20,.18); }
+  .stats-combate-cell:has(.sc-roll) .sc-name:active{ transform:translateY(1px); }
+  .mod-bonus, .hc-total.mod-bonus, .auto.mod-bonus, input.mod-bonus{ color:var(--bonus) !important; font-weight:800; }
+  .mod-penal, .hc-total.mod-penal, .auto.mod-penal, input.mod-penal{ color:var(--penal) !important; font-weight:800; }
   /* toggle CC/CD (define o atributo do Dano Base da arma) */
   .mode-toggle{ display:inline-flex; vertical-align:middle; margin-right:6px; border:1px solid var(--border-strong); border-radius:6px; overflow:hidden; }
   .mode-seg{ font-family:var(--font-display); font-weight:700; font-size:9.5px; letter-spacing:.03em; line-height:1; padding:3px 5px; cursor:pointer; border:none; background:var(--input-bg); color:var(--gray-text); }
@@ -664,6 +695,7 @@
 <div class="ficha-topbar" id="ficha_topbar" style="display:none;">
   <a href="home.html" class="ft-voltar">← Minhas Fichas</a>
   <input type="text" id="ft_nome_ficha" class="ft-nome" placeholder="Nome da ficha" spellcheck="false">
+  <select id="ft_sala" class="ft-sala" title="Sala vinculada — rolagens de 🎲 também aparecem no log da mesa"></select>
   <span class="ft-status" id="ft_status"></span>
   <button type="button" class="ft-sair" id="ft_sair">Sair</button>
 </div>
@@ -827,6 +859,20 @@
 
   <div class="bar" style="margin-top:12px;">Condições Prejudiciais <span class="pt-counter" id="cond_ativas_count"></span></div>
   <div class="cond-box" id="cond_box"></div>
+  <div class="bar" style="margin-top:12px;">Sob efeito de veneno <span class="pt-counter" id="ven_count"></span></div>
+  <div class="cond-box" id="veneno_wrap" style="display:block;">
+    <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+      <select id="veneno_sel" class="modal-select" style="flex:1; min-width:0;"></select>
+      <button type="button" class="btn-add-row" id="veneno_add" style="margin:0; width:auto; white-space:nowrap; flex:0 0 auto;">Marcar veneno</button>
+    </div>
+    <div id="venenos_ativos" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+    <div class="rl-nota" style="margin-top:6px;">Marcar um veneno que te atingiu dispara a condição ligada a ele (quando houver). Penalidades de atributo específico (Força no dano, Percepção etc.) ficam no texto, pra aplicar na mão. Usar um veneno num inimigo não ativa nada em você.</div>
+  </div>
+  <div class="bar" style="margin-top:12px;">Buffs ativos em armas <span class="pt-counter" id="buff_count"></span></div>
+  <div class="cond-box" id="buff_wrap" style="display:block;">
+    <div id="buffs_ativos" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+    <div class="rl-nota" style="margin-top:6px;">Efeitos de suporte (como o Energizar) aparecem aqui quando você usa: somam o dano na arma escolhida automaticamente. Remova no × quando o efeito acabar.</div>
+  </div>
 
   <div class="footer-logo">Shinobi no Sho</div>
 </div>
@@ -899,7 +945,7 @@
         <div class="d8-cell lbl" data-grau="0">Falha</div><div class="d8-cell lbl" data-grau="1">Grau 1</div><div class="d8-cell lbl" data-grau="2">Grau 2</div><div class="d8-cell lbl" data-grau="3">Grau 3</div><div class="d8-cell lbl" data-grau="4">Grau 4</div>
       </div>
       <div class="d8-result" id="d8_result">Clique no 🎲 de uma linha de dano para rolar.</div>
-      <button class="btn-add-row" id="btn_abrir_rolagem" style="margin-top:10px; width:100%;">🎲 Rolar Ação (Ataque / Defesa)</button>
+      <button class="btn-add-row" id="btn_abrir_rolagem" style="margin-top:10px; width:100%;">🎲 Rolar Ação (Defesa / Manobra)</button>
     </div>
     <div style="flex:1;">
       <div class="bar">Calculadora de Dano — Ataques Armados / Desarmado</div>
@@ -992,6 +1038,33 @@
 </div>
 
 <!-- ================= MODAL ROLAGEM DE AÇÃO (Ataque / Defesa) ================= -->
+<div class="modal-overlay" id="usar_overlay">
+  <div class="modal-card">
+    <div class="modal-head" id="usar_head">🎲 Usar</div>
+    <div class="modal-body">
+      <div class="rl-group" id="usar_grp_nivel" style="display:none;">
+        <label class="rl-label">Nível de uso do poder (Dano Base = nível + ½ Espírito + elemento)</label>
+        <div class="rl-segs" id="usar_niveis" style="flex-wrap:wrap;"></div>
+      </div>
+      <div class="rl-group" id="usar_grp_cccd" style="display:none;">
+        <label class="rl-label">Como vai usar (define a habilidade do teste de acerto)</label>
+        <div class="rl-segs" id="usar_cccd">
+          <button type="button" class="rl-seg active" data-val="CC">CC — corpo / toque</button>
+          <button type="button" class="rl-seg" data-val="CD">CD — à distância</button>
+        </div>
+      </div>
+      <div class="rl-group" id="usar_grp_arma" style="display:none;">
+        <label class="rl-label">Aplicar o bônus em qual arma?</label>
+        <select class="modal-select" id="usar_arma"></select>
+      </div>
+      <div class="rl-resultado" id="usar_nota">Clique em Rolar para usar.</div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px;">
+        <button class="modal-btn" id="usar_fechar">Fechar</button>
+        <button class="modal-btn primary" id="usar_rolar">🎲 Rolar</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="rolagem_overlay">
   <div class="modal-card">
     <div class="modal-head">🎲 Rolagem de Ação</div>
@@ -1000,8 +1073,8 @@
       <div class="rl-group">
         <label class="rl-label">Tipo da Ação</label>
         <div class="rl-segs" id="rl_acao">
-          <button type="button" class="rl-seg active" data-val="ataque">Ataque</button>
-          <button type="button" class="rl-seg" data-val="defesa">Defesa</button>
+          <button type="button" class="rl-seg active" data-val="defesa">Defesa</button>
+          <button type="button" class="rl-seg" data-val="manobra">Manobra</button>
         </div>
       </div>
 
@@ -1106,6 +1179,7 @@ let _nuvemTimer = null;
 
 let _minhaFichaOwnerId = null, _meuUserId = null;
 let _souMestre = false, _souDono = true, _notasMestre = "", _modoEdicao = true;
+let _salaVinculada = null;
 
 async function carregarDaNuvem(){
   try{
@@ -1114,11 +1188,12 @@ async function carregarDaNuvem(){
     _meuUserId = sess.session.user.id;
     if(!FICHA_ID){ location.href = "home.html"; return false; }
 
-    const { data, error } = await sb.from("fichas").select("dados, nome, user_id").eq("id", FICHA_ID).single();
+    const { data, error } = await sb.from("fichas").select("dados, nome, user_id, sala_id").eq("id", FICHA_ID).single();
     if(error){ alert("Erro ao carregar a ficha: " + error.message); location.href = "home.html"; return false; }
 
     _minhaFichaOwnerId = data.user_id;
     _souDono = (_meuUserId === _minhaFichaOwnerId);
+    _salaVinculada = data.sala_id || null;
     /* papel do usuário logado (tabela perfis: role = 'mestre' | 'player') */
     try{
       const { data: perfil } = await sb.from("perfis").select("role").eq("id", _meuUserId).single();
@@ -1141,8 +1216,39 @@ async function carregarDaNuvem(){
     const inNome = document.getElementById("ft_nome_ficha");
     if(barra){ barra.style.display = "flex"; }
     if(inNome){ inNome.value = data.nome || ""; }
+    await popularSeletorSala();
     return true;
   }catch(e){ console.error(e); alert("Falha ao conectar na nuvem."); return false; }
+}
+
+/* ===== Sala vinculada: liga esta ficha a uma sala do VTT, pra rolagens de 🎲 aparecerem no log da mesa ===== */
+async function popularSeletorSala(){
+  const sel = document.getElementById("ft_sala");
+  if(!sel) return;
+
+  const [{ data: minhasSalas }, { data: membresias }] = await Promise.all([
+    sb.from("salas").select("id, nome").eq("mestre_id", _meuUserId),
+    sb.from("sala_membros").select("sala_id, salas(id, nome)").eq("user_id", _meuUserId)
+  ]);
+
+  const salasPorId = {};
+  (minhasSalas || []).forEach(s => { salasPorId[s.id] = s.nome; });
+  (membresias || []).forEach(m => { if(m.salas) salasPorId[m.salas.id] = m.salas.nome; });
+
+  sel.innerHTML = '<option value="">— nenhuma sala —</option>' +
+    Object.keys(salasPorId).map(id => '<option value="' + id + '">' + escapeHtml(salasPorId[id]) + '</option>').join("");
+  sel.value = _salaVinculada || "";
+
+  if(_souDono){
+    sel.addEventListener("change", async () => {
+      const novoId = sel.value || null;
+      const { error } = await sb.from("fichas").update({ sala_id: novoId }).eq("id", FICHA_ID);
+      if(error){ alert("Não foi possível vincular a sala: " + error.message); return; }
+      _salaVinculada = novoId;
+    });
+  } else {
+    sel.disabled = true;
+  }
 }
 function salvarNomeFichaNaNuvem(nome){
   if(!NUVEM_ATIVA || typeof sb === "undefined" || !FICHA_ID) return;
@@ -1525,14 +1631,30 @@ const SEED_DB = {
     {nome:"Kuchiyose no Jutsu (Invocação)", poder:"Kuchiyose", nivel:3, tipo:"Técnica", custo:"", dano:"", descricao:""}
   ],
   venenos: [
-    {categoria:"Categoria 0", prereq:"Venefício 4", difFabricacao:12, difTeste:"9 + ½ Venefício", nota:"Grátis, materiais fáceis de achar — dá pra fazer de improviso."},
-    {categoria:"Categoria 1", prereq:"Venefício 6", difFabricacao:14, difTeste:"10 + ½ Venefício", nota:"Custo por dose ~3 Ryo."},
-    {categoria:"Categoria 2", prereq:"Venefício 8", difFabricacao:16, difTeste:"11 + ½ Venefício", nota:""},
-    {categoria:"Categoria 3", prereq:"Venefício 10", difFabricacao:18, difTeste:"12 + ½ Venefício", nota:""},
-    {categoria:"Categoria 4", prereq:"Venefício 12", difFabricacao:20, difTeste:"13 + ½ Venefício", nota:""},
-    {categoria:"Categoria 5", prereq:"Venefício 14", difFabricacao:22, difTeste:"14 + ½ Venefício", nota:""},
-    {categoria:"Categoria 6", prereq:"Venefício 16", difFabricacao:24, difTeste:"15 + ½ Venefício", nota:""},
-    {categoria:"Categoria Especial", prereq:"Venefício 20 (só via Hijutsu Dokujutsu)", difFabricacao:30, difTeste:"Dif. de Dokujutsu", nota:"Só produzível por quem tem o Hijutsu Dokujutsu."}
+    {nome:"Veneno de Coceira", categoria:"0", prereq:"Venefício 4", contagio:"Toque", difTeste:"9 + ½ Venefício", condicao:"", efeito:"Debilitado -1 em testes de Agilidade e perícias relacionadas (Acrobacia, Escapar, Furtividade) por 1h ou até ser tratado."},
+    {nome:"Veneno Laxante", categoria:"0", prereq:"Venefício 4", contagio:"Ingestão", difTeste:"9 + ½ Venefício", condicao:"", efeito:"Diarreia intensa por 2 dias; -1 de precisão em testes sociais enquanto durar."},
+    {nome:"Veneno Urticante", categoria:"0", prereq:"Venefício 4", contagio:"Toque", difTeste:"9 + ½ Venefício", condicao:"", efeito:"Vermelhidão e inchaço pelo corpo; -1 de precisão em todos os testes sociais por 8h ou até ser tratado."},
+    {nome:"Veneno de Inflamação Nasal", categoria:"0", prereq:"Dokujutsu 1", contagio:"Inalação", difTeste:"9 + ½ Venefício", condicao:"", efeito:"Vias aéreas inflamadas; -1 de precisão em testes contra sufocamento por 1h ou até ser tratado."},
+    {nome:"Sonífero Menor", categoria:"1", prereq:"Venefício 6", contagio:"Ingestão", difTeste:"10 + ½ Venefício", condicao:"", efeito:"Fica inconsciente se falhar 6 testes de resistência antes de 3 sucessos; sono de até 2h (acorda com dano ou movimento brusco/barulho)."},
+    {nome:"Veneno Enfraquecedor Menor", categoria:"1", prereq:"Venefício 6", contagio:"Ingestão ou Corrente Sanguínea", difTeste:"10 + ½ Venefício", condicao:"", efeito:"Força Debilitada -1 e -2 de Força nos cálculos de dano por 2h."},
+    {nome:"Sonífero", categoria:"2", prereq:"Venefício 8", contagio:"Ingestão ou Corrente Sanguínea", difTeste:"11 + ½ Venefício", condicao:"", efeito:"Debilitado -1 em LM, Percepção e perícias relacionadas; inconsciente se falhar 5 testes; sono de até 2h."},
+    {nome:"Veneno Debilitante Menor", categoria:"2", prereq:"Venefício 8", contagio:"Ingestão, Inalação, Toque ou Corrente Sanguínea", difTeste:"11 + ½ Venefício", condicao:"debilitado", efeito:"Debilitado -1 em qualquer teste (exceto testes de resistência) por 4h."},
+    {nome:"Veneno de Embriaguês", categoria:"2", prereq:"Venefício 8", contagio:"Ingestão ou Inalação", difTeste:"11 + ½ Venefício", condicao:"", efeito:"-2 nas jogadas para resistir a testes sociais por 4h (efeito social)."},
+    {nome:"Veneno Ocular Menor", categoria:"2", prereq:"Venefício 8", contagio:"Toque", difTeste:"11 + ½ Venefício", condicao:"ofuscado", efeito:"Fica Ofuscado e Debilitado -2 em Percepção (e perícias de visão) por 2h."},
+    {nome:"Veneno de Tontura", categoria:"2", prereq:"Dokujutsu 3", contagio:"Corrente Sanguínea", difTeste:"11 + ½ Venefício", condicao:"", efeito:"Inteligência Debilitada -1 e Concentração Debilitada -1 por 4h."},
+    {nome:"Veneno Alucinógeno Menor", categoria:"3", prereq:"Venefício 10", contagio:"Ingestão, Inalação ou Corrente Sanguínea", difTeste:"12 + ½ Venefício", condicao:"confuso", efeito:"Alucinações e perda de controle das ações; fica Confuso até passar em 3 testes de resistência."},
+    {nome:"Veneno Enfraquecedor", categoria:"3", prereq:"Venefício 10", contagio:"Ingestão ou Corrente Sanguínea", difTeste:"12 + ½ Venefício", condicao:"", efeito:"Força Debilitada -2 e -4 de Força nos cálculos de dano por 4h."},
+    {nome:"Veneno Letárgico", categoria:"3", prereq:"Venefício 10", contagio:"Toque ou Corrente Sanguínea", difTeste:"12 + ½ Venefício", condicao:"fatigado", efeito:"Dor forte, mal-estar e cansaço; fica Fatigado por 4h."},
+    {nome:"Veneno de Interrogatório", categoria:"4", prereq:"Venefício 12", contagio:"Ingestão ou Inalação", difTeste:"13 + ½ Venefício", condicao:"", efeito:"-3 em testes de resistência para jogadas sociais (retira senso de perigo e inibição)."},
+    {nome:"Veneno Paralisante", categoria:"4", prereq:"Venefício 12", contagio:"Corrente Sanguínea", difTeste:"13 + ½ Venefício", condicao:"tonto", efeito:"Dor forte, mal-estar e cansaço; fica Tonto por 4h."},
+    {nome:"Sonífero Superior", categoria:"5", prereq:"Venefício 14", contagio:"Ingestão, Inalação ou Corrente Sanguínea", difTeste:"14 + ½ Venefício", condicao:"", efeito:"Debilitado -2 em LM, Percepção e perícias relacionadas; inconsciente se falhar 4 testes; sono pesado de até 2h."},
+    {nome:"Veneno Alucinógeno", categoria:"5", prereq:"Venefício 14", contagio:"Ingestão, Inalação ou Corrente Sanguínea", difTeste:"14 + ½ Venefício", condicao:"confuso", efeito:"Inteligência e Percepção Debilitada -2 por 8h e fica Confuso até passar em 3 testes de resistência."},
+    {nome:"Veneno Debilitante", categoria:"5", prereq:"Venefício 14", contagio:"Ingestão, Inalação, Toque ou Corrente Sanguínea", difTeste:"14 + ½ Venefício", condicao:"debilitado", efeito:"Debilitado -2 em qualquer teste (exceto testes de resistência) por 8h."},
+    {nome:"Veneno Ocular", categoria:"5", prereq:"Dokujutsu 6", contagio:"Toque", difTeste:"14 + ½ Venefício", condicao:"", efeito:"50% de chance de falha em ataques e Percepção Debilitada -4 (visão) por 4h."},
+    {nome:"Veneno Debilitante Superior", categoria:"6", prereq:"Venefício 16", contagio:"Ingestão, Inalação, Toque ou Corrente Sanguínea", difTeste:"15 + ½ Venefício", condicao:"exausto", efeito:"Muita dor e fraqueza no corpo; fica Exausto até ser tratado."},
+    {nome:"Veneno Enfraquecedor Superior", categoria:"6", prereq:"Venefício 16", contagio:"Ingestão ou Corrente Sanguínea", difTeste:"15 + ½ Venefício", condicao:"", efeito:"Força Debilitada -3, Vigor Debilitado -2 (exceto testes de resistência) e -6 de Força nos cálculos de dano, até ser tratado."},
+    {nome:"Veneno Ocular Superior", categoria:"6", prereq:"Venefício 16", contagio:"Toque", difTeste:"15 + ½ Venefício", condicao:"cego", efeito:"Derretimento da córnea; fica Cego até ser tratado."},
+    {nome:"Morte Rubra", categoria:"Especial", prereq:"Dokujutsu 10", contagio:"Corrente Sanguínea", difTeste:"Dif. de Dokujutsu", condicao:"debilitado", efeito:"Debilitado -3 em todos os testes por 1h; a cada falha na resistência perde 15 de Vitalidade; após 3 falhas fica Paralisado (caído), no turno seguinte Inconsciente e Vitalidade a 0; morre em 3 dias se não tratado."}
   ],
   elementos: {
     "Doton":  {permitidos:["Canhão","Orbe","Raio","Restringente","Barreira","Energizar","Criar Arma","Segurar","Coluna","Flechas","Lança","Sopro Destrutivo","Ricochete","Nuvem","Algemar","Míssil","Onda Explosiva","Selar Chakra"], bonusDano:0, modificador:"Permite todos os efeitos de Ninpou."},
@@ -1902,6 +2024,7 @@ function criarJutsuCard(jid){
     '<div class="jutsu-field"><span>Ação:</span><input class="half jf-acao"><span>Nível:</span><input class="jf-nivel" style="width:40px;flex:none;"></div>' +
     '<div class="jutsu-field"><span>Alvo:</span><input class="half jf-alvo"><span>Dano:</span><input class="jf-dano"></div>' +
     '<div class="jutsu-field"><span>Alcance:</span><input class="jf-alcance"></div>' +
+    '<div class="jutsu-field"><span>Modo:</span><select class="jf-modo"><option value="CC">CC (corpo/toque)</option><option value="CD">CD (à distância)</option><option value="CCCD">CC · CD (escolhe ao usar)</option><option value="SUPORTE">Suporte (buff numa arma, sem dano)</option><option value="PESSOAL">Pessoal (sem acerto)</option></select></div>' +
     '<div class="jutsu-field"><span>Duração:</span><input class="jf-duracao"></div>' +
     '<div class="jutsu-field"><span>Efeitos:</span><input class="jf-efeitos"></div>' +
     '<div class="jutsu-field"><span>Custo de Chakra:</span><input class="jf-custo"></div>' +
@@ -1913,7 +2036,7 @@ function criarLinhaCalcJutsu(jid){
   const tbody = document.getElementById("calc_jutsu_rows");
   const tr = document.createElement("tr");
   if(jid) tr.dataset.jid = jid;
-  const cj = celInput(""); cj.querySelector("input").className = "cj-jutsu col-nome"; cj.className = "td-nome"; tr.appendChild(cj);   // Jutsu
+  const cj = celInput(""); const cji = cj.querySelector("input"); cji.className = "cj-jutsu col-nome usar-nome"; cji.readOnly = true; cj.className = "td-nome"; tr.appendChild(cj);   // Jutsu
   const cc = celInput(""); cc.querySelector("input").className = "cj-custo"; tr.appendChild(cc);   // Custo
   const cn = celInput(""); cn.querySelector("input").className = "cj-nv"; tr.appendChild(cn);      // Nv. Usado do Poder
   const cd = celInput(""); cd.querySelector("input").className = "cj-dureza calc-ro"; cd.querySelector("input").readOnly = true; tr.appendChild(cd);  // Dureza
@@ -2093,6 +2216,7 @@ function syncJutsuCalc(card){
   const cc = row.querySelector(".cj-custo"); if(cc && custo) cc.value = custo.value;
   const cn = row.querySelector(".cj-nv"); if(cn && nv) cn.value = nv.value;
   if(poder) row.dataset.poder = poderBaseKey(poder.value);
+  const _jm = card.querySelector(".jf-modo"); if(_jm) row.dataset.jmodo = _jm.value;
   recalc();
 }
 function preencherEfeitoNoJutsu(card, it){
@@ -2105,6 +2229,7 @@ function preencherEfeitoNoJutsu(card, it){
   set(".jf-acao", it.acao);
   set(".jf-alvo", it.alvo);
   set(".jf-alcance", it.alcance);
+  const _md = card.querySelector(".jf-modo"); if(_md) _md.value = modoDoAlcance(it.alcance, it.alvo);
   set(".jf-duracao", it.duracao);
   const desc = card.querySelector(".jf-desc"); if(desc) desc.value = it.descricao || "";
   syncJutsuCalc(card);
@@ -2217,6 +2342,58 @@ function bonusPericias(){
   });
   return b;
 }
+/* Coleta TODOS os modificadores (bônus e penalidades) com a ORIGEM de cada um,
+   para o cálculo e para a notificação visual. Chaves: CC/CD/ESQ/LM/iniciativa/
+   reacao/vit/chakra (combate/derivados) e normNome(perícia) para perícias. */
+const ATRIBUTOS_LISTA = ["Força","Destreza","Agilidade","Percepção","Inteligência","Vigor","Espírito"];
+function chaveAtributo(s){ const n = normNome(s); return ATRIBUTOS_LISTA.find(a => normNome(a) === n) || null; }
+function coletarMods(){
+  const mods = {};
+  const add = (k, valor, fonte) => { if(!k || !valor) return; (mods[k] = mods[k] || []).push({ valor: valor, fonte: fonte }); };
+  document.querySelectorAll("#apt_rows tr").forEach(tr => {
+    if(tr.dataset.cond === "1") return;
+    const nomeEl = tr.querySelector(".apt-nome");
+    if(nomeEl && APT_CONDICIONAIS.has(normNome(nomeEl.value))) return;
+    const alvoEl = tr.querySelector(".apt-alvo"), valEl = tr.querySelector(".apt-valor");
+    if(alvoEl && valEl && String(valEl.value).trim() !== ""){
+      const _fnt = (nomeEl && nomeEl.value.trim()) || "Aptidão";
+      const _alvo = normalizaAlvo(alvoEl.value);
+      if(_alvo) add(_alvo, num(valEl.value), _fnt);
+      else { const _at = chaveAtributo(alvoEl.value); if(_at) add(_at, num(valEl.value), _fnt); }
+    }
+    const escEl = tr.querySelector(".apt-escolha");
+    if(nomeEl && escEl && normNome(nomeEl.value) === "perito" && normNome(escEl.value)){
+      add(normNome(escEl.value), 2, "Perito");
+    }
+  });
+  document.querySelectorAll(".cond-check").forEach(chk => {
+    if(!chk.checked) return;
+    const p = (typeof CONDICOES_PEN !== "undefined") ? CONDICOES_PEN[chk.dataset.cond] : null;
+    if(!p) return;
+    const nome = (typeof condNomePorK === "function") ? (condNomePorK(chk.dataset.cond) || chk.dataset.cond) : chk.dataset.cond;
+    for(const k in p) add(k, p[k], nome);
+  });
+  return mods;
+}
+/* Aplica a notificação visual num elemento: verde se bônus líquido, vermelho se
+   penalidade; tooltip com o total e cada origem (soma ao texto base, se houver). */
+function marcarMod(el, lista, baseTitle){
+  if(!el) return;
+  el.classList.remove("mod-bonus", "mod-penal");
+  const base = baseTitle || "";
+  if(!lista || !lista.length){
+    if(base){ el.title = base; el.setAttribute("data-tip", base); }
+    else { el.removeAttribute("title"); el.removeAttribute("data-tip"); }
+    return;
+  }
+  const net = lista.reduce((s, m) => s + m.valor, 0);
+  if(net > 0) el.classList.add("mod-bonus");
+  else if(net < 0) el.classList.add("mod-penal");
+  const linhas = lista.map(m => (m.valor > 0 ? "+" : "") + m.valor + " (" + m.fonte + ")").join("\n");
+  const cab = (net > 0 ? "Bônus" : (net < 0 ? "Penalidade" : "Modificadores")) + " total " + (net > 0 ? "+" : "") + net + ":";
+  const txt = (base ? base + "\n" : "") + cab + "\n" + linhas;
+  el.title = txt; el.setAttribute("data-tip", txt);
+}
 
 /* Regras Sociais Revisadas — Yin e Yang (Guia Avançado do Shinobi p.90-95).
    Ações = Yin/Yang + ½ Atributo. Quando o Guia oferece "Atributo A ou B", o
@@ -2244,8 +2421,9 @@ function setCounter(id, gasto, total, nota){
 
 function recalc(){
   const c = DB.calc;
-  const bonus = bonusDasAptidoes();
-  const perBonus = bonusPericias();
+  const mods = coletarMods();
+  const bonus = {};
+  for(const _k in mods) bonus[_k] = mods[_k].reduce((s, m) => s + m.valor, 0);
   let compsUsados = 0, compGanhos = 0;
   document.querySelectorAll("#item_grid .item-card").forEach(card => {
     const e = card.querySelector(".if-comp"); const t = e ? e.value : "";
@@ -2253,6 +2431,10 @@ function recalc(){
   });
   const compCapacidade = 3 + compGanhos;
   const compExcesso = Math.max(0, compsUsados - compCapacidade);   // acima da capacidade gera penalidade
+  if(compExcesso > 0){
+    ["CC","CD","ESQ","LM"].forEach(k => { (mods[k] = mods[k] || []).push({ valor: -compExcesso, fonte: "Excesso de compartimentos" }); });
+  }
+  document.querySelectorAll(".attr-val").forEach(el => { marcarMod(el, mods[el.dataset.attr], ""); });
   periTotais = {};
   document.querySelectorAll(".per-row").forEach(row => {
     const nome = row.dataset.peri;
@@ -2266,8 +2448,10 @@ function recalc(){
     const treinadaSo = nome.indexOf("*") !== -1;   // perícias com * só existem se treinadas
     let total;
     if(treinadaSo && pts <= 0) total = 0;
-    else total = pts + metadeCima(attrVal(CODE2ATTR[row.dataset.attr])) + outro + (perBonus[normNome(nome)]||0);
-    row.querySelector(".pr-total").value = total;
+    else total = pts + metadeCima(attrVal(CODE2ATTR[row.dataset.attr])) + outro + (bonus[normNome(nome)]||0);
+    const _pt = row.querySelector(".pr-total");
+    _pt.value = total;
+    marcarMod(_pt, mods[normNome(nome)], "");
     periTotais[nome] = total;
   });
   let esqTotal = 0;
@@ -2278,7 +2462,10 @@ function recalc(){
     /* Acuidade: Combate Corporal passa a usar Destreza (afeta acerto, dano e bloqueio) */
     const atrRow = (_acu && row.dataset.cod === "CC") ? "Destreza" : row.dataset.attr;
     const total = base + attrVal(atrRow) + outro + (bonus[row.dataset.cod] || 0) - compExcesso;
-    row.querySelector(".hc-total").textContent = total;
+    const _tot = row.querySelector(".hc-total");
+    _tot.textContent = total;
+    const _baseHC = (row.dataset.cod === "CC" && _acu) ? "Acuidade: Combate Corporal usa Destreza" : "";
+    marcarMod(_tot, mods[row.dataset.cod], _baseHC);
     if(row.dataset.cod === "CC"){
       const tag = row.querySelector(".attr-tag");
       if(tag){ tag.textContent = SIGLAS[atrRow] || atrRow; tag.title = atrRow + (_acu ? " (Acuidade)" : ""); }
@@ -2287,23 +2474,40 @@ function recalc(){
   });
   const ncEl = document.getElementById("in_nc");
   const NC = ncEl ? num(ncEl.value) : 0;
-  setAuto(document.querySelector('.auto[data-calc="vit"]'), c.vitBase + c.vitVigor*attrVal("Vigor") + c.vitNC*NC + (bonus.vit||0));
-  setAuto(document.querySelector('.auto[data-calc="chakra"]'), c.chakraBase + c.chakraEsp*attrVal("Espírito") + (bonus.chakra||0));
-  setAuto(document.querySelector('.auto[data-calc="iniciativa"]'), (periTotais["Prontidão"]||0) + attrVal("Agilidade") + (bonus.iniciativa||0));
-  setAuto(document.querySelector('.auto[data-calc="reacao"]'), esqTotal + c.reacaoConst + (bonus.reacao||0));
+  const _vitEl = document.querySelector('.auto[data-calc="vit"]');
+  setAuto(_vitEl, c.vitBase + c.vitVigor*attrVal("Vigor") + c.vitNC*NC + (bonus.vit||0));
+  marcarMod(_vitEl, mods.vit, "");
+  const _chaEl = document.querySelector('.auto[data-calc="chakra"]');
+  setAuto(_chaEl, c.chakraBase + c.chakraEsp*attrVal("Espírito") + (bonus.chakra||0));
+  marcarMod(_chaEl, mods.chakra, "");
+  const _iniEl = document.querySelector('.auto[data-calc="iniciativa"]');
+  setAuto(_iniEl, (periTotais["Prontidão"]||0) + attrVal("Agilidade") + (bonus.iniciativa||0));
+  marcarMod(_iniEl, mods.iniciativa, "Iniciativa = Prontidão + Agilidade");
+  const _reaEl = document.querySelector('.auto[data-calc="reacao"]');
+  setAuto(_reaEl, esqTotal + c.reacaoConst + (bonus.reacao||0));
+  marcarMod(_reaEl, mods.reacao, "Reação de Esquiva = Esquiva + 9");
   /* Absorção: soma da(s) armadura(s) marcada(s) como Equipada no Inventário (Básico p.136) */
-  let absEquip = 0;
+  let absEquip = 0; const _absFontes = [];
   document.querySelectorAll("#item_grid .item-card").forEach(card => {
     const eq = card.querySelector(".if-equip");
-    if(eq && eq.checked){ const a = card.querySelector(".if-absorcao"); absEquip += num(a ? a.value : 0); }
+    if(eq && eq.checked){ const a = card.querySelector(".if-absorcao"); const _v = num(a ? a.value : 0); absEquip += _v; _absFontes.push({ valor:_v, fonte:(card.querySelector(".if-nome")||{}).value || "Armadura" }); }
   });
-  setAuto(document.querySelector('.auto[data-calc="absorcao"]'), absEquip);
+  const _absEl = document.querySelector('.auto[data-calc="absorcao"]');
+  setAuto(_absEl, absEquip);
+  if(_absEl){
+    const _linAbs = _absFontes.length ? _absFontes.map(f => "+" + f.valor + " (" + f.fonte + ")").join("\n") : "Nenhuma armadura equipada.";
+    const _tAbs = "Absorção das armaduras equipadas:\n" + _linAbs;
+    _absEl.title = _tAbs; _absEl.setAttribute("data-tip", _tAbs);
+  }
   /* Dureza de corpo: parcela passiva da aptidão Resiliência = ⌊Vigor/4⌋ (Básico p.150/274).
      Situacionais (Pele de Pedra, modos) ficam por conta do jogador — digite por cima. */
   const temResiliencia = Array.from(document.querySelectorAll("#apt_rows .apt-nome")).some(i => normNome(i.value) === "resiliencia");
   setAuto(document.querySelector('.auto[data-calc="dureza"]'), temResiliencia ? Math.floor(attrVal("Vigor")/4) : 0);
   const desloc = document.querySelector('.auto[data-calc="desloc"]');
   if(desloc && desloc.dataset.over !== "1"){ desloc.value = (c.deslocBase + Math.ceil(attrVal("Agilidade")/c.deslocDiv) + (bonus.desloc||0) - compExcesso*3) + "m"; }
+  const _mDesl = (mods.desloc || []).slice();
+  if(compExcesso > 0) _mDesl.push({ valor: -compExcesso*3, fonte: "Excesso de compartimentos (metros)" });
+  marcarMod(desloc, _mDesl.length ? _mDesl : null, "Deslocamento = 10m + Agilidade/2");
   document.querySelectorAll('.auto[data-social]').forEach(el => {
     if(el.dataset.over === "1") return;
     const def = SOCIAIS[el.dataset.social]; if(!def) return;
@@ -2355,7 +2559,12 @@ function recalc(){
     const elem = (DB.elementos[poder] && num(DB.elementos[poder].bonusDano)) || 0;
     const dur = tr.querySelector(".cj-dureza"); if(dur) dur.value = dbase;
     const del = tr.querySelector(".cj-delem"); if(del) del.value = elem;
-    const db = tr.querySelector(".cj-dbase"); if(db) db.value = dbase;
+    const db = tr.querySelector(".cj-dbase");
+    if(db){
+      db.value = dbase;
+      const _tj = "Dano Base = Nível usado (" + num(nvEl.value) + ") + ½ Espírito (" + metadeCima(esp) + ")" + (elem ? " · Dano elemental +" + elem + " (coluna à parte)" : "");
+      db.title = _tj; db.setAttribute("data-tip", _tj);
+    }
   });
   /* Arma: Dano Base = ½ atributo (arred. p/ cima) + dano da arma; nunca negativo (Básico p.257) */
   document.querySelectorAll("#calc_armado_rows tr").forEach(tr => {
@@ -2366,7 +2575,11 @@ function recalc(){
     tr.querySelectorAll(".mode-seg").forEach(s => s.classList.toggle("active", s.dataset.modo === modo));
     const atr = atributoDanoPorModo(modo);   // CD->Destreza; CC->Forca (Destreza c/ Acuidade)
     tr.dataset.atrdano = atr;
-    dbEl.value = Math.max(0, metadeCima(attrVal(atr)) + num(danoEl ? danoEl.value : 0));
+    const _danoArma = num(danoEl ? danoEl.value : 0);
+    const _buffArma = (typeof buffDaArma === "function") ? buffDaArma(tr) : 0;
+    dbEl.value = Math.max(0, metadeCima(attrVal(atr)) + _danoArma + _buffArma);
+    const _tw = "Dano Base = ½ " + atr + " (" + metadeCima(attrVal(atr)) + ") + Dano da arma (" + _danoArma + ")";
+    marcarMod(dbEl, _buffArma ? [{ valor:_buffArma, fonte:"Buff em arma" }] : null, _tw);
   });
 
   /* ---- Inventário: Dano Base de cada item-arma (mesma fórmula da Calculadora de Dano) ---- */
@@ -2375,7 +2588,10 @@ function recalc(){
     const danoEl = card.querySelector(".if-dano");
     const atr = atributoDanoPorModo(modoPadraoArma(card.dataset.uso));
     card.dataset.atrdano = atr;
-    dbEl.value = Math.max(0, metadeCima(attrVal(atr)) + num(danoEl ? danoEl.value : 0));
+    const _danoInv = num(danoEl ? danoEl.value : 0);
+    dbEl.value = Math.max(0, metadeCima(attrVal(atr)) + _danoInv);
+    const _tinv = "Dano Base = ½ " + atr + " (" + metadeCima(attrVal(atr)) + ") + Dano da arma (" + _danoInv + ")";
+    dbEl.title = _tinv; dbEl.setAttribute("data-tip", _tinv);
     const ptEl = card.querySelector(".if-peso-total");
     if(ptEl){ const q = num((card.querySelector(".if-qtd")||{}).value), p = num((card.querySelector(".if-peso")||{}).value); ptEl.value = +(q * p).toFixed(2); }
   });
@@ -2445,6 +2661,29 @@ function renderCondicoes(){
     chk.addEventListener("change", () => { atualizarCondicoesAtivas(); agendarSalvar(); });
   });
 }
+/* Penalidades automatizáveis por condição (Básico — Condições de Combate).
+   Chaves: CC/CD = ataque, ESQ = defesa, iniciativa. As condições situacionais
+   (Caído vs à distância, Flanqueado, Cego, Confuso etc.) seguem só como aviso. */
+const CONDICOES_PEN = {
+  debilitado:   { CC:-1, CD:-1, ESQ:-1 },
+  caido:        { CC:-3 },
+  desprevenido: { ESQ:-3 },
+  exausto:      { CC:-3, CD:-3, ESQ:-3 },
+  fatigado:     { CC:-1, CD:-1, ESQ:-1 },
+  fintado:      { ESQ:-2 },
+  impedido:     { CC:-1, CD:-1, ESQ:-1 },
+  ofuscado:     { CC:-1, CD:-1 },
+  surdo:        { iniciativa:-3 }
+};
+function bonusDasCondicoes(){
+  const b = {};
+  document.querySelectorAll(".cond-check").forEach(chk => {
+    if(!chk.checked) return;
+    const p = CONDICOES_PEN[chk.dataset.cond];
+    if(p) for(const k in p) b[k] = (b[k]||0) + p[k];
+  });
+  return b;
+}
 function atualizarCondicoesAtivas(){
   let n = 0;
   document.querySelectorAll(".cond-check").forEach(chk => {
@@ -2453,8 +2692,93 @@ function atualizarCondicoesAtivas(){
   });
   const cont = document.getElementById("cond_ativas_count");
   if(cont) cont.textContent = n > 0 ? (n + " ativa" + (n>1?"s":"")) : "";
+  if(typeof recalc === "function") recalc();
 }
 renderCondicoes();
+function condNomePorK(k){ const c = CONDICOES.find(x => x.k === k); return c ? c.nome : ""; }
+function popularVenenoSelect(){
+  const sel = document.getElementById("veneno_sel"); if(!sel) return;
+  sel.innerHTML = (DB.venenos||[]).map((v,i) => '<option value="' + i + '">' + escapeHtml("Cat " + v.categoria + " · " + v.nome) + '</option>').join('');
+}
+function chipVenenoHtml(v, i){
+  const cond = v.condicao ? ' <span class="cond-grave">dispara: ' + escapeHtml(condNomePorK(v.condicao)) + '</span>' : '';
+  return '<span class="cond-chip ativa veneno-chip" data-vidx="' + i + '" data-cond="' + escapeAttr(v.condicao||"") + '" title="' + escapeAttr(v.efeito||"") + '">' +
+    '<span class="cond-nome">' + escapeHtml(v.nome) + cond + '</span>' +
+    '<span class="veneno-del" title="Remover veneno" style="cursor:pointer; margin-left:6px; font-weight:800;">×</span></span>';
+}
+function atualizarVenenosAtivos(){
+  const box = document.getElementById("venenos_ativos");
+  const n = box ? box.querySelectorAll(".veneno-chip").length : 0;
+  const c = document.getElementById("ven_count"); if(c) c.textContent = n > 0 ? (n + " ativo" + (n>1?"s":"")) : "";
+}
+function marcarVeneno(){
+  const sel = document.getElementById("veneno_sel"); if(!sel) return;
+  const v = (DB.venenos||[])[num(sel.value)]; if(!v) return;
+  const box = document.getElementById("venenos_ativos"); if(!box) return;
+  box.insertAdjacentHTML("beforeend", chipVenenoHtml(v, num(sel.value)));
+  if(v.condicao){
+    const chk = document.querySelector('.cond-check[data-cond="' + v.condicao + '"]');
+    if(chk){ chk.checked = true; const _chip = chk.closest(".cond-chip"); if(_chip) _chip.classList.add("ativa"); }
+  }
+  atualizarVenenosAtivos();
+atualizarBuffs();
+  if(typeof atualizarCondicoesAtivas === "function") atualizarCondicoesAtivas();
+  if(typeof agendarSalvar === "function") agendarSalvar();
+}
+document.addEventListener("click", (e) => {
+  const del = e.target.closest(".veneno-del"); if(!del) return;
+  const chip = del.closest(".veneno-chip"); if(!chip) return;
+  const cond = chip.dataset.cond;
+  chip.remove();
+  if(cond){ const chk = document.querySelector('.cond-check[data-cond="' + cond + '"]'); if(chk && chk.checked) chk.checked = false; }
+  atualizarVenenosAtivos();
+  if(typeof atualizarCondicoesAtivas === "function") atualizarCondicoesAtivas();
+  if(typeof agendarSalvar === "function") agendarSalvar();
+});
+(function(){ const b = document.getElementById("veneno_add"); if(b) b.addEventListener("click", marcarVeneno); })();
+popularVenenoSelect();
+/* ===== Buffs ativos em armas (Energizar e afins) ===== */
+function adicionarBuff(fonte, valor, arma){
+  const box = document.getElementById("buffs_ativos"); if(!box) return;
+  const t = fonte + ": +" + valor + " de dano em " + arma;
+  box.insertAdjacentHTML("beforeend",
+    '<span class="cond-chip ativa buff-chip mod-bonus" data-arma="' + escapeAttr(arma) + '" data-valor="' + valor + '" title="' + escapeAttr(t) + '" data-tip="' + escapeAttr(t) + '">' +
+    '<span class="cond-nome">' + escapeHtml(fonte) + ' <span class="cond-grave">+' + valor + ' em ' + escapeHtml(arma) + '</span></span>' +
+    '<span class="buff-del" title="Remover buff" style="cursor:pointer; margin-left:6px; font-weight:800;">×</span></span>');
+  atualizarBuffs();
+  if(typeof recalc === "function") recalc();
+  if(typeof agendarSalvar === "function") agendarSalvar();
+}
+function atualizarBuffs(){
+  const box = document.getElementById("buffs_ativos");
+  const n = box ? box.querySelectorAll(".buff-chip").length : 0;
+  const c = document.getElementById("buff_count"); if(c) c.textContent = n > 0 ? (n + " ativo" + (n>1?"s":"")) : "";
+}
+function buffDaArma(tr){
+  if(!tr) return 0;
+  const alvo = normNome((tr.querySelector("td input")||{}).value || "");
+  if(!alvo) return 0;
+  let s = 0;
+  document.querySelectorAll("#buffs_ativos .buff-chip").forEach(ch => { if(normNome(ch.dataset.arma) === alvo) s += num(ch.dataset.valor); });
+  return s;
+}
+document.addEventListener("click", (e) => {
+  /* clicar no NOME de atributo/habilidade/perícia/iniciativa rola como o 🎲 do lado */
+  const _nome = e.target.closest(".attr-name, .hc-name, .pr-name, .sc-name");
+  if(_nome){
+    const _cont = _nome.closest(".attr-badge, .hc-row, .per-row, .stats-combate-cell");
+    const _dado = _cont ? _cont.querySelector(".test-roll") : null;
+    if(_dado){ _dado.click(); return; }
+  }
+});
+document.addEventListener("click", (e) => {
+  const del = e.target.closest(".buff-del"); if(!del) return;
+  const chip = del.closest(".buff-chip"); if(!chip) return;
+  chip.remove();
+  atualizarBuffs();
+  if(typeof recalc === "function") recalc();
+  if(typeof agendarSalvar === "function") agendarSalvar();
+});
 
 function atualizarEstadoVital(){
   const vitEl = document.getElementById("in_vit_atual");
@@ -2690,7 +3014,7 @@ function adicionarLinhaArmado(raw, jid){
   tr.dataset.classe = raw.classe || "";
   tr.dataset.uso = raw.uso || usoPadraoPorClasse(raw.classe);
   tr.dataset.modo = modoPadraoArma(tr.dataset.uso);
-  const cNomeA = celInput(raw.nome||""); cNomeA.querySelector("input").className = "ca-nome col-nome"; cNomeA.className = "td-nome"; tr.appendChild(cNomeA);     // Nome
+  const cNomeA = celInput(raw.nome||""); const cNaI = cNomeA.querySelector("input"); cNaI.className = "ca-nome col-nome usar-nome"; cNaI.readOnly = true; cNomeA.className = "td-nome"; tr.appendChild(cNomeA);     // Nome
   const cD = celInput(raw.dano||""); cD.querySelector("input").className = "ca-dano"; tr.appendChild(cD);  // Dano
   const cB1 = celInput(""); cB1.querySelector("input").className = "ca-bonus"; tr.appendChild(cB1);  // Bônus de Dano (manual)
   tr.appendChild(celInput(raw.alcance||""));  // Alcance
@@ -2708,7 +3032,7 @@ function adicionarLinhaDesarmado(){
   tr.dataset.classe = d.classe || "Base";
   tr.dataset.uso = d.uso || "CC";
   tr.dataset.modo = modoPadraoArma(tr.dataset.uso);
-  const cNomeD = celInput(d.nome); cNomeD.querySelector("input").className = "ca-nome col-nome"; cNomeD.className = "td-nome"; tr.appendChild(cNomeD);
+  const cNomeD = celInput(d.nome); const cNdI = cNomeD.querySelector("input"); cNdI.className = "ca-nome col-nome usar-nome"; cNdI.readOnly = true; cNomeD.className = "td-nome"; tr.appendChild(cNomeD);
   const cD = celInput(d.dano||"+0"); cD.querySelector("input").className = "ca-dano"; tr.appendChild(cD);
   const cB0 = celInput(""); cB0.querySelector("input").className = "ca-bonus"; tr.appendChild(cB0);  // Bônus de Dano
   tr.appendChild(celInput(d.alcance||"---"));
@@ -2840,12 +3164,14 @@ const BD_SCHEMAS = {
     {campo:"efeitoTipo", rotulo:"Ao usar, recupera", w:"12%", tipo:"select", opcoes:["—","Chakra","Vitalidade"]},
     {campo:"efeitoValor", rotulo:"Quanto (nº ou ex.: ½ Espírito)", w:"auto", tipo:"input"}
   ]},
-  venenos: { titulo:"Venenos (categorias — Guia Avançado p.76-84)", cols:[
-    {campo:"categoria", rotulo:"Categoria", w:"16%", tipo:"input"},
-    {campo:"prereq", rotulo:"Pré-requisito", w:"22%", tipo:"input"},
-    {campo:"difFabricacao", rotulo:"Dif. de Fabricação", w:"14%", tipo:"input"},
-    {campo:"difTeste", rotulo:"Dif. de Teste (da vítima)", w:"18%", tipo:"input"},
-    {campo:"nota", rotulo:"Nota", w:"auto", tipo:"input"}
+  venenos: { titulo:"Venenos (Guia Avançado p.77-84)", cols:[
+    {campo:"nome", rotulo:"Veneno", w:"18%", tipo:"input"},
+    {campo:"categoria", rotulo:"Cat.", w:"5%", tipo:"input"},
+    {campo:"prereq", rotulo:"Pré-req.", w:"12%", tipo:"input"},
+    {campo:"contagio", rotulo:"Contágio", w:"16%", tipo:"input"},
+    {campo:"difTeste", rotulo:"Dif. Teste", w:"11%", tipo:"input"},
+    {campo:"condicao", rotulo:"Condição", w:"9%", tipo:"input"},
+    {campo:"efeito", rotulo:"Efeito", w:"auto", tipo:"input"}
   ]}
 };
 
@@ -3114,7 +3440,178 @@ document.addEventListener("click", (e) => {
 });
 document.addEventListener("click", (e) => {
   const rb = e.target.closest(".roll-btn");
-  if(rb){ const tr = rb.closest("tr"); if(tr) rolarDano(tr, rb.dataset.tipo); }
+  if(rb){ const tr = rb.closest("tr"); if(tr) usarAtaque(tr, rb.dataset.tipo); }
+});
+/* ===================== USAR JUTSU/ARMA (clique no nome) ===================== */
+const usarOverlay = document.getElementById("usar_overlay");
+let usarState = { tr:null, tipo:null, nivel:1, modo:"CC", modos:["CC"], pessoal:false };
+function modoDoAlcance(alc, alvo){
+  const s = normNome((alc||"") + " " + (alvo||""));
+  if(normNome(alvo||"").indexOf("arma") >= 0) return "SUPORTE";
+  if(s.indexOf("pessoal") >= 0) return "PESSOAL";
+  if(s.indexOf("toque") >= 0) return "CC";
+  if(/\d/.test(s) || s.indexOf("distanc") >= 0 || s.indexOf("metro") >= 0 || s.indexOf("alcance") >= 0) return "CD";
+  return "CC";
+}
+function nivelMaxDoPoderRow(tr){
+  const pk = tr.dataset.poder || "";
+  let mx = 0;
+  (typeof poderesEscolhidos === "function" ? poderesEscolhidos() : []).forEach(p => {
+    if(poderBaseKey(p.nome) === pk) mx = Math.max(mx, num(p.nivel));
+  });
+  const atual = num((tr.querySelector(".cj-nv")||{}).value);
+  return mx > 0 ? Math.max(mx, atual, 1) : Math.max(atual, 10);
+}
+function custoDoJutsu(tr, nivel){
+  const raw = String((tr.querySelector(".cj-custo")||{}).value || "").toLowerCase();
+  const n = parseFloat(raw.replace(",", "."));
+  if(raw.indexOf("dobro") >= 0) return nivel * 2;
+  if(raw.indexOf("nível usado") >= 0 || raw.indexOf("nivel usado") >= 0) return nivel;
+  if(!isNaN(n) && n > 0) return n;
+  return nivel;
+}
+function modosDaLinha(tr, tipo){
+  if(tipo === "jutsu"){
+    const j = (tr.dataset.jmodo || "CC").toUpperCase();
+    if(j === "SUPORTE") return { suporte:true, pessoal:true, modos:[] };
+    if(j === "PESSOAL") return { pessoal:true, modos:[] };
+    if(j.indexOf("CC") >= 0 && j.indexOf("CD") >= 0) return { pessoal:false, modos:["CC","CD"] };
+    return { pessoal:false, modos:[ (j === "CD" ? "CD" : "CC") ] };
+  }
+  const u = (tr.dataset.uso || (typeof usoDaLinha === "function" ? usoDaLinha(tr) : "") || "CC").toUpperCase();
+  const cc = u.indexOf("CC") >= 0, cd = u.indexOf("CD") >= 0;
+  if(cc && cd) return { pessoal:false, modos:["CC","CD"] };
+  if(cd) return { pessoal:false, modos:["CD"] };
+  return { pessoal:false, modos:["CC"] };
+}
+function nomeDaLinha(tr, tipo){
+  const el = tr.querySelector("input");
+  return (el && el.value.trim()) ? el.value.trim() : (tipo === "jutsu" ? "Jutsu" : "Ataque");
+}
+function migrarNomesUsar(){
+  document.querySelectorAll("#calc_jutsu_rows tr, #calc_armado_rows tr").forEach(tr => {
+    const inp = tr.querySelector("td input");
+    if(inp){ inp.classList.add("usar-nome"); inp.readOnly = true; }
+  });
+}
+function usarAtaque(tr, tipo){
+  const info = modosDaLinha(tr, tipo);
+  usarState = { tr:tr, tipo:tipo, nivel: num((tr.querySelector(".cj-nv")||{}).value) || 1,
+                modo: info.modos[0] || "CC", modos: info.modos, pessoal: !!info.pessoal, suporte: !!info.suporte };
+  const precisaNivel = (tipo === "jutsu");
+  const precisaCCCD  = (info.modos.length > 1);
+  if(!precisaNivel && !precisaCCCD){ executarUso(); return; }   // arma de modo unico: rola direto
+  abrirUsarModal(tr, tipo, info);
+}
+function abrirUsarModal(tr, tipo, info){
+  document.getElementById("usar_head").textContent = "🎲 Usar — " + nomeDaLinha(tr, tipo);
+  const grpNv = document.getElementById("usar_grp_nivel");
+  const grpMd = document.getElementById("usar_grp_cccd");
+  if(tipo === "jutsu"){
+    grpNv.style.display = "";
+    const maxNv = nivelMaxDoPoderRow(tr);
+    let out = "";
+    for(let n = 1; n <= maxNv; n++){ out += '<button type="button" class="rl-seg' + (n===usarState.nivel?' active':'') + '" data-nivel="' + n + '">' + n + '</button>'; }
+    document.getElementById("usar_niveis").innerHTML = out;
+  } else { grpNv.style.display = "none"; }
+  if(info.modos.length > 1){
+    grpMd.style.display = "";
+    document.querySelectorAll("#usar_cccd .rl-seg").forEach(b => b.classList.toggle("active", b.dataset.val === usarState.modo));
+  } else { grpMd.style.display = "none"; }
+  const grpArma = document.getElementById("usar_grp_arma");
+  if(usarState.suporte){
+    grpMd.style.display = "none";
+    grpArma.style.display = "";
+    let opt = '<option value="">(só ativar, sem aplicar em arma)</option>';
+    document.querySelectorAll("#calc_armado_rows tr").forEach((r, i) => {
+      const nm = (r.querySelector("td input")||{}).value || ("Arma " + (i+1));
+      opt += '<option value="' + i + '">' + escapeHtml(nm) + '</option>';
+    });
+    document.getElementById("usar_arma").innerHTML = opt;
+  } else { grpArma.style.display = "none"; }
+  document.getElementById("usar_rolar").textContent = usarState.suporte ? "Aplicar" : "🎲 Rolar";
+  document.getElementById("usar_nota").textContent = usarState.suporte
+    ? "Efeito de suporte: escolha o nível (define o chakra gasto) e a arma que recebe o bônus."
+    : usarState.pessoal
+    ? "Jutsu de alcance Pessoal: sem teste de acerto, só o efeito/dano."
+    : "Clique em Rolar para usar.";
+  usarOverlay.classList.add("open");
+}
+function fecharUsar(){ usarOverlay.classList.remove("open"); }
+function executarUso(){
+  const tr = usarState.tr, tipo = usarState.tipo; if(!tr) return;
+  const nome = nomeDaLinha(tr, tipo);
+  if(usarState.suporte){
+    const elem = (DB.elementos[tr.dataset.poder] && num(DB.elementos[tr.dataset.poder].bonusDano)) || 0;
+    const sel = document.getElementById("usar_arma"); const idx = sel ? sel.value : "";
+    let msg = nome + " Nv " + usarState.nivel + " ativado";
+    if(idx !== "" && elem > 0){
+      const alvoTr = document.querySelectorAll("#calc_armado_rows tr")[num(idx)];
+      const armaNome = alvoTr ? ((alvoTr.querySelector("td input")||{}).value || "arma") : "arma";
+      adicionarBuff(nome + " Nv " + usarState.nivel, elem, armaNome);
+      msg += " — +" + elem + " de dano em " + armaNome + " (fica na seção Buffs; remova no × quando acabar)";
+    } else if(elem === 0){
+      msg += " (este poder não tem dano elemental, então não soma bônus numérico)";
+    }
+    emitirResultado({ dados:[], titulo: nome, badge:{ texto:"Suporte ativado", classe:"" }, linhas:[msg] }, false);
+    const custoS = custoDoJutsu(tr, usarState.nivel);
+    if(custoS > 0 && typeof ajustarChakra === "function") ajustarChakra(-custoS);
+    fecharUsar();
+    return;
+  }
+  let total;
+  if(tipo === "jutsu"){
+    const dbase = Math.max(0, usarState.nivel + metadeCima(attrVal("Espírito")));
+    const elem = (DB.elementos[tr.dataset.poder] && num(DB.elementos[tr.dataset.poder].bonusDano)) || 0;
+    total = dbase + elem + num((tr.querySelector(".cj-bonus")||{}).value);
+  } else {
+    if(usarState.modos.length > 1){
+      tr.dataset.modo = usarState.modo;
+      tr.querySelectorAll(".mode-seg").forEach(s => s.classList.toggle("active", s.dataset.modo === usarState.modo));
+      if(typeof recalc === "function") recalc();
+    }
+    total = num((tr.querySelector(".ca-dbase")||{}).value) + num((tr.querySelector(".ca-bonus")||{}).value);
+  }
+  const a = d8(), b = d8(), soma = a + b, g = grauDe(soma);
+  if(typeof destacarGrau === "function") destacarGrau(g);
+  let badge, linhas = [];
+  if(!usarState.pessoal){
+    const acerto = soma + habTotal(usarState.modo);
+    linhas.push("Acerto <b>" + acerto + "</b> = 2d8(" + soma + ") + " + usarState.modo + " (" + habTotal(usarState.modo) + ")");
+  }
+  if(g === 0){ badge = { texto:"Falha", classe:"fail" }; }
+  else {
+    badge = { texto: (soma >= 15 ? "Crítico · " : "") + "Grau " + g, classe: (soma >= 15 ? "crit" : classeGrau(g)) };
+    linhas.push("Dano <b>" + (total * g) + "</b> = " + total + " × Grau " + g);
+  }
+  const titulo = nome + (tipo === "jutsu" ? " — Nv " + usarState.nivel : (usarState.modos.length>1 ? " — " + usarState.modo : ""));
+  emitirResultado({ dados:[a,b], titulo:titulo, badge:badge, linhas:linhas }, false);
+  if(tipo === "jutsu"){
+    const custo = custoDoJutsu(tr, usarState.nivel);
+    if(custo > 0 && typeof ajustarChakra === "function") ajustarChakra(-custo);
+  } else if(usarState.modo === "CD" && typeof consumirMunicao === "function"){
+    consumirMunicao(tr);
+  }
+  fecharUsar();
+}
+document.getElementById("usar_niveis").addEventListener("click", (e) => {
+  const b = e.target.closest(".rl-seg"); if(!b) return;
+  usarState.nivel = num(b.dataset.nivel) || 1;
+  document.querySelectorAll("#usar_niveis .rl-seg").forEach(x => x.classList.toggle("active", x === b));
+});
+document.getElementById("usar_cccd").addEventListener("click", (e) => {
+  const b = e.target.closest(".rl-seg"); if(!b) return;
+  usarState.modo = b.dataset.val;
+  document.querySelectorAll("#usar_cccd .rl-seg").forEach(x => x.classList.toggle("active", x === b));
+});
+document.getElementById("usar_rolar").addEventListener("click", executarUso);
+document.getElementById("usar_fechar").addEventListener("click", fecharUsar);
+usarOverlay.addEventListener("click", (e) => { if(e.target === usarOverlay) fecharUsar(); });
+document.addEventListener("click", (e) => {
+  const nb = e.target.closest(".usar-nome"); if(!nb) return;
+  const tr = nb.closest("tr"); if(!tr) return;
+  nb.blur();
+  usarAtaque(tr, tr.closest("#calc_jutsu_rows") ? "jutsu" : "armado");
 });
 
 /* ===================================================================
@@ -3163,6 +3660,28 @@ function emitirResultado(cfg, noModal){
   const d8r = document.getElementById("d8_result");
   if(d8r) d8r.innerHTML = html;
   pushHist(cfg);
+  enviarRolagemParaMesa(cfg);
+}
+
+/* manda a rolagem também pro log da mesa (mesa.html), se esta ficha estiver vinculada a uma sala */
+async function enviarRolagemParaMesa(cfg){
+  if(!NUVEM_ATIVA || typeof sb === "undefined") return;
+  if(!_salaVinculada || !_meuUserId) return;
+  const dados = cfg.dados || [];
+  if(!dados.length) return;
+  const soma = dados.reduce((s, x) => s + x, 0);
+  const bonus = cfg.bonus || 0;
+  const total = soma + bonus;
+  const formula = cfg.titulo || (cfg.badge ? cfg.badge.texto : "Rolagem");
+  try{
+    const { error } = await sb.from("rolagens").insert({
+      sala_id: _salaVinculada,
+      user_id: _meuUserId,
+      formula: formula,
+      resultado: { dados: dados, modificador: bonus, total: total }
+    });
+    if(error) console.error(error);
+  }catch(e){ console.error(e); }
 }
 
 /* ===================================================================
@@ -3287,7 +3806,7 @@ function habTotal(cod){
 }
 function chakraAtual(){ const el = document.querySelector(".campo-chakra"); return el ? num(el.value) : 0; }
 
-let rlAcao = "ataque", rlTipoAtaque = "normal", rlHabilidade = "CC", rlAlcance = "toque";
+let rlAcao = "defesa", rlTipoAtaque = "manobra", rlHabilidade = "CC", rlAlcance = "toque";
 let rlRefRows = [], rlRefDefRows = [];
 const rolagemOverlay = document.getElementById("rolagem_overlay");
 
@@ -3429,23 +3948,19 @@ function atualizarNotaDefesa(){
 }
 
 function atualizarBlocoRolagem(){
-  document.getElementById("rl_bloco_ataque").style.display = (rlAcao === "ataque") ? "" : "none";
+  /* "Rolar Ação" cobre só Defesa e Manobra — ataque com arma/jutsu virou o clique no nome. */
+  document.getElementById("rl_bloco_ataque").style.display = (rlAcao === "manobra") ? "" : "none";
   document.getElementById("rl_bloco_defesa").style.display = (rlAcao === "defesa") ? "" : "none";
-  if(rlAcao === "ataque"){
-    const ehJutsu = (rlTipoAtaque === "jutsu");
-    const ehManobra = (rlTipoAtaque === "manobra");
-    document.getElementById("rl_grp_hab").style.display     = (ehJutsu || ehManobra) ? "none" : "";
-    document.getElementById("rl_grp_alcance").style.display = ehJutsu ? "" : "none";
-    document.getElementById("rl_grp_manobra").style.display = ehManobra ? "" : "none";
-    document.getElementById("rl_grp_letal").style.display   = ehManobra ? "none" : "";
-    const grpRef = document.getElementById("rl_ref_ataque").closest(".rl-group");
-    if(grpRef) grpRef.style.display = ehManobra ? "none" : "";
-    if(ehManobra){
-      const m = MANOBRAS[document.getElementById("rl_manobra").value];
-      document.getElementById("rl_manobra_nota").textContent = m ? m.efeito : "";
-    } else {
-      popularReferenciaAtaque();
-    }
+  if(rlAcao === "manobra"){
+    rlTipoAtaque = "manobra";
+    const _tp = document.getElementById("rl_tipo_ataque"); if(_tp && _tp.closest(".rl-group")) _tp.closest(".rl-group").style.display = "none";
+    document.getElementById("rl_grp_hab").style.display = "none";
+    document.getElementById("rl_grp_alcance").style.display = "none";
+    document.getElementById("rl_grp_manobra").style.display = "";
+    document.getElementById("rl_grp_letal").style.display = "none";
+    const grpRef = document.getElementById("rl_ref_ataque").closest(".rl-group"); if(grpRef) grpRef.style.display = "none";
+    const m = MANOBRAS[document.getElementById("rl_manobra").value];
+    document.getElementById("rl_manobra_nota").textContent = m ? m.efeito : "";
   } else {
     atualizarNotaDefesa();
   }
@@ -3694,7 +4209,7 @@ document.getElementById("rl_ref_ataque").addEventListener("change", () => {
 document.getElementById("rl_tipo_defesa").addEventListener("change", atualizarNotaDefesa);
 document.getElementById("rl_rolar").addEventListener("click", () => {
   if(rlAnimando) return;
-  if(rlAcao === "ataque") rolarAtaquePopup(); else rolarDefesaPopup();
+  if(rlAcao === "manobra"){ rlTipoAtaque = "manobra"; rolarAtaquePopup(); } else rolarDefesaPopup();
 });
 
 /* ---- Barra de status: Vida/Chakra espelhados, munições e dano recebido ---- */
@@ -3757,7 +4272,10 @@ function atualizarMunicoes(){
     if(cl !== "Arremesso" && cl !== "Munição") return;
     const nome = card.querySelector(".if-nome") ? card.querySelector(".if-nome").value : "";
     const qtd = card.querySelector(".if-qtd") ? card.querySelector(".if-qtd").value : "";
-    if(nome) itens.push(escapeHtml(nome) + ": <b>" + escapeHtml(qtd || "0") + "</b>");
+    if(nome){
+      const _qn = num(qtd), _baixa = _qn <= 5;
+      itens.push(escapeHtml(nome) + ": <b" + (_baixa ? ' style="color:var(--accent)"' : "") + ">" + escapeHtml(qtd || "0") + "</b>" + (_baixa ? " ⚠" : ""));
+    }
   });
   cont.innerHTML = itens.length ? itens.join(" &nbsp;·&nbsp; ") : "—";
 }
@@ -3782,7 +4300,7 @@ document.addEventListener("input", (e) => {
    PERSISTÊNCIA DA FICHA — salva tudo no navegador; sobrevive a F5/fechar
    =================================================================== */
 const ESTADO_KEY = "sns_ficha_estado_v1";
-const DINAMICOS = ["poderes_rows","apt_rows","calc_jutsu_rows","calc_armado_rows","jutsu_grid","item_grid"];
+const DINAMICOS = ["poderes_rows","apt_rows","calc_jutsu_rows","calc_armado_rows","jutsu_grid","item_grid","venenos_ativos","buffs_ativos"];
 function dentroDeDinamico(el){
   for(const id of DINAMICOS){ const c = document.getElementById(id); if(c && c.contains(el)) return true; }
   const bd = document.getElementById("tab-bd"); if(bd && bd.contains(el)) return true;
@@ -3865,6 +4383,8 @@ renderBD();
 montarLinhagens();
 restaurarEstado();
 migrarCardsItens();
+migrarNomesUsar();
+atualizarVenenosAtivos();
 refreshLinhagensUI();
 recalc();
 montarControlesMestre();
