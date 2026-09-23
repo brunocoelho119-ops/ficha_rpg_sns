@@ -227,6 +227,8 @@
      para ler/editar o nome por inteiro sem cortar. */
   .dtable td.td-nome{ position:relative; }
   .dtable input.col-nome{ font-weight:600; text-overflow:ellipsis; }
+  .cj-causa-dano-cell{ text-align:center; }
+  .cj-causa-dano{ width:16px; height:16px; cursor:pointer; }
   .dtable input.col-nome:focus{
     position:absolute; left:0; top:0; z-index:6;
     width:auto; min-width:240px; max-width:340px; height:100%;
@@ -413,6 +415,10 @@
   .rl-seg:hover:not(.active){ background:var(--calc-bg); }
   .rl-seg.active{ background:var(--bar-bg); color:#fff; border-color:var(--bar-bg); }
   .rl-nota{ font-size:11px; color:var(--gray-text); font-style:italic; margin-top:6px; line-height:1.4; }
+  .comp-nota{ font-size:10.5px; color:var(--gray-text); line-height:1.6; padding:4px 10px 10px; }
+  .comp-nota .cn-linha{ display:flex; justify-content:space-between; gap:8px; }
+  .comp-nota .cn-total{ font-weight:700; color:var(--ink); border-top:1px solid var(--border); margin-top:3px; padding-top:3px; }
+  .comp-nota .cn-vazio{ font-style:italic; }
   .ficha-topbar{
     position:sticky; top:0; z-index:500; display:flex; align-items:center; gap:12px;
     background:var(--bar-bg); color:#fff; padding:10px 16px; flex-wrap:wrap;
@@ -820,12 +826,18 @@
               <div class="social-item" title="Ler sentimentos, emoções e honestidade. Yin + ½ Percepção"><span>Empatia</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Empatia"></div>
               <div class="social-item" title="Acalmar quem está em surto ou sob forte emoção. Yin + ½ (Inteligência ou Espírito)"><span>Acalmar</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Acalmar"></div>
               <div class="social-item" title="Manter-se firme; resistir a Convencer, Enganar, Intimidar, Provocar. Yin + ½ (Inteligência ou Espírito)"><span>Compostura</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Compostura"></div>
+              <div class="social-item" title="Saber se portar em cada situação social. Yin + ½ (Percepção ou Inteligência)"><span>Etiqueta</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Etiqueta"></div>
+              <div class="social-item" title="Descobrir boatos e informações locais. Yin + ½ Percepção"><span>Ouvir Boatos</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Ouvir Boatos"></div>
             </div>
             <div class="social-col">
               <div class="social-col-head" title="Yang — natureza proativa: ação, presença, manipulação, convencimento e competição (Guia Avançado p.91)">YANG <input class="soc-attr" data-socattr="Yang" value="0"></div>
               <div class="social-item" title="Convencer pela conversa, argumentando ou pelo carisma. Yang + ½ (Inteligência ou Espírito)"><span>Convencer</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Convencer"></div>
-              <div class="social-item" title="Enganar, blefar, mentir sem ser notado. Yang + ½ (Percepção ou Inteligência)"><span>Enganar</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Enganar"></div>
+              <div class="social-item" title="Erguer o espírito de alguém abatido, fazê-lo se mover. Yang + ½ Espírito"><span>Encorajar</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Encorajar"></div>
+              <div class="social-item" title="Enganar, blefar, mentir sem ser notado. Yin ou Yang (o melhor) + ½ (Percepção ou Inteligência)"><span>Enganar</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Enganar"></div>
+              <div class="social-item" title="Provocar alguém a querer resolver diretamente com você. Yang + ½ (Inteligência ou Espírito)"><span>Provocar</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Provocar"></div>
+              <div class="social-item" title="Ser um 'ímã' social; atrair atenção, discursar, se impor. Yang + ½ (Inteligência ou Espírito)"><span>Presença</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Presença"></div>
               <div class="social-item" title="Intimidar pela ameaça ou demonstração. Yang + ½ (Inteligência ou Espírito); ½ Força em demonstração física"><span>Intimidar</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Intimidar"></div>
+              <div class="social-item" title="Espalhar boatos e informações pra que cheguem a alguém. Yang + ½ Percepção"><span>Espalhar Boatos</span><span class="eq">=</span><input class="auto" data-calc="soc" data-social="Espalhar Boatos"></div>
             </div>
           </div>
         </div>
@@ -909,6 +921,7 @@
         <span class="pill-label">Compartimentos</span>
         <input id="in_comp_usados" class="calc-ro" readonly value="0 / 3">
       </div>
+      <div class="comp-nota" id="comp_nota"></div>
       <div class="pill-stat">
         <span class="pill-icon">¥</span>
         <span class="pill-label">Ryos</span>
@@ -929,10 +942,10 @@
 
   <div class="bar" style="margin-top:14px;">Calculadora de Dano - Jutsus com Dano Comum do Poder</div>
   <table class="dtable">
-    <tr><th style="width:28%;">Jutsu</th><th style="width:11%;">Custo</th><th style="width:11%;" title="Nível usado do Poder">Nv. Poder</th><th style="width:10%;">Dureza</th><th style="width:11%;" title="Dano Elemental (bônus do elemento)">Dano Elem.</th><th style="width:10%;" title="Bônus de Dano (manual)">Bônus</th><th style="width:11%;">Dano Base</th><th class="del-th" style="width:64px;"></th></tr>
+    <tr><th style="width:24%;">Jutsu</th><th style="width:7%;" title="Desmarque para jutsus que não causam dano (ex: suporte, transformação, invocação) — a rolagem de Ataque vira só teste de acerto.">Dano?</th><th style="width:10%;">Custo</th><th style="width:10%;" title="Nível usado do Poder">Nv. Poder</th><th style="width:9%;">Dureza</th><th style="width:10%;" title="Dano Elemental (bônus do elemento)">Dano Elem.</th><th style="width:9%;" title="Bônus de Dano (manual)">Bônus</th><th style="width:10%;">Dano Base</th><th class="del-th" style="width:64px;"></th></tr>
     <tbody id="calc_jutsu_rows"></tbody>
   </table>
-  <button class="btn-add-row" data-add="calc_jutsu_rows" data-cols="7">+ Adicionar linha</button>
+  <button class="btn-add-row" data-add="calc_jutsu_rows" data-cols="8">+ Adicionar linha</button>
 
   <div class="row2col" style="margin-top:14px; align-items:stretch;">
     <div class="d8-box">
@@ -1880,7 +1893,11 @@ function escolherLinhagem(chave){
   document.addEventListener("click", (e) => { if(claMenuAberto() && !e.target.closest("#in_cla_menu") && !e.target.closest("#in_cla_btn")) fecharClaMenu(); });
   document.addEventListener("keydown", (e) => { if(e.key === "Escape" && claMenuAberto()) fecharClaMenu(); });
   window.addEventListener("resize", fecharClaMenu);
-  window.addEventListener("scroll", fecharClaMenu, true);
+  window.addEventListener("scroll", (e) => {
+    const alvo = e.target;
+    if(alvo && alvo.nodeType === 1 && alvo.closest("#in_cla_menu")) return; /* rolar a lista não fecha o menu */
+    fecharClaMenu();
+  }, true);
 })();
 /* refaz o dropdown de linhagem + os selects de poder do jutsu (após editar o BD) */
 function refreshLinhagensUI(){ montarLinhagens(); atualizarSelectsPoderJutsu(); }
@@ -1955,7 +1972,7 @@ const PERICIAS = [
   {nome:"Disfarce", attr:"PER"}, {nome:"Escapar", attr:"DES"}, {nome:"Furtividade", attr:"AGI"},
   {nome:"*Lidar com Animais", attr:"PER"}, {nome:"*Mecanismo", attr:"INT"}, {nome:"*Medicina", attr:"INT"},
   {nome:"*Ocultismo", attr:"INT"}, {nome:"Prestidigitação", attr:"DES"}, {nome:"Procurar", attr:"PER"},
-  {nome:"Prontidão", attr:"AGI"}, {nome:"Rastrear", attr:"PER"}, {nome:"**Venefício", attr:"INT"}
+  {nome:"Prontidão", attr:"PER"}, {nome:"Rastrear", attr:"PER"}, {nome:"**Venefício", attr:"INT"}
 ];
 const perRows = document.getElementById("per_rows");
 PERICIAS.forEach(p => {
@@ -2047,6 +2064,9 @@ function criarLinhaCalcJutsu(jid){
   const tr = document.createElement("tr");
   if(jid) tr.dataset.jid = jid;
   const cj = celInput(""); const cji = cj.querySelector("input"); cji.className = "cj-jutsu col-nome usar-nome"; cji.readOnly = true; cj.className = "td-nome"; tr.appendChild(cj);   // Jutsu
+  const ccd = document.createElement("td"); ccd.className = "cj-causa-dano-cell";
+  ccd.innerHTML = '<input type="checkbox" class="cj-causa-dano" checked title="Este jutsu causa dano?">';
+  tr.appendChild(ccd);   // Causa dano?
   const cc = celInput(""); cc.querySelector("input").className = "cj-custo"; tr.appendChild(cc);   // Custo
   const cn = celInput(""); cn.querySelector("input").className = "cj-nv"; tr.appendChild(cn);      // Nv. Usado do Poder
   const cd = celInput(""); cd.querySelector("input").className = "cj-dureza calc-ro"; cd.querySelector("input").readOnly = true; tr.appendChild(cd);  // Dureza
@@ -2055,7 +2075,24 @@ function criarLinhaCalcJutsu(jid){
   const cb = celInput(""); cb.querySelector("input").className = "cj-dbase calc-ro"; cb.querySelector("input").readOnly = true; tr.appendChild(cb);   // Dano Base
   tr.appendChild(celAcoesCalc("jutsu", true));
   tbody.appendChild(tr);
+  aplicarVisibilidadeDano(tr);
 }
+function aplicarVisibilidadeDano(tr){
+  const chk = tr.querySelector(".cj-causa-dano");
+  if(!chk) return;
+  const causaDano = chk.checked;
+  tr.querySelectorAll(".cj-dureza, .cj-delem, .cj-bonus, .cj-dbase").forEach(el => {
+    const td = el.closest("td");
+    if(td) td.style.visibility = causaDano ? "" : "hidden";
+  });
+  const rollBtn = tr.querySelector(".roll-btn");
+  if(rollBtn) rollBtn.style.display = causaDano ? "" : "none";
+}
+document.addEventListener("change", (e) => {
+  if(e.target.classList && e.target.classList.contains("cj-causa-dano")){
+    aplicarVisibilidadeDano(e.target.closest("tr"));
+  }
+});
 function adicionarJutsu(){
   const jid = "jt" + (idSeq++);
   document.getElementById("jutsu_grid").appendChild(criarJutsuCard(jid));
@@ -2326,20 +2363,24 @@ function atributoDanoPorModo(modo){
   return (String(modo).toUpperCase() === "CD") ? "Destreza" : (acuidadeAtiva() ? "Destreza" : "Força");
 }
 function normNome(s){ return semAcento(String(s||"")).replace(/^\*+/,"").trim().toLowerCase(); }
-function compsDe(txt){
-  if(txt == null) return 0;
-  const m = /(-?\+?\d+)\s*comp/i.exec(String(txt));
-  if(m) return parseInt(m[1].replace("+",""), 10) || 0;
-  return num(txt);
+/* Compartimentos (Básico p.126-127 + house rule do mestre pro limite de itens):
+   - "+X comp." = item concede X de capacidade (mochila, coldre/bolsa, colete). Aceita hífen normal e travessão (–).
+   - "N item(ns)/M comp." = cada M compartimentos guardam N unidades desse item (ex.: "10 itens/1 comp." = kunai).
+   - "–X comp." / "-X comp." (sem "itens/") = item reduz a capacidade em X (armadura pesada).
+   - "1 item/1 comp." é tratado como razão normal (N=1, M=1), não como redução. */
+function parsearComp(txt){
+  const s = String(txt || "").trim();
+  if(!s || s === "---" || s === "—") return null;
+  const mGanho = /^\+\s*(\d+)\s*comp/i.exec(s);
+  if(mGanho) return { ganho: parseInt(mGanho[1], 10) || 0 };
+  const mRazao = /(\d+)\s*itens?\s*\/\s*(\d+)\s*comp/i.exec(s);
+  if(mRazao) return { porItem: parseInt(mRazao[1], 10) || 1, porComp: parseInt(mRazao[2], 10) || 1 };
+  const mReduz = /^[-–]\s*(\d+)\s*comp/i.exec(s);
+  if(mReduz) return { reduz: parseInt(mReduz[1], 10) || 0 };
+  return null;
 }
-/* "+X comp." soma capacidade (mochila, coldre); os demais ("N item/M comp.", "–X comp.") ocupam M */
-function compGanho(txt){ const m = /\+(\d+)\s*comp/i.exec(String(txt||"")); return m ? (parseInt(m[1],10)||0) : 0; }
-function compUso(txt){
-  const s = String(txt||"");
-  if(/\+\d+\s*comp/i.test(s)) return 0;                 // "+X comp." é ganho, não uso
-  const m = /(-?\d+)\s*comp/i.exec(s);
-  return m ? Math.abs(parseInt(m[1],10))||0 : 0;
-}
+/* Itens de arremesso simples ou explosivos podem misturar quantidades no mesmo compartimento (Básico p.127) */
+function podeMisturarComp(classe){ return classe === "Arremesso" || classe === "Explosivo"; }
 function bonusPericias(){
   const b = {};
   document.querySelectorAll("#apt_rows tr").forEach(tr => {
@@ -2405,17 +2446,25 @@ function marcarMod(el, lista, baseTitle){
   el.title = txt; el.setAttribute("data-tip", txt);
 }
 
-/* Regras Sociais Revisadas — Yin e Yang (Guia Avançado do Shinobi p.90-95).
+/* Regras Sociais Revisadas — Yin e Yang (Guia Avançado do Shinobi p.90-97).
    Ações = Yin/Yang + ½ Atributo. Quando o Guia oferece "Atributo A ou B", o
    sistema usa o melhor dos dois (tipo "attrMax"), que é o teto útil na mesa;
-   o mestre pode pedir um atributo específico conforme a situação. */
+   o mestre pode pedir um atributo específico conforme a situação. Quando o
+   Guia oferece "Yin ou Yang" como base (ex.: Enganar), usa o melhor dos dois
+   (base:"melhor"). */
 const SOCIAIS = {
-  "Empatia":    {base:"Yin",  meio:{tipo:"attr",    nome:"Percepção"}},
-  "Acalmar":    {base:"Yin",  meio:{tipo:"attrMax", nomes:["Inteligência","Espírito"]}},
-  "Compostura": {base:"Yin",  meio:{tipo:"attrMax", nomes:["Inteligência","Espírito"]}},
-  "Convencer":  {base:"Yang", meio:{tipo:"attrMax", nomes:["Inteligência","Espírito"]}},
-  "Enganar":    {base:"Yang", meio:{tipo:"attrMax", nomes:["Percepção","Inteligência"]}},
-  "Intimidar":  {base:"Yang", meio:{tipo:"attrMax", nomes:["Inteligência","Espírito"]}}
+  "Empatia":          {base:"Yin",    meio:{tipo:"attr",    nome:"Percepção"}},
+  "Acalmar":          {base:"Yin",    meio:{tipo:"attrMax", nomes:["Inteligência","Espírito"]}},
+  "Compostura":       {base:"Yin",    meio:{tipo:"attrMax", nomes:["Inteligência","Espírito"]}},
+  "Etiqueta":         {base:"Yin",    meio:{tipo:"attrMax", nomes:["Percepção","Inteligência"]}},
+  "Ouvir Boatos":     {base:"Yin",    meio:{tipo:"attr",    nome:"Percepção"}},
+  "Convencer":        {base:"Yang",   meio:{tipo:"attrMax", nomes:["Inteligência","Espírito"]}},
+  "Encorajar":        {base:"Yang",   meio:{tipo:"attr",    nome:"Espírito"}},
+  "Provocar":         {base:"Yang",   meio:{tipo:"attrMax", nomes:["Inteligência","Espírito"]}},
+  "Presença":         {base:"Yang",   meio:{tipo:"attrMax", nomes:["Inteligência","Espírito"]}},
+  "Intimidar":        {base:"Yang",   meio:{tipo:"attrMax", nomes:["Inteligência","Espírito"]}},
+  "Espalhar Boatos":  {base:"Yang",   meio:{tipo:"attr",    nome:"Percepção"}},
+  "Enganar":          {base:"melhor", meio:{tipo:"attrMax", nomes:["Percepção","Inteligência"]}}
 };
 
 let periTotais = {};
@@ -2434,15 +2483,88 @@ function recalc(){
   const mods = coletarMods();
   const bonus = {};
   for(const _k in mods) bonus[_k] = mods[_k].reduce((s, m) => s + m.valor, 0);
-  let compsUsados = 0, compGanhos = 0;
+  /* ---- Compartimentos ----
+     compCapacidade/compsUsados: informativo, quanto de "espaço" (kunai, shuriken etc.)
+     cabe no que você carrega — usa a razão real de cada item (Básico p.126-127) e
+     deixa misturar Arremesso/Explosivo no mesmo compartimento, na proporção certa.
+     compItensExcesso: o que realmente pune — regra da mesa: só até 3 itens que
+     CONCEDEM compartimento (mochila, bolsa, coldre, colete...) podem estar em uso
+     ao mesmo tempo, não importa quanto cada um concede. */
+  /* ---- Compartimentos ----
+     Regra da mesa: o personagem tem 3 "slots" físicos pra carregar equipamento.
+     Cada slot pode ser ocupado por: um item que CONCEDE capacidade extra (mochila,
+     bolsa, coldre — soma seu valor ao espaço disponível), ou um item de slot
+     dedicado que não empilha (espada, kit — ocupa o slot sozinho, sem dar espaço
+     extra). Itens de arremesso/explosivo simples (kunai, shuriken, tarjas) NÃO usam
+     slot próprio: eles só ocupam o ESPAÇO concedido pelos itens acima, podendo se
+     misturar entre si na razão real de cada um (Básico p.126-127). Sem nenhum item
+     concedendo espaço, a capacidade é 0 — não dá pra carregar nenhum arremesso solto. */
+  let fracaoMisturavel = 0, compGanhos = 0, compPerdas = 0, compItensSlot = 0;
+  const compListaItens = [], compListaEspaco = [];
   document.querySelectorAll("#item_grid .item-card").forEach(card => {
-    const e = card.querySelector(".if-comp"); const t = e ? e.value : "";
-    compsUsados += compUso(t); compGanhos += compGanho(t);
+    const e = card.querySelector(".if-comp"); const info = parsearComp(e ? e.value : "");
+    if(!info) return;
+    const nomeItem = (card.querySelector(".if-nome") || {}).value || "Item";
+    const ehArmadura = card.dataset.kind === "armadura";
+    const eqEl = card.querySelector(".if-equip");
+    const ativo = ehArmadura ? !!(eqEl && eqEl.checked) : true;   // armadura só conta se Equipada
+    if(!ativo) return;   // armadura guardada, não equipada, não ocupa slot
+
+    if(info.ganho != null){
+      compGanhos += info.ganho; compItensSlot++;
+      compListaItens.push({ nome: nomeItem, valor: info.ganho });
+      return;
+    }
+    if(info.reduz != null){
+      compPerdas += info.reduz;
+      compListaItens.push({ nome: nomeItem, valor: -info.reduz });
+      return;
+    }
+    const qtd = num((card.querySelector(".if-qtd")||{}).value) || 0;
+    if(qtd <= 0) return;
+    if(podeMisturarComp(card.dataset.classe || "")){
+      const fracao = (qtd / info.porItem) * info.porComp;
+      fracaoMisturavel += fracao;
+      compListaEspaco.push({ nome: nomeItem, qtd: qtd, comp: fracao });
+    } else {
+      const unidades = Math.ceil(qtd / info.porItem) * info.porComp;   // ex.: espada = 1 slot dedicado (sem dar espaço extra)
+      compItensSlot += unidades;
+      compListaItens.push({ nome: nomeItem + (qtd > 1 ? " (" + qtd + ")" : ""), valor: 0, dedicado: true });
+    }
   });
-  const compCapacidade = 3 + compGanhos;
-  const compExcesso = Math.max(0, compsUsados - compCapacidade);   // acima da capacidade gera penalidade
+  const compsUsados = Math.ceil(fracaoMisturavel);
+  const compCapacidade = Math.max(0, compGanhos - compPerdas);
+  const compItensExcesso = Math.max(0, compItensSlot - 3);   // > 3 slots usados = penalidade
+  const compExcesso = compItensExcesso;
   if(compExcesso > 0){
-    ["CC","CD","ESQ","LM"].forEach(k => { (mods[k] = mods[k] || []).push({ valor: -compExcesso, fonte: "Excesso de compartimentos" }); });
+    ["CC","CD","ESQ","LM"].forEach(k => { (mods[k] = mods[k] || []).push({ valor: -compExcesso, fonte: "Mais de 3 itens usando compartimento" }); });
+    ["Atletismo","Acrobacia","Furtividade"].forEach(per => {
+      const k = normNome(per);
+      (mods[k] = mods[k] || []).push({ valor: -compExcesso, fonte: "Mais de 3 itens usando compartimento" });
+    });
+  }
+  window._compItensExcesso = compExcesso;   // usado nos testes rápidos de Força/Agilidade (fora do recalc)
+
+  const compNota = document.getElementById("comp_nota");
+  if(compNota){
+    let html = "";
+    html += '<div class="cn-linha"><span>Itens usando compartimento (slot)</span><span>' + compItensSlot + ' / 3</span></div>';
+    if(compListaItens.length){
+      compListaItens.forEach(it => {
+        const valorTxt = it.dedicado ? "slot próprio" : ((it.valor >= 0 ? "+" : "") + it.valor);
+        html += '<div class="cn-linha"><span>· ' + escapeHtml(it.nome) + '</span><span>' + valorTxt + '</span></div>';
+      });
+    } else {
+      html += '<div class="cn-vazio">Nenhum item usando compartimento ainda.</div>';
+    }
+    html += '<div class="cn-linha cn-total"><span>Espaço disponível (arremesso/explosivo)</span><span>' + compCapacidade + '</span></div>';
+    if(compListaEspaco.length){
+      compListaEspaco.forEach(it => {
+        html += '<div class="cn-linha"><span>· ' + escapeHtml(it.nome) + ' (' + it.qtd + ')</span><span>' + (Number.isInteger(it.comp) ? it.comp : it.comp.toFixed(2)) + '</span></div>';
+      });
+    }
+    html += '<div class="cn-linha cn-total"><span>Espaço usado</span><span>' + compsUsados + ' / ' + compCapacidade + '</span></div>';
+    compNota.innerHTML = html;
   }
   document.querySelectorAll(".attr-val").forEach(el => { marcarMod(el, mods[el.dataset.attr], ""); });
   periTotais = {};
@@ -2521,7 +2643,7 @@ function recalc(){
   document.querySelectorAll('.auto[data-social]').forEach(el => {
     if(el.dataset.over === "1") return;
     const def = SOCIAIS[el.dataset.social]; if(!def) return;
-    const baseV = socAttr(def.base);
+    const baseV = (def.base === "melhor") ? Math.max(socAttr("Yin"), socAttr("Yang")) : socAttr(def.base);
     let meioV;
     if(def.meio.tipo === "attr")         meioV = attrVal(def.meio.nome);
     else if(def.meio.tipo === "attrMax") meioV = Math.max.apply(null, def.meio.nomes.map(attrVal));
@@ -2608,7 +2730,10 @@ function recalc(){
 
   /* ---- Compartimentos: exibe X / 3 e a penalidade acima disso (Básico p.127) ---- */
   const compDisp = document.getElementById("in_comp_usados");
-  if(compDisp) compDisp.value = compsUsados + " / " + compCapacidade + (compExcesso > 0 ? "  (-" + compExcesso + " prec · -" + (compExcesso*3) + "m)" : "");
+  if(compDisp){
+    compDisp.value = compsUsados + " / " + compCapacidade +
+      (compExcesso > 0 ? "  ⚠ " + compItensSlot + "/3 itens (-" + compExcesso + " prec · -" + (compExcesso*3) + "m)" : "");
+  }
 
   /* Barra de status: totais de Vida/Chakra + munições */
   const vitTot = document.querySelector('.auto[data-calc="vit"]');
@@ -3414,7 +3539,16 @@ function rolarDano(tr, tipo){
     badge = { texto: (soma >= 15 ? "Crítico · " : "") + "Grau " + g, classe: (soma >= 15 ? "crit" : classeGrau(g)) };
     linhas.push("Dano <b>" + (total * g) + "</b> = " + total + " × Grau " + g);
   }
-  emitirResultado({ dados: [a, b], titulo: nome, badge: badge, linhas: linhas }, false);
+  const chave = _chaveArma(nome);
+  const pendente = _pendentesAtaque[chave];
+  let meta;
+  if(pendente && pendente.expira > Date.now()){
+    meta = { grupo: pendente.grupo, arma: nome, etapa: "dano" };
+    delete _pendentesAtaque[chave];
+  } else {
+    meta = { grupo: _novoGrupo(), arma: nome, etapa: "dano" };
+  }
+  emitirResultado({ dados: [a, b], titulo: nome, badge: badge, linhas: linhas }, false, meta);
   /* consumo ao usar: chakra do jutsu; munição do arremesso */
   if(tipo === "jutsu"){
     let custo = valDe(tr, ".cj-custo"); if(custo <= 0) custo = valDe(tr, ".cj-nv");
@@ -3661,7 +3795,7 @@ function pushHist(cfg){
   renderHistNoPopup();
 }
 /* mostra o resultado bonito no modal de ação (se aberto) e sempre no quadro d8 da aba Skills */
-function emitirResultado(cfg, noModal){
+function emitirResultado(cfg, noModal, meta){
   const html = resultadoRollHTML(cfg);
   if(noModal){
     const box = document.getElementById("rl_resultado");
@@ -3670,11 +3804,11 @@ function emitirResultado(cfg, noModal){
   const d8r = document.getElementById("d8_result");
   if(d8r) d8r.innerHTML = html;
   pushHist(cfg);
-  enviarRolagemParaMesa(cfg);
+  enviarRolagemParaMesa(cfg, meta);
 }
 
 /* manda a rolagem também pro log da mesa (mesa.html), se esta ficha estiver vinculada a uma sala */
-async function enviarRolagemParaMesa(cfg){
+async function enviarRolagemParaMesa(cfg, meta){
   if(!NUVEM_ATIVA || typeof sb === "undefined") return;
   if(!_salaVinculada || !_meuUserId) return;
   const dados = cfg.dados || [];
@@ -3683,13 +3817,40 @@ async function enviarRolagemParaMesa(cfg){
   const bonus = cfg.bonus || 0;
   const total = soma + bonus;
   const formula = cfg.titulo || (cfg.badge ? cfg.badge.texto : "Rolagem");
+  const resultado = {
+    dados: dados, modificador: bonus, total: total,
+    badge: cfg.badge || null,
+    linhas: cfg.linhas || null
+  };
+  if(meta){
+    resultado.grupo = meta.grupo || null;
+    resultado.arma = meta.arma || null;
+    resultado.etapa = meta.etapa || null;
+  }
   try{
     const { error } = await sb.from("rolagens").insert({
       sala_id: _salaVinculada,
       user_id: _meuUserId,
       formula: formula,
-      resultado: { dados: dados, modificador: bonus, total: total }
+      resultado: resultado
     });
+    if(error) console.error(error);
+  }catch(e){ console.error(e); }
+}
+
+/* liga um "Ataque" a um "Dano" rolado depois pra mesma arma/jutsu, pra virarem 1 card só na mesa */
+let _pendentesAtaque = {};
+function _chaveArma(nome){ return (nome || "").trim().toLowerCase(); }
+function _novoGrupo(){ return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8); }
+
+/* rolagem de Iniciativa: além do log, entra direto no rastreador de iniciativa da mesa */
+async function enviarIniciativaParaMesa(valorTotal){
+  if(!NUVEM_ATIVA || typeof sb === "undefined") return;
+  if(!_salaVinculada) return;
+  const inNome = document.getElementById("ft_nome_ficha");
+  const nome = ((inNome && inNome.value) || "Personagem").trim() || "Personagem";
+  try{
+    const { error } = await sb.rpc("definir_iniciativa", { p_sala: _salaVinculada, p_nome: nome, p_valor: valorTotal });
     if(error) console.error(error);
   }catch(e){ console.error(e); }
 }
@@ -3735,6 +3896,7 @@ function rolarQuick(){
       badge = { texto: "Iniciativa " + total, classe: "ini" };
       linhas = ["Ordene os turnos do maior total para o menor."];
       if(Array.isArray(cfg.extraLinhas)) linhas = linhas.concat(cfg.extraLinhas);
+      enviarIniciativaParaMesa(total);
     } else {
       const g = grauDe(soma);
       const difEl = document.getElementById("qroll_dif");
@@ -3750,6 +3912,7 @@ function rolarQuick(){
     const c = { dados: dados, bonus: bonus, bonusRotulo: cfg.bonusRotulo || "", titulo: cfg.titulo, badge: badge, linhas: linhas };
     document.getElementById("qroll_res").innerHTML = resultadoRollHTML(c);
     pushHist(c);
+    enviarRolagemParaMesa(c);
     agendarSalvar();
   });
 }
@@ -3776,7 +3939,8 @@ document.addEventListener("click", (e) => {
       extraLinhas: temAptidao("diligente") ? ["Diligente: 1x por cena você pode rolar a Iniciativa de novo (aceitando o 2º resultado)."] : [] });
   } else if(tipo === "attr"){
     const nome = rb.dataset.nome;
-    abrirQuickRoll({ titulo: "Teste de " + nome, nDados: 2, modo: "teste", bonusRotulo: SIGLAS[nome] || nome, bonus: () => attrVal(nome) });
+    const penalComp = (nome === "Força" || nome === "Agilidade") ? (window._compItensExcesso || 0) : 0;
+    abrirQuickRoll({ titulo: "Teste de " + nome, nDados: 2, modo: "teste", bonusRotulo: SIGLAS[nome] || nome, bonus: () => attrVal(nome) - penalComp });
   } else if(tipo === "hc"){
     const cod = rb.dataset.cod, nome = rb.dataset.nome;
     abrirQuickRoll({ titulo: nome, nDados: 2, modo: "teste", bonusRotulo: cod, bonus: () => habTotal(cod) });
@@ -4101,17 +4265,26 @@ function rolarAtaquePopup(){
     }
 
     const idx = document.getElementById("rl_ref_ataque").value;
+    let nomeArma = "", grupoAtaque = null;
     if(idx !== ""){
       const tr = rlRefRows[Number(idx)];
       if(tr){
         const ehJutsu = (rlTipoAtaque === "jutsu");
-        const total = ehJutsu
-          ? valDe(tr,".cj-dbase") + valDe(tr,".cj-delem") + valDe(tr,".cj-bonus")
-          : valDe(tr,".ca-dbase") + valDe(tr,".ca-bonus");
+        const chkDano = ehJutsu ? tr.querySelector(".cj-causa-dano") : null;
+        const causaDano = ehJutsu ? (!chkDano || chkDano.checked) : true; /* arma sempre causa dano */
         const nomeEl = tr.querySelector(ehJutsu ? ".cj-jutsu" : "input");
         const nome = nomeEl ? nomeEl.value : "";
-        titulo = (nome ? nome + " · " : "") + "Dano " + (total * g);
-        linhas.push("Dano <b>" + (total * g) + "</b> = " + total + " × Grau " + g);
+        nomeArma = nome;
+
+        if(causaDano){
+          const total = ehJutsu
+            ? valDe(tr,".cj-dbase") + valDe(tr,".cj-delem") + valDe(tr,".cj-bonus")
+            : valDe(tr,".ca-dbase") + valDe(tr,".ca-bonus");
+          titulo = (nome ? nome + " · " : "") + "Dano " + (total * g);
+          linhas.push("Dano <b>" + (total * g) + "</b> = " + total + " × Grau " + g);
+        } else if(nome){
+          titulo = nome + " · acertou";
+        }
 
         if(ehJutsu){
           let custo = valDe(tr, ".cj-custo"); if(custo <= 0) custo = valDe(tr, ".cj-nv");
@@ -4126,7 +4299,12 @@ function rolarAtaquePopup(){
         }
       }
     }
-    emitirResultado({ dados:[a,b], bonus:precisao, bonusRotulo:"precisão", titulo:titulo, badge:badge, linhas:linhas, aviso:aviso }, true);
+    if(nomeArma){
+      grupoAtaque = _novoGrupo();
+      _pendentesAtaque[_chaveArma(nomeArma)] = { grupo: grupoAtaque, expira: Date.now() + 180000 };
+    }
+    emitirResultado({ dados:[a,b], bonus:precisao, bonusRotulo:"precisão", titulo:titulo, badge:badge, linhas:linhas, aviso:aviso }, true,
+      nomeArma ? { grupo: grupoAtaque, arma: nomeArma, etapa: "ataque" } : null);
     agendarSalvar();
   });
 }
@@ -4272,7 +4450,7 @@ function descansoLongo(){
   };
   Object.keys(FORMULAS).forEach(k => { const el = document.querySelector('.auto[data-calc="'+k+'"]'); if(el && !el.title) el.title = FORMULAS[k]; });
   const comp = document.getElementById("in_comp_usados");
-  if(comp && !comp.title) comp.title = "Compartimentos ocupados. Acima de 3: −1 de precisão e −3m de deslocamento por excedente (Básico p.127).";
+  if(comp && !comp.title) comp.title = "Espaço usado/disponível pros itens que empilham (kunai, shuriken etc., podendo misturar arremesso/explosivo no mesmo compartimento). A penalidade real vem de ter mais de 3 itens que CONCEDEM compartimento (mochila, bolsa, coldre, colete...) em uso ao mesmo tempo: acima disso, −1 de precisão (CC/CD/Esquiva/LM/Atletismo/Acrobacia/Furtividade/Força/Agilidade) e −3m de deslocamento por item excedente.";
 })();
 function atualizarMunicoes(){
   const cont = document.getElementById("st_municoes"); if(!cont) return;
@@ -4358,6 +4536,17 @@ function restaurarEstado(){
   if(estado.containers){
     DINAMICOS.forEach(id => {
       if(typeof estado.containers[id] === "string"){ const c = document.getElementById(id); if(c) c.innerHTML = estado.containers[id]; }
+    });
+    /* migração: linhas de jutsu salvas antes da coluna "Causa dano?" existir ganham a caixinha agora (marcada, pra manter o comportamento de antes) */
+    document.querySelectorAll("#calc_jutsu_rows tr").forEach(tr => {
+      if(!tr.querySelector(".cj-causa-dano")){
+        const td = document.createElement("td");
+        td.className = "cj-causa-dano-cell";
+        td.innerHTML = '<input type="checkbox" class="cj-causa-dano" checked title="Este jutsu causa dano?">';
+        const nomeCell = tr.querySelector(".td-nome");
+        if(nomeCell) nomeCell.insertAdjacentElement("afterend", td);
+      }
+      aplicarVisibilidadeDano(tr);
     });
   }
   let maxId = 0;
