@@ -220,6 +220,7 @@
   .dtable td:last-child{ border-right:none; }
   .dtable tr:last-child td{ border-bottom:none; }
   .dtable td input{ width:100%; border:none !important; background:transparent !important; font-size:12px; box-shadow:none !important; }
+  .dtable td select{ width:100%; border:none !important; background:transparent !important; font-size:11.5px; box-shadow:none !important; }
   .dtable td.grat{ color:#b7b9bd; font-weight:700; font-size:10px; text-transform:uppercase; padding-left:10px; }
   /* ---- Coluna de NOME (Poderes / Calculadoras): nome sempre legível ----
      Padrão híbrido de data table (SetProduct 2026, PatternFly, SAP Fiori):
@@ -513,6 +514,11 @@
     .rl-die.girando, .rl-die.parado, .rl-resultado.flash, .modal-card.rolando .rl-dice-stage{ animation:none; }
   }
   /* ===================== ABA BANCO DE DADOS ===================== */
+  body.bd-somente-leitura #tab-bd .bd-add, body.bd-somente-leitura #tab-bd .del-bd-btn,
+  body.bd-somente-leitura #bd_importar, body.bd-somente-leitura #bd_restaurar{ display:none !important; }
+  .bd-comp-aviso{ font-size:12px; font-weight:600; color:var(--ink); background:var(--calc-bg); border:1px solid var(--border);
+    border-radius:var(--radius-sm); padding:8px 12px; margin:0 2px 12px 2px; }
+  .bd-comp-aviso:empty{ display:none; }
   .bd-intro{ font-size:12.5px; color:#4a4c52; line-height:1.5; margin:6px 2px 14px 2px; }
   .bd-toolbar{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:18px; }
   .bd-status{ font-size:11.5px; color:var(--gray-text); font-weight:600; }
@@ -556,6 +562,31 @@
     background:var(--bar-bg); color:#fff; border:none; border-radius:999px; padding:6px 10px; cursor:pointer;
   }
   .jutsu-efeito-btn:hover{ opacity:0.9; }
+  /* ---- card de Jutsu: selects, campos travados e bloco de Cálculo do Dano ---- */
+  #jutsu_grid .jutsu-field select{
+    flex:1; min-width:0; font-family:var(--font-body); font-size:11px; font-weight:600; text-transform:none;
+    padding:3px 4px; border:1px solid var(--input-border); background:var(--input-bg);
+    border-radius:var(--radius-sm); color:var(--ink); cursor:pointer;
+  }
+  #jutsu_grid .jutsu-field select.jf-dano-tipo{ flex:1 1 0; }
+  #jutsu_grid input.jf-ro, #jutsu_grid input[readonly].jf-ro{ background:var(--calc-bg) !important; font-weight:700; cursor:not-allowed; }
+  #jutsu_grid input.jf-qtd:disabled{ background:var(--calc-bg); cursor:not-allowed; }
+  .jf-qtdnv{ display:flex; align-items:center; gap:2px; font-size:9.5px; font-weight:700; white-space:nowrap; cursor:pointer; text-transform:none; }
+  .jf-qtdnv input{ width:auto !important; flex:none !important; margin:0; padding:0 !important; cursor:pointer; }
+  .jf-calc{ border:1px dashed var(--border); background:var(--calc-bg); border-radius:var(--radius-sm); padding:6px 8px; margin:0 0 7px 0; }
+  .jf-calc-tit{ font-size:10px; font-weight:700; text-transform:uppercase; color:var(--gray-text); margin-bottom:4px; letter-spacing:0.3px; }
+  .jc-f{ display:none; flex-wrap:wrap; align-items:center; gap:4px; font-size:10.5px; font-weight:600; color:var(--ink); }
+  .jutsu-card[data-dano="comum"] .jc-comum,
+  .jutsu-card[data-dano="diferente"] .jc-diferente,
+  .jutsu-card[data-dano="especial"] .jc-especial,
+  .jutsu-card[data-dano="nenhum"] .jc-nenhum{ display:flex; }
+  .jc-f input{ width:40px; text-align:center; font-family:var(--font-body); font-size:11px; font-weight:700; padding:2px 4px;
+    border:1px solid var(--input-border); background:#fff; border-radius:var(--radius-sm); color:var(--ink); }
+  .jc-f select{ font-family:var(--font-body); font-size:10.5px; font-weight:600; padding:2px 3px; border:1px solid var(--input-border);
+    background:#fff; border-radius:var(--radius-sm); color:var(--ink); cursor:pointer; }
+  .jc-f i{ font-style:normal; color:var(--gray-text); }
+  .jc-preview{ font-size:10.5px; color:var(--ink); margin-top:5px; }
+  .jc-preview:empty{ display:none; }
   .if-equip-row{ display:flex; align-items:center; gap:7px; margin:2px 0 9px 0; padding:6px 10px; border-radius:999px;
     background:var(--calc-bg); border:1px solid var(--border); font-size:11px; font-weight:600; color:var(--ink); cursor:pointer; }
   .if-equip-row input{ width:auto !important; margin:0; cursor:pointer; }
@@ -573,8 +604,14 @@
   .calc-acoes{ white-space:nowrap; text-align:center; }
   .roll-btn{ cursor:pointer; font-size:14px; margin-right:5px; user-select:none; vertical-align:middle; }
   .roll-btn:hover{ filter:brightness(1.15); }
-  .dtable input.usar-nome{ cursor:pointer; color:var(--accent) !important; text-decoration:underline; text-decoration-style:dotted; text-underline-offset:2px; }
-  .dtable input.usar-nome:hover{ background:var(--calc-bg) !important; }
+  .dtable input.usar-nome{
+    cursor:pointer !important; color:var(--ink) !important; text-decoration:none !important;
+    border:1px solid var(--border-strong) !important; border-radius:6px !important;
+    background:var(--gray-light) !important; box-shadow:var(--shadow-sm); padding:3px 7px !important;
+    transition:background .12s ease, border-color .12s ease, box-shadow .12s ease, transform .08s ease;
+  }
+  .dtable input.usar-nome:hover{ background:var(--calc-bg) !important; border-color:var(--bar-bg) !important; box-shadow:0 1px 4px rgba(60,45,20,.18); }
+  .dtable input.usar-nome:active{ transform:translateY(1px); }
   /* nomes que rolam dado viram botão (e escondemos os 🎲 — o clique no nome dispara a rolagem) */
   .test-roll{ display:none !important; }
   .rolavel-nome, .attr-name, .hc-name, .pr-name{
@@ -942,10 +979,10 @@
 
   <div class="bar" style="margin-top:14px;">Calculadora de Dano - Jutsus com Dano Comum do Poder</div>
   <table class="dtable">
-    <tr><th style="width:24%;">Jutsu</th><th style="width:7%;" title="Desmarque para jutsus que não causam dano (ex: suporte, transformação, invocação) — a rolagem de Ataque vira só teste de acerto.">Dano?</th><th style="width:10%;">Custo</th><th style="width:10%;" title="Nível usado do Poder">Nv. Poder</th><th style="width:9%;">Dureza</th><th style="width:10%;" title="Dano Elemental (bônus do elemento)">Dano Elem.</th><th style="width:9%;" title="Bônus de Dano (manual)">Bônus</th><th style="width:10%;">Dano Base</th><th class="del-th" style="width:64px;"></th></tr>
+    <tr><th style="width:20%;">Jutsu</th><th style="width:6%;" title="Desmarque para jutsus que não causam dano (ex: suporte, transformação, invocação) — a rolagem de Ataque vira só teste de acerto.">Dano?</th><th style="width:9%;" title="Tipo de dano escolhido no card do jutsu (Comum / Diferente / Especial / Sem dano). Linhas sem card usam o cálculo antigo.">Tipo Dano</th><th style="width:8%;">Custo</th><th style="width:9%;" title="Nível usado do Poder">Nv. Poder</th><th style="width:8%;">Dureza</th><th style="width:9%;" title="Parte do dano que vem do card: no Dano Comum é o Bônus (elemento / livro). Soma com o Dano Base.">Bônus Poder</th><th style="width:8%;" title="Bônus de Dano (manual)">Bônus</th><th style="width:8%;">Dano Base</th><th style="width:9%;" title="Preencha aqui SÓ se este jutsu causa um valor de dano fixo (não multiplica pelo grau — ex: Amaterasu, sufocamento). Deixe vazio pra usar o cálculo padrão (Dano Base × Grau).">Dano Fixo</th><th class="del-th" style="width:64px;"></th></tr>
     <tbody id="calc_jutsu_rows"></tbody>
   </table>
-  <button class="btn-add-row" data-add="calc_jutsu_rows" data-cols="8">+ Adicionar linha</button>
+  <button class="btn-add-row" data-add="calc_jutsu_rows" data-cols="10">+ Adicionar linha</button>
 
   <div class="row2col" style="margin-top:14px; align-items:stretch;">
     <div class="d8-box">
@@ -993,16 +1030,18 @@
   </div>
   <div class="bd-intro">
     Fonte central de dados da ficha. Os seletores de Poderes e Aptidões e os cálculos puxam daqui.
-    Edite livremente: as mudanças valem na hora e ficam salvas neste navegador. Use Exportar/Importar
-    para guardar ou compartilhar sua versão.
+    Use Exportar para guardar uma cópia. Importar mescla por nome: atualiza os itens que já existem
+    e acrescenta os novos, sem apagar nada.
   </div>
   <div class="bd-toolbar">
     <button class="modal-btn" id="bd_exportar">Exportar JSON</button>
     <button class="modal-btn" id="bd_importar">Importar JSON</button>
     <input type="file" id="bd_arquivo" accept="application/json,.json" style="display:none">
     <button class="modal-btn" id="bd_restaurar">Restaurar padrão</button>
+    <button class="modal-btn primary" id="bd_publicar" style="display:none">Publicar no compêndio</button>
     <span class="bd-status" id="bd_status"></span>
   </div>
+  <div class="bd-comp-aviso" id="bd_comp_aviso"></div>
   <div id="bd_root"></div>
   <div class="footer-logo" style="margin-top:14px;">Shinobi no Sho</div>
 </div>
@@ -1224,6 +1263,8 @@ async function carregarDaNuvem(){
     else         localStorage.removeItem("sns_ficha_estado_v1");
     if(d.db)     localStorage.setItem("sns_ficha_db_v1", JSON.stringify(d.db));
     else         localStorage.removeItem("sns_ficha_db_v1");
+    const _foto = d.foto || (d.db && d.db.foto) || "";
+    if(_foto) localStorage.setItem(FOTO_KEY, _foto); else localStorage.removeItem(FOTO_KEY);
 
     const barra = document.getElementById("ficha_topbar");
     const inNome = document.getElementById("ft_nome_ficha");
@@ -1287,13 +1328,131 @@ function salvarNaNuvem(){
     let estado = null, db = null;
     try{ estado = JSON.parse(localStorage.getItem("sns_ficha_estado_v1") || "null"); }catch(e){}
     try{ db     = JSON.parse(localStorage.getItem("sns_ficha_db_v1") || "null"); }catch(e){}
-    const dados = { estado, db, foto: (db && db.foto) || "" };
+    let foto = ""; try{ foto = localStorage.getItem(FOTO_KEY) || ""; }catch(e){}
+    if(!foto && db && db.foto) foto = db.foto;
+    /* com o compêndio em uso, a ficha guarda só o personagem (o BD fica na tabela compendio) */
+    const dados = compendioEmUso() ? { estado, foto } : { estado, db, foto };
     try{
       const { error } = await sb.from("fichas").update({ dados, atualizado_em: new Date().toISOString() }).eq("id", FICHA_ID);
       if(st) st.textContent = error ? "Erro ao salvar" : "Salvo";
       if(error) console.error(error);
     }catch(e){ console.error(e); if(st) st.textContent = "Erro ao salvar"; }
   }, 1200);
+}
+
+/* ===================================================================
+   COMPÊNDIO COMPARTILHADO (Supabase: tabelas compendio + compendio_meta)
+   Um banco só para todas as fichas. Leitura: todo usuário logado.
+   Escrita: só o mestre (RLS). Cache local no IndexedDB, renovado quando
+   compendio_meta.versao muda. Sem a tabela, a ficha usa o banco embutido.
+   =================================================================== */
+const FOTO_KEY  = "sns_ficha_foto_v1";
+const COMP_CATS = ["aptidoes","poderes","armas","armaduras","efeitos","tecnicas","linhagens","itens","venenos"];
+let COMPENDIO = null;            // { versao, rows } ou null (sem nuvem / tabela ausente)
+let _compDisponivel = false;     // true quando leu a versão direto da nuvem (pode gravar)
+let _compSnap = {};              // id -> assinatura da linha, para mandar só o que mudou
+let _compCfgIds = {};            // ids das linhas de config (calc, elementos)
+let _compTimer = null, _compSyncando = false, _compPendente = null;
+
+function compendioEmUso(){ return !!(COMPENDIO && COMPENDIO.rows && COMPENDIO.rows.length); }
+function podeEditarCompendio(){ return !!(NUVEM_ATIVA && _compDisponivel && _souMestre); }
+function _uuid(){
+  if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c === "x" ? r : (r&3|8)).toString(16); });
+}
+function _idbAbrir(){
+  return new Promise((res, rej) => {
+    try{ const r = indexedDB.open("sns_cache", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("kv");
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    }catch(e){ rej(e); }
+  });
+}
+async function _idbGet(k){
+  try{ const db = await _idbAbrir();
+    return await new Promise(res => { const q = db.transaction("kv").objectStore("kv").get(k); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); });
+  }catch(e){ return null; }
+}
+async function _idbSet(k, v){
+  try{ const db = await _idbAbrir();
+    await new Promise(res => { const t = db.transaction("kv", "readwrite"); t.objectStore("kv").put(v, k); t.oncomplete = res; t.onerror = res; });
+  }catch(e){}
+}
+async function carregarCompendio(){
+  try{
+    const { data: meta, error: em } = await sb.from("compendio_meta").select("versao").eq("id", 1).single();
+    if(em) throw em;
+    const versao = meta ? Number(meta.versao) : 0;
+    _compDisponivel = true;
+    const cache = await _idbGet("compendio");
+    if(cache && cache.versao === versao && Array.isArray(cache.rows)){ COMPENDIO = cache; return; }
+    const rows = [];
+    for(let de = 0; ; de += 1000){
+      const { data, error } = await sb.from("compendio").select("id, categoria, nome, ordem, dados")
+        .order("categoria").order("ordem").range(de, de + 999);
+      if(error) throw error;
+      rows.push(...(data || []));
+      if(!data || data.length < 1000) break;
+    }
+    COMPENDIO = { versao, rows };
+    _idbSet("compendio", COMPENDIO);
+  }catch(e){
+    console.warn("Compêndio indisponível na nuvem; usando cache ou o banco embutido.", e);
+    const cache = await _idbGet("compendio");
+    COMPENDIO = (cache && Array.isArray(cache.rows)) ? cache : null;
+    if(!_compDisponivel) _compDisponivel = false;
+  }
+}
+/* transforma o DB da ficha em linhas da tabela (atribui _id aos itens novos) */
+function linhasDoDB(db){
+  const out = [];
+  COMP_CATS.forEach(cat => (db[cat] || []).forEach((it, i) => {
+    if(!it._id) it._id = _uuid();
+    const dados = Object.assign({}, it); delete dados._id;
+    out.push({ id: it._id, categoria: cat, nome: String(it.nome || "").trim() || "(sem nome)", ordem: i, dados: dados });
+  }));
+  ["calc", "elementos"].forEach(k => {
+    if(!_compCfgIds[k]) _compCfgIds[k] = _uuid();
+    out.push({ id: _compCfgIds[k], categoria: "config", nome: k, ordem: 0, dados: db[k] || {} });
+  });
+  return out;
+}
+function _assinatura(r){ return JSON.stringify([r.categoria, r.nome, r.ordem, r.dados]); }
+function assinaturasCompendio(db){ const m = {}; linhasDoDB(db).forEach(r => { m[r.id] = _assinatura(r); }); return m; }
+function _statusBD(t){ const el = document.getElementById("bd_status"); if(el) el.textContent = t; }
+function agendarSyncCompendio(db){
+  if(!podeEditarCompendio() || !compendioEmUso()) return;
+  _statusBD("Salvando no compêndio…");
+  clearTimeout(_compTimer);
+  _compTimer = setTimeout(() => sincronizarCompendio(db), 1500);
+}
+async function sincronizarCompendio(db){
+  if(_compSyncando){ _compPendente = db; return false; }
+  _compSyncando = true;
+  let ok = true;
+  try{
+    const linhas = linhasDoDB(db);
+    const novo = {}; linhas.forEach(r => { novo[r.id] = _assinatura(r); });
+    const mudou = linhas.filter(r => _compSnap[r.id] !== novo[r.id]);
+    const sumiu = Object.keys(_compSnap).filter(id => !(id in novo));
+    for(let i = 0; i < mudou.length; i += 500){
+      const { error } = await sb.from("compendio").upsert(mudou.slice(i, i + 500), { onConflict: "id" });
+      if(error) throw error;
+    }
+    for(let i = 0; i < sumiu.length; i += 200){
+      const { error } = await sb.from("compendio").delete().in("id", sumiu.slice(i, i + 200));
+      if(error) throw error;
+    }
+    _compSnap = novo;
+    if(COMPENDIO){ COMPENDIO.rows = linhas; }
+    _statusBD((mudou.length || sumiu.length) ? "Compêndio atualizado (vale para todas as fichas)." : "Compêndio em dia.");
+  }catch(e){
+    ok = false; console.error(e);
+    _statusBD("Erro ao salvar no compêndio: " + (e.message || e));
+  }
+  _compSyncando = false;
+  if(_compPendente){ const p = _compPendente; _compPendente = null; sincronizarCompendio(p); }
+  return ok;
 }
 
 /* ===== Anotações do Mestre: salva só a coluna notas_mestre (nunca o dados) ===== */
@@ -1373,39 +1532,169 @@ const SEED_DB = {
     limiteDiv:2,
     socMult:2, socPiso:2
   },
+  aptidoesVersao: 2,   /* suba quando atualizar a lista de aptidões: fichas antigas recebem a lista nova */
   aptidoes: [
-    {nome:"Acuidade", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Use Combate Corporal com o atributo Destreza.", revisado:false},
-    {nome:"Ambidestria", tipo:"Combate", prereq:"Combate Corporal 12 ou Combate à Distância 12 (só p/ armas de fogo).", restricao:"Só para armas que podem ser empunhadas (não vale para armas naturais/desarmado). Armas diferentes em cada mão precisam do mesmo atributo de dano e mesma margem de crítico.", beneficio:"Ataque com armas duplas, em par ou uma arma leve em cada mão; some o dano de ambas no cálculo do ataque.", revisado:true},
-    {nome:"Ataque em Movimento", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Mova-se antes e depois de atacar.", revisado:false},
-    {nome:"Atirador", tipo:"Combate", prereq:"Destreza 12.", restricao:"Ao comprar, escolha entre arcos ou armas simples de arremesso.", beneficio:"+2 de dano com arcos, ou +3 de dano com armas simples de arremesso.", escolha:"arco ou arremesso", revisado:true},
-    {nome:"Bloqueio Ambidestro", tipo:"Combate", prereq:"", restricao:"", beneficio:"Melhore seu bloqueio ao usar ambidestria.", condicional:true, revisado:false},
-    {nome:"Combate Defensivo", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Reduza sua precisão corpo-a-corpo para melhorar a esquiva.", condicional:true, revisado:false},
-    {nome:"Crítico Aprimorado", tipo:"Combate", prereq:"", restricao:"", beneficio:"Aumente a chance de acerto crítico de seus ataques armados ou desarmados.", revisado:false},
-    {nome:"Dano Extra", tipo:"Combate", prereq:"", restricao:"", beneficio:"Aumente o dano de seus ataques que tenham dano de arma.", escolha:"categoria de arma", revisado:false},
-    {nome:"De Pé", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Levante-se como uma reação ou ação livre.", revisado:false},
-    {nome:"Diligente", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente e repita testes de Iniciativa.", alvo:"INI", valor:3, revisado:false},
-    {nome:"Especialista", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente sua precisão em combate desarmado ou armado.", escolha:"categoria de arma", revisado:false},
-    {nome:"Guerreiro", tipo:"Combate", prereq:"", restricao:"", beneficio:"Realize manobras especiais usando armas pesadas ou longas.", escolha:"longas ou pesadas", revisado:false},
-    {nome:"Intuição", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente sua precisão em manobras de previsão (Ler Movimento).", alvo:"LM", valor:1, revisado:false},
-    {nome:"Lutador", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Realize manobras especiais desarmadas sem penalidade de precisão.", revisado:false},
-    {nome:"Lutar às Cegas", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Melhore seu combate sob escuridão e outras camuflagens.", revisado:false},
-    {nome:"Maestria", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente sua precisão no uso de técnicas.", escolha:"poder ou técnica", condicional:true, revisado:false},
-    {nome:"Mestre dos Selos", tipo:"Combate", prereq:"", restricao:"", beneficio:"Realize selos de mão de forma rápida ou com uma única mão.", revisado:false},
-    {nome:"Mira Apurada", tipo:"Combate", prereq:"", restricao:"", beneficio:"Aumente sua precisão com armas de disparo.", condicional:true, revisado:false},
-    {nome:"Mobilidade", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Melhore sua esquiva contra ataques oportunos.", condicional:true, revisado:false},
-    {nome:"Oportunista", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Realize mais ataques oportunos na mesma rodada.", revisado:false},
-    {nome:"Ponto Cego", tipo:"Combate", prereq:"", restricao:"", beneficio:"Finte com uma ação de movimento.", revisado:false},
-    {nome:"Punho de Ferro", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente o dano de arma de seus ataques desarmados.", revisado:false},
-    {nome:"Reflexos", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente a precisão de sua Esquiva.", alvo:"ESQ", valor:1, revisado:false},
-    {nome:"Retirada Rápida", tipo:"Combate", prereq:"", restricao:"", beneficio:"Recue rapidamente do combate corpo-a-corpo sem sofrer ataque oportuno.", revisado:false},
-    {nome:"Rolamento", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente a redução do dano de queda dos testes de Acrobacia ou Atletismo.", revisado:false},
-    {nome:"Saque Rápido", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Saque e guarde armas com somente uma ação livre.", revisado:false},
-    {nome:"Tiro Longo", tipo:"Combate", prereq:"", restricao:"", beneficio:"Dobre o alcance de armas de disparo.", revisado:false},
-    {nome:"Tiro Preciso", tipo:"Combate", prereq:"", restricao:"", beneficio:"Seus ataques com armas de disparo ignoram cobertura e camuflagem parciais.", revisado:false},
-    {nome:"Trespassar", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Receba um ataque corporal extra quando derrotar um inimigo.", revisado:false},
-    {nome:"Usar Arma", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Você sabe usar a arma escolhida, sem penalidades.", escolha:"arma", revisado:false},
-    {nome:"Usar Armaduras Pesadas", tipo:"Combate", prereq:"", restricao:"", beneficio:"Você é capaz de usar armaduras pesadas.", revisado:false},
-    {nome:"Velocista", tipo:"Gratuita", prereq:"", restricao:"", beneficio:"Aumente a distância máxima de seu deslocamento.", revisado:false}
+    {nome:"Acuidade", tipo:"Combate", prereq:"Destreza 3", restricao:"Só aplicável a ataques desarmados, técnicas de toque, armas leves e armas indicadas no texto", descricao:"Personagem especialmente ágil com armas leves, que usam mais destreza que força bruta", beneficio:"Usa Destreza para calcular o nível de Combate Corporal (CC = Valor Base + Destreza); o dano do ataque não é alterado; pode ser usada na reação de Bloqueio com arma permitida ou desarmado", revisado:false},
+    {nome:"Ambidestria", tipo:"Combate", prereq:"Combate Corporal 12 ou Combate à Distância 12 (apenas armas de fogo)", restricao:"Serve só para armas empunháveis (não naturais/desarmado); armas em cada mão precisam do mesmo atributo de dano, mesma margem de crítico e mesma precisão; se alvo de Desarmar, perde só uma arma", descricao:"Treinado em usar uma arma em cada mão", beneficio:"Ataca com armas duplas, em par ou leves em cada mão, somando o dano de ambas; comprada com Combate à Distância, só serve para duas armas de fogo de uma mão", revisado:true},
+    {nome:"Arremessador de Utilitários", tipo:"Combate", prereq:"Destreza 7; Inteligência 4", restricao:"", descricao:"Consegue arremessar ferramentas ninja utilitárias a longas distâncias", beneficio:"Ao usar Ferramenta Shinobi Utilitária com alcance além de 1m, substitui o alcance por '5m + 1m por nível de Destreza'", bonusTexto:"Alcance 5m+1m/nível Destreza", revisado:false},
+    {nome:"Arremessador Eficiente", tipo:"Combate", prereq:"Combate à Distância 8", restricao:"Arremessar mais projéteis que o normal com duas mãos não aumenta o dano além do dobro", descricao:"Causa dano com armas de arremesso usando menos projéteis", beneficio:"O número mínimo de projéteis necessário para causar dano cai para 1 (ex.: senbon que exigia 3 passa a causar dano com apenas 1)", revisado:false},
+    {nome:"Ataque em Movimento", tipo:"Combate", prereq:"Agilidade 4", restricao:"Não pode ser usada com a manobra Investida; alvo corpo-a-corpo precisa estar a mais de 1m", descricao:"Treinado para atacar com rapidez, movimentando-se com agilidade", beneficio:"Divide o deslocamento em duas partes, antes e depois de um ataque (corpo-a-corpo, à distância ou técnica), sem sofrer ataque oportuno ao passar pelo inimigo; com Ataque Múltiplo pode se mover entre ataques (máx. 2 movimentos na rodada)", revisado:false},
+    {nome:"Atirador", tipo:"Combate", prereq:"Destreza 12", restricao:"", descricao:"Especialmente hábil no arremesso ou disparo de projéteis", beneficio:"Escolhe entre Arcos (+2 de dano ao atacar com qualquer arco) ou Arremesso (+3 de dano ao atacar à distância com arma simples de arremesso)", bonusTexto:"+2 (arcos) ou +3 (arremesso) de dano", escolha:"Categoria de arma: Arcos ou Arremesso", revisado:true},
+    {nome:"Auxiliador Especialista", tipo:"Combate", prereq:"", restricao:"", descricao:"Sempre está lá para ajudar seus amigos", beneficio:"Usa a manobra Auxiliar Aliado com uma ação de movimento adicional; ao realizar Prestar Ajuda, testa com Dif -5 em vez de -2", bonusTexto:"Dif -5 em Prestar Ajuda", revisado:false},
+    {nome:"Avaliador do Perigo", tipo:"Combate", prereq:"Inteligência ou Percepção 4", restricao:"", descricao:"Treinado em avaliar rapidamente o nível de poder dos oponentes", beneficio:"Usa a manobra Avaliar com ação de movimento e +2 de precisão no teste escolhido; teste de concentração para não se distrair recebe os benefícios de Perito e Perícia Inata: Concentração; opcionalmente pode usar Avaliar com ação padrão para obter a informação imediatamente", bonusTexto:"+2 precisão", revisado:false},
+    {nome:"Bloqueio Ambidestro", tipo:"Combate", prereq:"Ambidestria", restricao:"", descricao:"Habilidoso em se defender usando duas armas ou arma dupla", beneficio:"+1 nos testes de bloqueio ao usar duas armas ou arma dupla", bonusTexto:"+1 em Bloqueio", condicional:true, revisado:false},
+    {nome:"Combate Defensivo", tipo:"Combate", prereq:"Combate Corporal 9", restricao:"Não pode ser usada com manobras/aptidões de manobra que concedam bônus de precisão (ex.: Rasteira, Investida)", descricao:"Capaz de usar habilidades de combate tanto para atacar quanto para se defender", beneficio:"Declarada antes de um ataque corpo-a-corpo ou técnica de toque; -2 de precisão no ataque, +3 de Esquiva até o próximo turno", bonusTexto:"-2 precisão / +3 Esquiva", condicional:true, revisado:false},
+    {nome:"Corpo Esguio", tipo:"Combate", prereq:"", restricao:"", descricao:"Capaz de deslocar as juntas para se livrar de amarras e agarramentos com facilidade", beneficio:"Tenta sair da condição agarrado com ação parcial e +2 de bônus no teste; mesmo bônus para sair de algemas ou cordas (inclusive efeito Algemar)", bonusTexto:"+2 no teste", revisado:false},
+    {nome:"Crítico Aprimorado", tipo:"Combate", prereq:"Especialista, CC ou CD 13", restricao:"Não cumulativa com outro bônus do mesmo tipo", descricao:"Sabe desferir golpes mortais", beneficio:"Ao atacar com arma/desarmado que possua Especialista, via Golpear ou aptidão de manobra, consegue crítico com 1 ponto a menos no resultado dos dados; regra opcional sem Especialista: beneficia qualquer arma/combate desarmado com CC ou CD 13+", bonusTexto:"-1 na margem de crítico", escolha:"Ataque desarmado ou uma arma", revisado:false},
+    {nome:"Dano Extra", tipo:"Combate", prereq:"Combate 18 (Corporal ou à Distância)", restricao:"Só afeta ataques com dano de arma", descricao:"Treinamento e experiência ensinaram a sempre procurar o ponto fraco do inimigo", beneficio:"Escolhe categoria de combate/arma; +1 de dano base ao atacar com ela, aumentando +1 a cada 2 níveis de CC/CD acima de 18; pode ser comprada de novo para outra categoria (cumulativa com Hachimon Tonkou)", bonusTexto:"+1 de dano base (escalável)", escolha:"Categoria: desarmado, armas naturais, disparo, arremesso, leves, medianas, longas, pesadas ou especiais", revisado:false},
+    {nome:"De Pé", tipo:"Combate", prereq:"", restricao:"Uso como reação limitado a uma vez por cena", descricao:"Levanta-se mais rapidamente que pessoas comuns", beneficio:"Levanta-se com ação livre; uma vez por cena, pode usar como reação imediatamente após ser derrubado", revisado:false},
+    {nome:"Diligente", tipo:"Combate", prereq:"—; Nível 2: Iniciativa 21 (sem bônus do Diligente)", restricao:"Deve aceitar a segunda rolagem de Iniciativa mesmo que pior", descricao:"", beneficio:"+3 em testes de Iniciativa; 1x por cena pode rolar novamente (inclusive em desempates); Nível 2: na 1ª rodada de combate (não a de surpresa) considera fintado quem ainda não teve turno; em rodada de surpresa, recebe todas as suas ações em vez de apenas uma", bonusTexto:"+3 Iniciativa", alvo:"INI", valor:3, revisado:false},
+    {nome:"Especialista", tipo:"Combate", prereq:"", restricao:"Não cumulativa com Maestria", descricao:"Especializado no uso de um tipo de arma ou combate desarmado", beneficio:"+1 de precisão em CC ou CD com a arma/categoria escolhida; pode ser comprada de novo para outra categoria", bonusTexto:"+1 precisão", escolha:"Categoria de arma ou combate desarmado", revisado:false},
+    {nome:"Esquiva de Risco", tipo:"Combate", prereq:"Reflexos, Esquiva 11", restricao:"Não é possível adicionar nenhum bônus de precisão à Esquiva de Risco além do de Reflexos", descricao:"Capaz de se arriscar mais em troca de desviar de ataques que normalmente não conseguiria", beneficio:"Reação de teste resistido (2d8 + precisão de Esquiva) contra o atacante; conta como uma ação de Esquiva para efeitos de regra; pode ser usada nas manobras de previsão Evadir e Ajudar Aliado", revisado:false},
+    {nome:"Fuuma Shuriken Criadas", tipo:"Combate", prereq:"Usar Arma: Fuuma Shuriken; Criar Arma 2 (efeito Ninpou)", restricao:"", descricao:"Capaz de criar Fuuma Shurikens com seu Ninpou", beneficio:"Cria qualquer tipo de Fuuma Shuriken com o efeito Criar Arma; com Usar Arma: Kousen e Fuuma Shuriken Kousen, pode pagar +1 de chakra para criar kousens já preparadas nelas", revisado:false},
+    {nome:"Fuuma Shuriken Kousen", tipo:"Combate", prereq:"Usar Arma (Kousen e Fuuma Shuriken)", restricao:"", descricao:"Pode utilizar as Kousens com quaisquer das Fuuma Shurikens", beneficio:"Usa todas as manobras de Kousen com Fuuma Shurikens como armas, arremessando uma única shuriken; elas não ocupam mais compartimentos por já terem kousens preparadas", revisado:false},
+    {nome:"Guerreiro", tipo:"Combate", prereq:"Força ou Destreza 8 (Armas Leves) ou 10 (Medianas, Longas ou Pesadas)", restricao:"", descricao:"Especializado no combate armado", beneficio:"Escolhe uma categoria (Leves, Medianas, Longas ou Pesadas); usa manobras especiais de combate com armas dessa categoria sem penalidade de precisão; se a arma já permitir a manobra, ganha +1 de precisão nela. Leves: Desarmar; Medianas: Atropelar/Derrubar/Desarmar; Longas e Pesadas: Atropelar/Derrubar/Desarmar/Empurrar", bonusTexto:"Remove -2 de penalidade (ou +1 precisão se a arma já permitir)", escolha:"Categoria: Leves, Medianas, Longas ou Pesadas", revisado:false},
+    {nome:"Intuição", tipo:"Combate", prereq:"", restricao:"", descricao:"Muito hábil em prever o movimento do oponente", beneficio:"+1 de precisão em Ler Movimento", bonusTexto:"+1 precisão", alvo:"LM", valor:1, revisado:false},
+    {nome:"Lutador", tipo:"Combate", prereq:"", restricao:"", descricao:"Talentoso nas artes marciais desarmadas", beneficio:"Não sofre a penalidade de -2 de precisão ao usar manobras especiais desarmado ou com armas naturais (agarrar, atropelar, derrubar, desarmar, empurrar)", bonusTexto:"Remove -2 de penalidade", revisado:false},
+    {nome:"Lutar às Cegas", tipo:"Combate", prereq:"—; Nível 2: Prontidão 11", restricao:"Benefícios só valem contra camuflagem ambiental (fumaça, névoa) ou visão prejudicada (escuridão, cegueira)", descricao:"Maiores chances de atingir alvos que não pode ver", beneficio:"Não fica desprevenido contra quem não vê e pode rolar de novo ao errar por camuflagem; luta sem contato visual olho a olho; Nível 2: ao sofrer Ataque Furtivo, testa Prontidão x Furtividade do atacante (ação livre) para virar ataque normal, manter defesas e saber a posição do atacante; personagem cego permanente não sofre mais Camuflagem Visual Total", revisado:false},
+    {nome:"Maestria", tipo:"Combate", prereq:"", restricao:"Não cumulativa com Especialista", descricao:"", beneficio:"Escolhe um poder ou técnica; +1 de precisão em CC/CD com ele", bonusTexto:"+1 precisão", escolha:"Um poder ou técnica", condicional:true, revisado:false},
+    {nome:"Mestre dos Selos", tipo:"Combate", prereq:"Prestidigitação 12, Ponto Cego", restricao:"", descricao:"Particularmente hábil em realizar selos de mão em alta velocidade", beneficio:"Recebe os benefícios de Perito e Perícia Inata no teste de Prestidigitação para fintar com técnicas; com Prestidigitação 14, faz selos com uma só mão (teste dif 9+2x nível do poder; falha custa ação extra)", revisado:false},
+    {nome:"Mira Apurada", tipo:"Combate", prereq:"Destreza 12, Tiro Longo", restricao:"", descricao:"Tiros com precisão mortal", beneficio:"Gasta ação de movimento para mirar; +1 de precisão em CD contra o alvo na mesma rodada", bonusTexto:"+1 precisão", condicional:true, revisado:false},
+    {nome:"Mobilidade", tipo:"Combate", prereq:"Agilidade 3, Reflexos", restricao:"", descricao:"Treinado para se esquivar entre oponentes e evitar golpes", beneficio:"+3 de Esquiva contra ataques oportunos provocados ao se movimentar; recebe Perito: Acrobacia (+2 de precisão) em Cambalhota e não tem o deslocamento reduzido pela metade ao usá-la", bonusTexto:"+3 Esquiva / +2 precisão em Acrobacia (Cambalhota)", condicional:true, revisado:false},
+    {nome:"Oportunista", tipo:"Combate", prereq:"—; Nível 2: Oportunista, Destreza 13, Especialista (Armas de Disparo ou Arremesso)", restricao:"Não permite mais de um ataque oportuno contra o mesmo inimigo", descricao:"Capaz de reagir rápida e repetidamente contra oponentes que baixam a guarda", beneficio:"Ataques oportunos adicionais iguais à metade do nível de Agilidade, contra inimigos diferentes, mesmo desprevenido; Nível 2 (à distância): se o oponente se move a até 10m e a arma já está empunhada, realiza ataque oportuno com arma de disparo/arremesso (com Saque Rápido pode sacar arma/munição no ataque); não impede o movimento do alvo, não funciona com manobras especiais e não derruba com Fuuma Shuriken Gigante; não funciona contra quem usou Passo Seguro, Recuar ou está Acelerado; Cambalhota na área exige teste de Acrobacia (dif 2+CD) para evitar o oportuno", bonusTexto:"+Agilidade/2 ataques oportunos", revisado:false},
+    {nome:"Ponto Cego", tipo:"Combate", prereq:"Agilidade 6 ou Prestidigitação 6", restricao:"", descricao:"Sabe como distrair adversários em combate", beneficio:"Realiza Finta como ação de movimento (em vez de padrão); afeta também fintas especiais de poderes/técnicas", revisado:false},
+    {nome:"Punho de Ferro", tipo:"Combate", prereq:"Força 2", restricao:"Não afeta ataques desarmados que já têm dano de arma próprio (ex.: Juuken)", descricao:"Mestre no combate desarmado", beneficio:"Ataque desarmado causa dano letal ou não-letal à escolha e recebe dano de arma (2 com Força 8, 3 com Força 10, 4 com Força 12, máximo)", bonusTexto:"2 a 4 de dano de arma conforme Força", escolha:"Dano letal ou não-letal (por ataque)", revisado:false},
+    {nome:"Reflexos", tipo:"Combate", prereq:"", restricao:"", descricao:"Muito hábil para se esquivar de golpes e projéteis", beneficio:"+1 de precisão em Esquiva", bonusTexto:"+1 precisão", alvo:"ESQ", valor:1, revisado:false},
+    {nome:"Retirada Rápida", tipo:"Combate", prereq:"Agilidade 9", restricao:"", descricao:"Capaz de sair rapidamente do alcance dos oponentes", beneficio:"Usando ação parcial junto do deslocamento, não provoca ataque oportuno ao fugir de um adversário; 1x por cena, ao usar a aptidão, ganha +10m de deslocamento", bonusTexto:"+10m deslocamento (1x/cena)", revisado:false},
+    {nome:"Rolamento", tipo:"Combate", prereq:"Acrobacia 2; De Pé", restricao:"", descricao:"Consegue diminuir o dano sofrido ao ser derrubado", beneficio:"Levanta-se imediatamente como reação após cair; dobra a redução de altura nos testes de Acrobacia/Atletismo para amortecer queda", bonusTexto:"Dobra a redução de dano de queda", revisado:false},
+    {nome:"Saque Rápido", tipo:"Combate", prereq:"", restricao:"", descricao:"Capaz de sacar armas com velocidade estonteante", beneficio:"Saca/guarda arma ou munição como ação livre; pode sacar arma corpo-a-corpo durante reação de Bloqueio; recarrega besta pesada com ação de movimento e besta leve com ação parcial; com Usar Pólvora, realiza a manobra Recarga Rápida de Pólvora; ao executar selos, se só a arma o impedir, pode fazer os selos com uma mão só", revisado:false},
+    {nome:"Tiro Longo", tipo:"Combate", prereq:"Destreza 11", restricao:"", descricao:"Atinge alvos a maior distância com armas de disparo ou arremesso", beneficio:"Dobra a distância de acerto de qualquer arma de disparo ou arremesso que utiliza", bonusTexto:"x2 alcance", revisado:false},
+    {nome:"Tiro Preciso", tipo:"Combate", prereq:"Destreza 9; Nível 2: Tiro Preciso, Destreza 13", restricao:"", descricao:"Treinado para mirar e disparar em momentos e locais exatos", beneficio:"Ataques com armas de disparo ignoram cobertura e camuflagem parciais; Nível 2: ataques com armas de disparo ignoram camuflagem total (chance de erro de 50% para 0%) e não precisam de forma alternativa para localizar o alvo (ainda precisa saber que ele existe e ter noção vaga da posição)", revisado:false},
+    {nome:"Trespassar", tipo:"Combate", prereq:"Combate Corporal 7", restricao:"Só uma vez por rodada e no próprio turno (Nível 1)", descricao:"Capaz de realizar outro ataque corporal depois de um golpe eficiente", beneficio:"Ao abater um inimigo em combate corporal, realiza ataque corporal extra contra outro alvo no alcance; Nível 2 (CC 9): pode usar quantas vezes quiser na rodada", revisado:false},
+    {nome:"Usar Arma", tipo:"Combate", prereq:"", restricao:"Ainda precisa cumprir requisitos de Força/Destreza da arma; armas simples podem ser usadas por qualquer personagem", descricao:"Escolhe uma arma marcial ou especial; sabe combater com ela", beneficio:"Proficiência na arma escolhida, sem penalidade de -3; pode ser comprada várias vezes para armas diferentes; com Usar Arma numa arma leve, pode trocar de graça por Usar Arma numa arma mediana ou longa ao atingir Força ou Destreza 10, e depois por uma arma pesada ao atingir Força 12", bonusTexto:"Remove -3 de penalidade", escolha:"Uma arma marcial ou especial", revisado:false},
+    {nome:"Usar Armaduras Pesadas", tipo:"Combate", prereq:"Força 10 ou Vigor 15", restricao:"", descricao:"Treinado para usar armaduras pesadas", beneficio:"Sabe usar armaduras pesadas sem a penalidade maior de armadura", revisado:false},
+    {nome:"Usar Pólvora", tipo:"Combate", prereq:"Mecanismo 2; Destreza 2", restricao:"", descricao:"Treinamento no uso e manutenção de armas a base de pólvora", beneficio:"Proficiência com a categoria Armas de Fogo sem penalidade; pode testar Mecanismo para retirar a condição Danificada de uma arma de fogo", revisado:false},
+    {nome:"Utilitarista Rápido", tipo:"Combate", prereq:"Destreza 11; Inteligência 6; Saque Rápido", restricao:"Usar o benefício impede o uso da habilidade especial Dragão de Fogo", descricao:"Mais rápido ao utilizar ferramentas shinobi utilitárias", beneficio:"Ações com Ferramenta Shinobi Utilitária que normalmente gastam ação padrão passam a gastar ação de movimento", revisado:false},
+    {nome:"Velocista", tipo:"Combate", prereq:"", restricao:"", descricao:"Extremamente rápido", beneficio:"Sem armadura ou com armadura leve, dobra a Agilidade para deslocamento; acelerado/super acelerado recebe +10m de deslocamento em vez disso", bonusTexto:"x2 deslocamento (ou +10m acelerado)", revisado:false},
+    {nome:"Agarrar Agressivo", tipo:"Manobra", prereq:"Lutador ou Guerreiro", restricao:"Usar a manobra proíbe ataques adicionais na rodada", descricao:"Consegue causar ferimentos ao apertar um alvo que está agarrando", beneficio:"Ao realizar Agarrar, pode causar dano igual ao ataque desarmado/arma usada; a vítima testa Vigor (dif 2+CC) para não ficar agarrada, mas o dano é causado de qualquer forma", revisado:false},
+    {nome:"Apanhar Objetos", tipo:"Manobra", prereq:"", restricao:"Não pode ser usada em resposta a outro uso de Apanhar Objeto", descricao:"Consegue apanhar projéteis atirados contra ele em pleno ar (flechas, virotes, armas de arremesso)", beneficio:"Ao bloquear um projétil, pode apanhá-lo em vez de apenas desviá-lo; pode arremessá-lo de volta como ação livre, com sua precisão de Bloqueio e o dano base original do atacante; pode usar Rebater Projétil como reação de defesa, com ação de movimento em vez de parcial contra quem tem Destreza maior", revisado:false},
+    {nome:"Arremessar", tipo:"Manobra", prereq:"Força 5, Lutador ou Guerreiro", restricao:"Comprada com Lutador, só desarmado; comprada com Guerreiro, só com armas", descricao:"Mestre em arremessar e derrubar seus oponentes", beneficio:"Ao usar Derrubar, arremessa o oponente para trás ou para cima até 1m por nível de Força (máx. 10m); se colidir com obstáculo, causa dano fixo igual ao nível de Força (máx. 10); se acerta outro alvo, este tem uma defesa (dif = resultado do ataque original) ou ambos sofrem o dano de colisão dividido por 2", bonusTexto:"até 10m de arremesso", revisado:false},
+    {nome:"Ataque Atordoante", tipo:"Manobra", prereq:"Força 12", restricao:"", descricao:"Sabe atingir oponentes em áreas vulneráveis", beneficio:"Ação padrão, ataque corporal sem dano; se acertar, alvo testa Vigor (dif 7+Força) ou fica atordoado até o próximo turno", revisado:false},
+    {nome:"Ataque Giratório", tipo:"Manobra", prereq:"Combate Corporal 8", restricao:"", descricao:"Capaz de golpear os oponentes mais próximos com um ataque giratório", beneficio:"Acerta todas as criaturas no alcance corpo-a-corpo com um único teste de acerto; pode ser usada com armas pesadas", revisado:false},
+    {nome:"Ataque Múltiplo", tipo:"Manobra", prereq:"Combate 11 (Corporal ou à Distância)", restricao:"Não pode ser usada quando a manobra exige ataque único (ex.: Investida)", descricao:"Capaz de atacar mais de uma vez armado ou desarmado, dividindo o dano", beneficio:"2 ou 3 ataques na mesma ação padrão, dividindo o dano base; um teste e defesa para cada ataque", escolha:"Dividir em 2 ou 3 ataques", revisado:false},
+    {nome:"Ataque Poderoso", tipo:"Manobra", prereq:"Combate Corporal 7", restricao:"", descricao:"Capaz de realizar ataques corporais excepcionalmente poderosos", beneficio:"Declarado antes do ataque; -1 de precisão, +1 de bônus de dano; combinável com outras aptidões de manobra que não dão bônus de precisão/dano", bonusTexto:"-1 precisão / +1 dano", revisado:false},
+    {nome:"Ataque Progressivo", tipo:"Manobra", prereq:"Agilidade 14 ou Hachimon Tonkou 6, Ataque Múltiplo", restricao:"Só pode ser usada junto com Ataque Múltiplo, sem outra aptidão de manobra além desta", descricao:"Encaixa golpes rápidos sucessivos após terminar um combo", beneficio:"Se o último golpe do Ataque Múltiplo acertar, rola o ataque mais duas vezes, +1 de dano por acerto adicional; com Agilidade 16 ou Hachimon 7, rola mais uma vez (total 3)", bonusTexto:"+1 dano por acerto adicional", revisado:false},
+    {nome:"Bloquear Arma", tipo:"Manobra", prereq:"", restricao:"Só contra ataques corporais armados", descricao:"Consegue bloquear ataques armados mais facilmente", beneficio:"+1 de precisão em Bloqueio contra ataques armados; com 4+ pontos de vantagem, executa Desarmar como ação livre; crítico no bloqueio desarma automaticamente", bonusTexto:"+1 precisão", revisado:false},
+    {nome:"Chute Duplo", tipo:"Manobra", prereq:"Chute Giratório, Ataque Múltiplo", restricao:"", descricao:"Desfere dois chutes em sequência", beneficio:"Usa Ataque Múltiplo para aplicar Chute Giratório seguido de chute comum; se o primeiro acertar, o segundo recebe +1 de precisão", bonusTexto:"+1 precisão no segundo chute", revisado:false},
+    {nome:"Chute Giratório", tipo:"Manobra", prereq:"Combate Corporal 10, Ataque Giratório", restricao:"", descricao:"Gira e chuta usando o impulso do giro para aumentar a potência", beneficio:"Ataque desarmado com Ataque Giratório e +2 de bônus de dano", bonusTexto:"+2 dano", revisado:false},
+    {nome:"Chute Inverso", tipo:"Manobra", prereq:"Combate Corporal 14; Ponto Cego", restricao:"", descricao:"Finge o chute perto da cabeça e inverte o movimento, atingindo com o calcanhar", beneficio:"Ação padrão realiza Fintar e ataque desarmado que o alvo não pode bloquear", revisado:false},
+    {nome:"Contragolpe", tipo:"Manobra", prereq:"Combate Corporal 12", restricao:"", descricao:"Consegue contra-atacar um inimigo que falhou no ataque corpo-a-corpo", beneficio:"Ao bloquear com 4+ pontos de vantagem, executa ataque oportuno; crítico no bloqueio ou falha crítica do inimigo torna o ataque oportuno Sucesso Automático", revisado:false},
+    {nome:"Derrubar Agressivo", tipo:"Manobra", prereq:"Lutador ou Guerreiro", restricao:"", descricao:"Preciso e letal ao derrubar o oponente", beneficio:"Ao usar Derrubar, pode causar dano e derrubar; alvo testa Vigor (dif 2+CC) para ficar de pé; combinável com Arremessar", revisado:false},
+    {nome:"Desarme à Distância", tipo:"Manobra", prereq:"Combate à Distância 11; Inteligência 3", restricao:"Ataque não causa dano nem recebe benefício de outra aptidão de manobra que afete Desarmar (versão base)", descricao:"Mirando na mão do oponente, faz soltar a arma à distância", beneficio:"Com arma de Arremesso ou Disparo, realiza Desarmar sem penalidade em um ataque à distância; Nível 2 (Combate à Distância 17, Inteligência 7): passa a causar dano (dano à distância normal, -1 no grau, mín. 1); crítico arremessa a arma para longe do portador (½ da Destreza do atacante, em metros)", revisado:false},
+    {nome:"Desarme Agressivo", tipo:"Manobra", prereq:"Lutador ou Guerreiro", restricao:"", descricao:"Preciso e letal ao desarmar o oponente", beneficio:"Ao usar Desarmar, também causa dano além de desarmar", revisado:false},
+    {nome:"Estilo Zui Quan (Punhos Bêbados)", tipo:"Manobra", prereq:"Ponto Cego; Punho de Ferro; Vigor 8", restricao:"No estilo não pode usar técnicas (exceto sustentar Energizar); quem o ataca sofre 25% de chance de falha; após encerrar, precisa de 2 turnos para reentrar", descricao:"Desperta um estilo de luta secreto, baseado em enganação e imprevisibilidade", beneficio:"Ação parcial para beber e entrar no estilo por 5 turnos; a cada turno rola 1d8 (1-2 nada, 3-4 ataca o mais próximo, 5-8 age normal); Golpear desarmado gera finta como ação livre; Nível 2 (Força 15, Vigor 12, Resistência Maior: Vigor): entra como ação livre sem bebida, sem confusão no 1d8, com duração contínua", bonusTexto:"25% chance de falha contra atacantes", revisado:false},
+    {nome:"Flechada no Joelho", tipo:"Manobra", prereq:"Combate à Distância 11; Inteligência 3", restricao:"Ataque não causa dano nem recebe benefício de outra aptidão de manobra que afete Derrubar (versão base)", descricao:"Mirando no joelho inimigo, dificulta sua movimentação com um ataque à distância", beneficio:"Com arma de Arremesso ou Disparo, realiza Derrubar sem penalidade em um ataque à distância; Nível 2 (Combate à Distância 17, Inteligência 7): passa a causar dano (-1 no grau, mín. 1); crítico deixa o alvo lento até o fim do próximo turno", revisado:false},
+    {nome:"Golpe Atemi", tipo:"Manobra", prereq:"Ataque Poderoso, Crítico Aprimorado", restricao:"Sem bônus se o alvo não tiver pontos vitais desprotegidos", descricao:"Especialmente habilidoso ao atingir pontos vitais", beneficio:"-1 de precisão, +2 de bônus de dano em ataque desarmado; mesmo bônus em acerto crítico sem aptidão de manobra", bonusTexto:"-1 precisão / +2 dano", revisado:false},
+    {nome:"Golpe Caratê", tipo:"Manobra", prereq:"Combate Corporal 15; Especialista (Ataque Desarmado)", restricao:"", descricao:"Golpe forte com a mão estendida, quebrando ossos ou atingindo com as pontas dos dedos", beneficio:"Ataque desarmado ignora até 2 pontos de dureza de corpo (10 contra objetos)", bonusTexto:"até 2 (ou 10) de redução de dureza", revisado:false},
+    {nome:"Imobilização", tipo:"Manobra", prereq:"Agarrar Agressivo; Força 13", restricao:"Não pode ser feita com armas especiais (Braços de Chakra dos Jinchuurikis, fios do Jiongu)", descricao:"Transforma agarramentos em poderosas imobilizações, chaves e torções", beneficio:"1 rodada após agarrar, gastando ação padrão + de movimento, melhora o agarramento para imobilização; a vítima testa contra sufocamento (dif 7+Força, -1 a cada teste seguinte) ou sofre dano fixo igual à Força; com Kousen (manobra Amarrar) sem Utilitarista Rápido, pode usar Destreza no lugar de Força", bonusTexto:"Dano fixo = Força", revisado:false},
+    {nome:"Instância de Falange", tipo:"Manobra", prereq:"Especialista (Armas Longas), Guerreiro (Armas Longas), Combate Corporal 14", restricao:"Não aumenta o máximo de ataques oportunos (exceto com Oportunista); termina ao se mover, cair ou parar de empunhar a arma", descricao:"Usando arma longa, posiciona-se para obter ataque oportuno contra inimigos que se aproximem", beneficio:"Ação parcial com arma longa empunhada cria uma zona de 1m ao redor; quem entrar gera ataque oportuno com a arma longa (nunca impede a aproximação); Passo Seguro evita o oportuno; Cambalhota exige teste de Acrobacia (dif 2+CC)", revisado:false},
+    {nome:"Rasteira", tipo:"Manobra", prereq:"Lutador ou Guerreiro (armas longas)", restricao:"", descricao:"Chute baixo e poderoso para derrubar o oponente, podendo causar dano", beneficio:"Realiza Derrubar com +1 de precisão; combinável com Derrubar Agressivo", bonusTexto:"+1 precisão", revisado:false},
+    {nome:"Roubar", tipo:"Manobra", prereq:"Combate Corporal 11; Prestidigitação 5", restricao:"Precisa ter mãos livres para segurar a arma roubada", descricao:"Consegue roubar a arma do oponente ao desarmá-lo", beneficio:"Ao desarmar (Desarmar/Desarme Agressivo, ou crítico/vitória por 4+ no Bloqueio com Bloquear Arma), rouba a arma do adversário; opcionalmente pode roubar um compartimento de item do oponente em combate (exceto armadura vestida)", revisado:false},
+    {nome:"Seguir Sombra", tipo:"Manobra", prereq:"Arremessar, Ataque em Movimento", restricao:"Requer estar acelerado; não pode ser usada se Arremessar foi feito com Ataque Múltiplo ou Derrubar Agressivo", descricao:"Persegue o oponente para atacá-lo de novo após arremessá-lo", beneficio:"Após Arremessar bem-sucedido, move-se até o oponente com ação parcial e recebe ação padrão extra para novo ataque, sem contar no limite de deslocamento; alvo no ar tem defesa limitada", revisado:false},
+    {nome:"Soco Agarrado", tipo:"Manobra", prereq:"Lutador", restricao:"Só se o alvo também estiver desarmado ou com arma leve", descricao:"Desfere um golpe enquanto agarra o braço de defesa do oponente", beneficio:"Oponente não pode bloquear o ataque desarmado", revisado:false},
+    {nome:"Soco em Gancho", tipo:"Manobra", prereq:"Combate Corporal 11, Ataque Múltiplo", restricao:"", descricao:"Finaliza uma sequência de golpes com um soco em gancho forte e preciso", beneficio:"No último golpe do Ataque Múltiplo, +1 de precisão e +1 de bônus de dano", bonusTexto:"+1 precisão / +1 dano", revisado:false},
+    {nome:"Voadora", tipo:"Manobra", prereq:"Derrubar Agressivo; Ataque Poderoso", restricao:"", descricao:"Corre e se lança com um chute em voadora contra o inimigo", beneficio:"Investida seguida de ataque desarmado com Derrubar Agressivo; -1 precisão, +2 dano, alvo sofre +3 na dificuldade contra ser derrubado", bonusTexto:"-1 precisão / +2 dano / +3 dif. de queda", revisado:false},
+    {nome:"Domínio da Água", tipo:"Técnicas", prereq:"Suiton 5", restricao:"Bônus não cumulativo (recebido uma única vez por ação)", descricao:"Sabe usar a água do ambiente para aumentar o poder de seus ataques", beneficio:"Ataque em área com Suiton acumula pontos de água iguais ao nível do efeito; pode gastar pontos de água para +1 de dano em novos ataques", bonusTexto:"+1 dano por uso", revisado:false},
+    {nome:"Domínio da Terra", tipo:"Técnicas", prereq:"Doton 5", restricao:"Dureza extra não pode exceder o nível do poder usado", descricao:"Capaz de criar barreiras mais resistentes", beneficio:"Ao usar Barreira (Doton), pode gastar mais chakra para +1 de dureza por +1 de chakra", bonusTexto:"+1 dureza por +1 chakra", revisado:false},
+    {nome:"Domínio do Fogo", tipo:"Técnicas", prereq:"Katon 5", restricao:"Não aplicável se o ataque for contra-atacado com Suiton ou bloqueado", descricao:"Chamas produzem calor quase insuportável", beneficio:"Técnica em área Katon força teste de Vigor (dif 7+2x nível) ou debilita por 1 turno; +2 na dificuldade em ambientes fechados", revisado:false},
+    {nome:"Domínio do Raio", tipo:"Técnicas", prereq:"Raiton 5", restricao:"Não cumulativo com outro bônus do mesmo tipo", descricao:"Gera correntes elétricas extremamente perigosas", beneficio:"Recebe Crítico Aprimorado para todos os efeitos Raiton (inclusive Energizar)", bonusTexto:"-1 margem de crítico (via Crítico Aprimorado)", revisado:false},
+    {nome:"Domínio do Vento", tipo:"Técnicas", prereq:"Fuuton 5", restricao:"", descricao:"Cria vendavais que dificultam o avanço dos oponentes", beneficio:"Técnica em área Fuuton: gasta ação parcial para sustentar os ventos, reduzindo à metade o deslocamento de criaturas na área", bonusTexto:"-50% de deslocamento", revisado:false},
+    {nome:"Domínio Mecânico", tipo:"Técnicas", prereq:"Mecanismo 10; Engenheiro", restricao:"Incompatível com Domínio Simples", descricao:"Domina a arte de utilizar armadilhas e mecanismos shinobi", beneficio:"Ao usar mecanismo no Ninpou, escolhe 1 bônus: Dano Adicional (+2); Dureza Adicional (+2); Dificuldade de Resistência (+1); ou Alcance (+5m+1m/nível de Mecanismo, se já à distância); constrói armadilhas shinobi com ação padrão em vez de 10 min, usando projéteis/tarjas iguais ao nível de Mecanismo (posicionáveis até 5m, ativam num raio de 5m); Ninjutsu no Wana passa a ação padrão", bonusTexto:"+2 dano / +2 dureza / +1 dif. / alcance (à escolha)", escolha:"Um dos quatro bônus", revisado:false},
+    {nome:"Domínio Ninpou", tipo:"Técnicas", prereq:"Ninpou ou Hibon Ninpou 5; Ponto Cego", restricao:"Não usável com versões modificadas do Ninpou (ex.: Kikai Ninpou)", descricao:"Projéteis da arte ninja são rápidos e difíceis de evitar", beneficio:"Finta do efeito Flechas seguida do mesmo efeito custa só ação parcial", revisado:false},
+    {nome:"Domínio Simples", tipo:"Técnicas", prereq:"Ninpou (Arte Ninja) 5", restricao:"Incompatível com Domínio Mecânico", descricao:"Domina a versatilidade do poder ninpou não elemental", beneficio:"1x por cena escolhe 1 bônus até o fim da cena: Dano Adicional (+1 em todo efeito de Ninpou); Dureza Adicional (+2 de dureza); Dificuldade de Resistência (+1); ou Alcance Aumentado (15m+3m por nível de Espírito)", bonusTexto:"+1 dano / +2 dureza / +1 dif. / 15m+3m alcance (à escolha)", escolha:"Um dos quatro bônus, 1x por cena", revisado:false},
+    {nome:"Henge Perfeito", tipo:"Técnicas", prereq:"Disfarce 4", restricao:"", descricao:"Maestria com o Henge no Jutsu muito superior à de usuários comuns", beneficio:"Usa Henge no Jutsu com ação parcial (em vez de movimento), com duração contínua (em vez de sustentada); dificuldade para perceber passa a 9+Nível de Disfarce (+1 com Perito e/ou Perícia Inata: Disfarce, não cumulativo); voz e cheiro mascarados; só é cancelado por dano maior que 2x o Nível de Disfarce", bonusTexto:"Dif. de percepção = 9+Disfarce (+1)", revisado:false},
+    {nome:"Ilusão Musical", tipo:"Técnicas", prereq:"Ilusão Profunda; Arte 11", restricao:"Nunca pode usar Técnica Acelerada ou meta-aptidões com ela; alvos Surdos não são afetados", descricao:"Utiliza sua arte como meio de propagação das suas ilusões", beneficio:"Usa um instrumento musical para propagar ilusões; o alcance vira emanação esférica de 5m+1m por nível de Arte, afetando todos na área (sem exceções, exceto o próprio usuário); dificuldade calculada por Arte com -1 (ex.: com Magen vira 8+Nv do Poder+½Arte); a dificuldade não diminui por múltiplos alvos; exige as duas mãos, sem selos de mão; encerrar a ilusão liberta todos (exceto quem usou Kai em si mesmo); aplica-se a Encantar, Fascinar, Miragem, Magen, Flauta Demoníaca e técnicas indicadas", revisado:false},
+    {nome:"Ilusão Profunda", tipo:"Técnicas", prereq:"Inteligência 5", restricao:"Aplica-se apenas a Fascinar, Magen, Hipnose Sharingan e técnicas indicadas", descricao:"Ilusões atormentam níveis profundos da mente", beneficio:"+1 de dificuldade no teste de resistência à ilusão (+2 se tentarem dissipar com Kai)", bonusTexto:"+1 (ou +2 contra Kai) de dificuldade", revisado:false},
+    {nome:"Kai Perfeito", tipo:"Técnicas", prereq:"Espírito 4", restricao:"", descricao:"Kai muito mais evoluído que o da maioria dos shinobis", beneficio:"Realiza o Kai como ação parcial em vez de padrão; +2 no teste de Espírito para cancelar técnicas com Kai; pode usar Kai em qualquer momento do combate, inclusive fora do seu turno", bonusTexto:"+2 no teste de Kai", revisado:false},
+    {nome:"Kawarimi Explosivo", tipo:"Técnicas", prereq:"Réplica Enganadora", restricao:"Exige fornecer a Tarja Explosiva usada", descricao:"Capaz de deixar uma armadilha de Tarjas explosivas após o próprio Kawarimi no Jutsu", beneficio:"Após uso defensivo de Kawarimi no Jutsu ou Réplica Enganadora, gasta ação parcial para deixar uma Tarja Explosiva no objeto/clone substituído, que detona após a movimentação da técnica defensiva; alvos na área testam Agilidade ou Prontidão (dif 9+Prestidigitação) para evitar; compatível com Bakudan (Fuuinjutsu) e Mina Explosiva (Kibaku Nendo), com dif 9+2x Nv do Poder e área/dano cortados pela metade", revisado:false},
+    {nome:"Kawarimi Perfeito", tipo:"Técnicas", prereq:"Agilidade 11 ou Prestidigitação 11", restricao:"", descricao:"Kawarimi muito mais completo que o da maioria dos shinobis", beneficio:"Permite usar Kawarimi no Jutsu contra técnicas em área", revisado:false},
+    {nome:"Mestre da Criação", tipo:"Técnicas", prereq:"Inteligência ou Espírito 7", restricao:"", descricao:"Domina a criação livre dos poderes ninpou", beneficio:"Suas criações livres passam a ter os parâmetros comuns do elemento usado, sem serem divididos pela metade", revisado:false},
+    {nome:"Potencializar [META]", tipo:"Técnicas", prereq:"Espírito 8 ou Inteligência 8", restricao:"Só aplicável a parâmetro existente na técnica", descricao:"Capaz de potencializar os efeitos de suas técnicas", beneficio:"Ao usar uma técnica, escolhe um: dobrar área de efeito; dobrar alcance (CD); ou +1 no dano base", bonusTexto:"x2 área/alcance ou +1 dano", escolha:"Um dos três melhoramentos", revisado:false},
+    {nome:"Técnica Acelerada", tipo:"Técnicas", prereq:"Espírito ou Inteligência 11", restricao:"Só no próprio turno; não afeta técnicas defensivas nem de ação completa; técnicas com dano devem zerá-lo para acelerar", descricao:"Executa técnicas mais rapidamente", beneficio:"Executa técnica de ação padrão ou criação livre como ação de movimento; técnicas com dano/perda de chakra só aceleram se o dano for zerado; técnicas de toque só aceleram a preparação; afeta só a execução, não a duração (concentração ainda exige ação padrão nos turnos seguintes)", revisado:false},
+    {nome:"Técnica de Controle de Chakra [META]", tipo:"Técnicas", prereq:"Inteligência 5, Espírito 5", restricao:"Técnicas sem nenhum dos três parâmetros (Dano, Dureza, Teste de Resistência) não recebem o benefício", descricao:"Mestre em guardar o chakra ao utilizar seus jutsus", beneficio:"Concentra-se para reduzir o custo de chakra da técnica em 3 (mín. 1), perdendo em troca 1 de dano base, 1 de dureza e 1 de dificuldade de resistência", bonusTexto:"-3 chakra / -1 dano / -1 dureza / -1 dif.", revisado:false},
+    {nome:"Técnica de Cura Arriscada", tipo:"Técnicas", prereq:"Iryou Ninjutsu 7", restricao:"Nunca pode ser usada com Técnica Acelerada", descricao:"Capaz de realizar cirurgias rápidas, porém arriscadas", beneficio:"Ao usar Shousen no Jutsu, pode arriscar a cirurgia; rola 2 dados: 2-3 causa dano igual à cura padrão; 4-8 cura ½; 9-11 cura x2; 12-14 cura x3; 15-16 cura x4 (progressão igual aos graus de dano)", bonusTexto:"Cura de ½x a 4x (ou dano, em 2-3)", revisado:false},
+    {nome:"Técnica de Impacto [META]", tipo:"Técnicas", prereq:"Espírito 5", restricao:"Só técnicas de duração instantânea e com custo de chakra", descricao:"Suas técnicas causam impacto e desestabilizam o oponente", beneficio:"Alvos acertados pela técnica testam Vigor (dif comum do poder -2) ou ficam Caídos", revisado:false},
+    {nome:"Técnica Eficiente [META]", tipo:"Técnicas", prereq:"Espírito ou Inteligência 10", restricao:"", descricao:"Consegue extrair o melhor de suas técnicas", beneficio:"Ao acertar com uma técnica, gasta ação de movimento e rola dano de novo, mantendo o melhor resultado", revisado:false},
+    {nome:"Técnica Elevada [META]", tipo:"Técnicas", prereq:"Inteligência 6", restricao:"", descricao:"Torna mais difícil para os inimigos resistirem às técnicas", beneficio:"+2 na dificuldade de testes de perícia para resistir/se livrar de uma técnica", bonusTexto:"+2 dificuldade", revisado:false},
+    {nome:"Técnica Poderosa [META]", tipo:"Técnicas", prereq:"Espírito ou Inteligência 12", restricao:"", descricao:"Técnicas causam dano adicional", beneficio:"+0,5 no Grau de Dano da técnica (arredondado para cima após multiplicar)", bonusTexto:"+0,5 Grau de Dano", revisado:false},
+    {nome:"Burro de Carga", tipo:"Geral", prereq:"Força 4", restricao:"", descricao:"Treinado em carregar mais equipamentos shinobi para as missões", beneficio:"Limite de compartimentos sem penalidade sobe para 4; com Força 8 sobe para 5; com Força 12 sobe para 6", bonusTexto:"Limite de 4 a 6 compartimentos conforme Força", revisado:false},
+    {nome:"Duro de Matar", tipo:"Geral", prereq:"", restricao:"Não funciona contra acertos críticos; usável uma vez por dia", descricao:"Resiste a ferimentos que fariam outros caírem", beneficio:"Ao sofrer dano que reduziria Vitalidade a 0 ou menos, mantém-se em combate com Vitalidade igual ao Vigor (ou 1 se já muito baixa)", revisado:false},
+    {nome:"Engenheiro", tipo:"Geral", prereq:"", restricao:"", descricao:"Aprimorou-se na manipulação de dispositivos e artes mecânicas", beneficio:"Cria armadilhas e dispositivos com Mecanismos; permite usar mecanismos dentro do poder Ninpou (Mecanismos substitui Espírito nesse caso)", revisado:false},
+    {nome:"Envenenar Arma", tipo:"Geral", prereq:"Venefício 9; Saque Rápido", restricao:"", descricao:"Capaz de envenenar mais armas com menos veneno e em menos tempo", beneficio:"Preparar armas com veneno passa a exigir só ação padrão; cada dose de veneno passa a envenenar até 3 armas ou 30 projéteis (3x mais eficiente)", bonusTexto:"3x mais eficiente", revisado:false},
+    {nome:"Furtividade Ágil", tipo:"Geral", prereq:"Furtividade 9", restricao:"", descricao:"Rápido ao mesmo tempo que furtivo", beneficio:"Anula a penalidade no teste de Furtividade ao se deslocar normalmente e reduz a penalidade por corrida ou investida para -1", bonusTexto:"Penalidade de deslocamento reduzida para -1", revisado:false},
+    {nome:"Metabolismo Rápido", tipo:"Geral", prereq:"Vigor 1; Espírito 1", restricao:"", descricao:"Recupera vitalidade e chakra com o dobro de eficiência ao descansar", beneficio:"Recupera o dobro de vitalidade e chakra após um descanso completo", bonusTexto:"x2 recuperação (descanso completo)", revisado:false},
+    {nome:"Ninja Médico", tipo:"Geral", prereq:"Medicina 7", restricao:"", descricao:"Focou estudos e treinamentos nos conhecimentos médicos", beneficio:"Realiza cirurgias, remédios, antídotos e técnicas de cura; não fica desprevenido ao curar aliado em combate; usa Medicina no lugar de Venefício para antídotos", revisado:false},
+    {nome:"Perícia Inata", tipo:"Geral", prereq:"", restricao:"Não usável após falha crítica no primeiro teste", descricao:"Possui grande talento na perícia", beneficio:"Escolhe uma perícia; pode refazer um teste recém realizado dessa perícia (deve aceitar o segundo resultado)", escolha:"Uma perícia", revisado:false},
+    {nome:"Perito", tipo:"Geral", prereq:"", restricao:"", descricao:"Especialmente treinado na perícia selecionada", beneficio:"+2 de precisão nos testes da perícia escolhida", bonusTexto:"+2 precisão", escolha:"Uma perícia", revisado:false},
+    {nome:"Químico", tipo:"Geral", prereq:"Inteligência 6", restricao:"", descricao:"Tornou-se proficiente na arte de criar venenos e antídotos", beneficio:"Autorizado a comprar e evoluir a perícia Venefício", revisado:false},
+    {nome:"Resistência Maior", tipo:"Geral", prereq:"", restricao:"Não usável após falha crítica no primeiro teste", descricao:"Especialmente resistente a determinados tipos de perigo", beneficio:"Escolhe um atributo; pode refazer teste de resistência desse atributo recém realizado (aceita o segundo resultado)", escolha:"Um atributo", revisado:false},
+    {nome:"Clone", tipo:"Shinobi", prereq:"Espírito 6", restricao:"Clones não usam técnicas/poderes do usuário exceto os citados; não usam itens dependentes de chakra", descricao:"Capaz de criar réplica material exata de si mesmo, indistinguível a olho nu", beneficio:"Cria até 2 clones (Parceiros) com ação padrão, 1 chakra cada; escolhe material do clone (energia vital, água, pedra etc.); Nível 2 (Espírito 8): até 6 clones, mas falham em testes de Habilidade de Combate", escolha:"Material/tipo do clone", revisado:false},
+    {nome:"Clone Perfeito", tipo:"Shinobi", prereq:"Espírito 16; Clone Nível 2; Clone Verdadeiro (Kage Bunshin ou Moku Bunshin); somente para PdM", restricao:"Somente para Personagem de Mestre (PdM)", descricao:"Clones são réplica quase perfeita e podem utilizar jutsus, livres de restrições anteriores", beneficio:"Cria até 6 clones sem penalidade de precisão/dificuldade, podem usar qualquer poder/aptidão (inclusive restritas) e manter técnicas sustentadas/concentração", revisado:false},
+    {nome:"Clone Verdadeiro", tipo:"Shinobi", prereq:"Espírito 10; Clone (Kage Bunshin ou Moku Bunshin)", restricao:"Não pode usar poderes/aptidões restritas (exceto Moku Bunshin com Mokuton); não mantém técnica sustentada/concentração; não pode ter outro clone ativo junto", descricao:"Clones são réplica quase perfeita e podem utilizar jutsus", beneficio:"Cria e controla 1 clone capaz de usar poderes, aptidões e jutsus básicos; dificuldade de resistência a jutsus/poderes do clone é -3; usa itens dependentes de chakra", bonusTexto:"-3 dificuldade de resistência", revisado:false},
+    {nome:"Encantar", tipo:"Shinobi", prereq:"Inteligência 5; Nível 2: Inteligência 12, Ilusão Profunda", restricao:"Duração contínua até o fim da cena; -6 na dificuldade se usada em combate; uso entre Personagens Jogadores é desaconselhado", descricao:"Utiliza técnicas ilusórias para mudar a atitude do alvo em relação a si", beneficio:"Ação padrão, alcance 5m+1m/Inteligência, custo 3 (ou nível do poder, com Magen); alvo testa Inteligência (dif 6+Inteligência, ou 9+Nv+½Int com Magen) ou muda 1 estágio de atitude (de Hostil a Prestativo); falha crítica ou diferença ≥8 move 2 estágios; Kai liberta o alvo; ao fim da cena o alvo tem direito a um teste para perceber que foi encantado; Nível 2: move até 2 estágios numa falha comum, escolhe a nova atitude em falha crítica/diferença ≥6; versão 'Encanto Profundo' (ação completa, -4 de dif, custo fixo 15) tem duração indefinida e só é removida por Kai de alguém com Espírito ≥ Arte do usuário", revisado:false},
+    {nome:"Fascinar", tipo:"Shinobi", prereq:"Inteligência 4", restricao:"Alvo precisa estar até 5m de distância", descricao:"Cria ilusões que atingem diretamente a mente do alvo", beneficio:"Ação padrão + 3 chakra prende um alvo em ilusão mental; alvo testa Inteligência (dif 6+Inteligência do usuário) ou fica fascinado pelo resto da cena", revisado:false},
+    {nome:"Haremu no Jutsu (Jutsu Harém)", tipo:"Shinobi", prereq:"Disfarce 10; Clone Nível 2; Oiroke no Jutsu", restricao:"Exige pelo menos 4 participantes (usuário + clones); permanece ativo enquanto houver 2+ usuários", descricao:"Evolução do Oiroke no Jutsu, usando clones e Henge para criar um harém", beneficio:"Custo 3 + custo dos clones (mínimo 4); alvo fica Fascinado e Desprevenido até sofrer um ataque, resistir ou a técnica acabar; escolhe transformar-se em homens, mulheres ou misto; dificuldade 9+½NC do alvo+½Disfarce; pode afetar múltiplos alvos com -1 de dif por alvo adicional (-3 para dois alvos, -4 para três, etc.)", escolha:"Homens, mulheres ou misto", revisado:false},
+    {nome:"Kyoudo Kyouka (Aumento de Força)", tipo:"Shinobi", prereq:"Espírito 6; Iryou Ninjutsu 2", restricao:"Não pode ser bloqueada desarmada ou com arma comum; sem bônus de dano de arma; sem Crítico Aprimorado ou aptidões de manobra", descricao:"Através do controle de chakra, desfere socos e chutes com força sobre-humana", beneficio:"Acumula chakra (ação parcial) e libera em ataque desarmado causando dano igual a 1/2 Espírito + nível de Iryou Ninjutsu; custo de chakra = metade do Espírito; Nível 2 (Espírito 10): prepara com ação de movimento e aumenta dano para Espírito + Iryou Ninjutsu", bonusTexto:"Dano = ½ Espírito + Iryou Ninjutsu (Espírito + Iryou Ninjutsu no Nível 2)", revisado:false},
+    {nome:"Miragem", tipo:"Shinobi", prereq:"Inteligência 2", restricao:"Ilusão não pode se deslocar do ponto de criação", descricao:"Usa chakra no ambiente para modificar a aparência e enganar quem observa", beneficio:"Cria ilusão estática ou móvel a até 5m; custa ação padrão + 1 chakra por categoria de tamanho; tamanho aumenta com Inteligência (médio 8, grande 12, enorme 16)", revisado:false},
+    {nome:"Oiroke no Jutsu (Jutsu Sexy)", tipo:"Shinobi", prereq:"Disfarce 4", restricao:"Usuário fica desprevenido enquanto sustenta a técnica", descricao:"Transformação sensual usada para distrair, útil até contra inimigos fortes", beneficio:"Ação padrão, alcance 10m, custo 3, duração sustentada; escolhe forma masculina ou feminina; alvo atraído testa Inteligência (dif 7+½NC do alvo+½Disfarce) ou fica Fascinado e Fintado até sofrer um ataque, resistir ou a técnica acabar; a partir do 2º turno o alvo tem novo teste (ação livre, -1 de dif cumulativo); o usuário pode cancelar a técnica a qualquer momento para deixar de estar desprevenido, liberando o alvo", escolha:"Forma masculina ou feminina", revisado:false},
+    {nome:"Raigou – Senjusatsu (Mil Braços Assassinos)", tipo:"Shinobi", prereq:"Espírito 13; Concentração 10", restricao:"Não é possível utilizar aptidões de técnica com ela", descricao:"Técnica suprema do templo do fogo, que ataca uma grande área sem precisar se mover", beneficio:"Ação de movimento para entrar na postura + ação padrão (concentração), custo ½ Espírito; dá socos com os Braços Assassinos, quantidade igual à Concentração, 1 de dano base cada (somados num único ataque se no mesmo alvo, CC ou CD à escolha, sem penalidade de combate próximo, não bloqueáveis); alcance = Espírito+½Concentração; alvo testa Vigor (dif 7+Concentração) ou é movido 1m por soco (direção escolhida pelo usuário); com Perito ou Perícia Inata: Concentração, +1 soco e dif sobe para 8+Concentração (não cumulativo)", bonusTexto:"Dano = nº de socos (1 cada, igual à Concentração)", revisado:false},
+    {nome:"Raiton: Kage Bunshin no Jutsu", tipo:"Shinobi", prereq:"Clone; Kage Bunshin (Clone das Sombras); Raiton 1", restricao:"Ninguém pode ser eletrocutado mais de uma vez na mesma ação", descricao:"Cria clones das sombras usando afinidade de Raiton", beneficio:"Ação padrão, custo Nv do Poder + 1 por clone; funciona como Kage Bunshin comum, mas ao ser desfeito pode eletrocutar todos em alcance corpo a corpo (dano = nível de Raiton, sem grau de dano); alvo evita com Agilidade (dif comum do Raiton) ou se afastando com Ataque em Movimento/Arremessar+Derrubar Agressivo; com Clone Verdadeiro, o clone só acessa jutsus básicos e o Raiton do usuário", bonusTexto:"Dano do choque = nível de Raiton", revisado:false},
+    {nome:"Réplica Enganadora", tipo:"Shinobi", prereq:"Suiton ou Doton nível 4, ou Clone e Prestidigitação 10", restricao:"Uma vez por cena (Nível 1); não usável após falhar em técnica defensiva", descricao:"Cria clone elemental ou de outro tipo e troca de lugar antes de sofrer um ataque", beneficio:"Ao falhar defesa por até 2 pontos, paga 4 chakra, cria clone para receber o ataque e se move sem ataque oportuno; Nível 2 (Prestidigitação 12): até 2 vezes por cena, testa Furtividade após fugir", revisado:false},
+    {nome:"Sensor", tipo:"Shinobi", prereq:"Rastrear 10", restricao:"Não diferencia assinaturas de chakra nem mede sua quantidade", descricao:"Capaz de localizar criaturas através de seu chakra", beneficio:"Rastreia criaturas com chakra em alcance de 10m +2m por nível de Rastrear; custa 5 chakra e ação de movimento, dura até o início do próximo turno (ação padrão + concentração para manter); opção Sensor Limitado reduz custo para 3 chakra", bonusTexto:"Alcance 10m +2m/nível", escolha:"Sensor normal ou limitado (Detecção pelo Solo ou Olfato)", revisado:false},
+    {nome:"Shunjutsu", tipo:"Shinobi", prereq:"Destreza ou Inteligência 10, Diligente, Velocista", restricao:"", descricao:"Capaz de usar o Shunshin no Jutsu em combate", beneficio:"Usa Shunshin como ação livre no deslocamento ou defesa, custando 1 chakra, usando Espírito no lugar de atributos/perícias de deslocamento; permite Kawarimi extra por cena; Nível 2 (Destreza/Inteligência 12): finta com Destreza/Inteligência em vez de Agilidade; Nível 3 (16): considerado acelerado ao se mover, anula finta acelerada do oponente na defesa", revisado:false},
+    {nome:"Shuriken Kage Bunshin no Jutsu", tipo:"Shinobi", prereq:"Clone; Prestidigitação 6", restricao:"Incompatível com a ação Puxar Projétil da Kousen", descricao:"Multiplica projéteis arremessados para atingir o adversário com mais força", beneficio:"Ação parcial logo após a ação Lançar Projétil; gasta 1 de chakra para +1 de dano bônus no projétil arremessado; com Destreza 8, pode gastar 3 de chakra para +2 de dano bônus", bonusTexto:"+1 dano (1 chakra) ou +2 dano (3 chakra, Destreza 8+)", revisado:false},
+    {nome:"Trabalho Duro", tipo:"Shinobi", prereq:"Não possuir Clã ou Hijutsu", restricao:"", descricao:"Não é gênio nem tem técnicas secretas, mas treina todos os dias para estar à altura dos grandes ninjas", beneficio:"A cada turno escolhe uma bonificação até o próximo turno: +5m deslocamento, +1 precisão ataque, +1 precisão defesa, +1 dano base, ou +1 dificuldade de resistência de técnicas; cumulativo com outras aptidões", bonusTexto:"+5m / +1 precisão / +1 dano / +1 dificuldade (à escolha)", escolha:"Uma das cinco bonificações, a cada turno", revisado:false},
+    {nome:"Kidaichuu (Inseto Parasita Gigante)", tipo:"Restrita de Clã (evolução de Kikaichuu)", origem:"Clã Aburame", prereq:"Lidar com Animais 12; Kikaichuu", restricao:"Não pode ter Kidaichuu e Rinkaichuu ao mesmo tempo; quantidade menor no corpo", descricao:"Insetos que drenam chakra de forma violenta e crescem ao se alimentar", beneficio:"Drenam 2 de chakra por toque e crescem para tamanho médio, atacando como capangas parceiros com mordida (dano de arma zero, drena 2 de chakra por ataque)", revisado:false},
+    {nome:"Kikaichuu (Inseto Parasita Destruidor)", tipo:"Restrita de Clã", origem:"Clã Aburame", prereq:"Lidar com Animais 1 (Nível 1); níveis seguintes exigem Lidar com Animais mais alto", restricao:"Compra separada por nível, como evolução da aptidão; insetos morrem com qualquer dano letal, mesmo mínimo", descricao:"Possui insetos sugadores de chakra vivendo no corpo, usados como arma e suporte", beneficio:"Hospeda kikaichuu (grupos de 100 insetos) conforme o nível em Lidar com Animais; pode liberar, mover e atacar com eles (dreno de chakra, não causa dano); permite comprar o poder restrito Kikai Ninpou", bonusTexto:"Quantidade de kikaichuu = nível de Lidar com Animais", revisado:false},
+    {nome:"Rinkaichuu (Inseto Parasita Venenoso)", tipo:"Restrita de Clã (evolução de Kikaichuu)", origem:"Clã Aburame", prereq:"Lidar com Animais 12; Kikaichuu", restricao:"Não pode ter Kidaichuu e Rinkaichuu ao mesmo tempo", descricao:"Insetos microscópicos que destroem células do inimigo", beneficio:"Transferidos por contato, causam dano fixo por turno igual ao nº de insetos infectantes; vítima testa Vigor ou fica atordoada e fatigada; dá Resistência Maior (Vigor) contra doenças/vírus ao usuário", bonusTexto:"Dano fixo por turno = nº de rinkaichuu", revisado:false},
+    {nome:"Shōkaichuu (Inseto Parasita Rastreador)", tipo:"Restrita de Clã (evolução de Kikaichuu)", origem:"Clã Aburame", prereq:"Lidar com Animais 6; Kikaichuu", restricao:"Não podem ser usados para atacar", descricao:"Manipula insetos que rastreiam criaturas pelo chakra", beneficio:"Libera grupos que buscam assinaturas de chakra numa área de 20m de raio por grupo, retornando no 5º turno com as posições encontradas", revisado:false},
+    {nome:"Corpulência", tipo:"Restrita de Clã", origem:"Clã Akimichi", prereq:"", restricao:"", descricao:"Corpo e resistência física invejáveis, que protegem contra dano e servem de reserva de chakra", beneficio:"+3x Vigor em Vitalidade; +2 de precisão em testes de Vigor; pode queimar calorias em chakra (2 Vit por 1 chakra), mas perde os benefícios da condição Acelerado enquanto o fizer", bonusTexto:"+3x Vigor de Vitalidade / +2 precisão Vigor", revisado:false},
+    {nome:"Resiliência", tipo:"Restrita de Clã", origem:"Clã Akimichi", prereq:"", restricao:"Reduz deslocamento em -5m e dá -3 de precisão em Esquiva, Agilidade, Acrobacia e Furtividade", descricao:"Especializado em se colocar na frente de batalha, suportando ataques para proteger aliados", beneficio:"Dureza de corpo 1 a cada 4 pontos completos de Vigor contra todo tipo de ataque", bonusTexto:"+1 dureza a cada 4 Vigor / -5m desloc. / -3 Esquiva,Agi,Acro,Furt", revisado:false},
+    {nome:"Byakugan", tipo:"Restrita de Clã (Doujutsu)", origem:"Clã Hyuuga", prereq:"Percepção 1", restricao:"", descricao:"Linhagem sanguínea avançada do clã Hyuuga, de grande percepção e poder", beneficio:"Ativa com ação parcial + 1 chakra, duração contínua por cena; concede Visão de Raio-X 360°, Visão de Chakra, Visão Através do Chakra, Medir Poder, Distinguir Chakra, Analisar Emoção; imune a ataque surpresa/flanqueio; alcance 10m +2m por nível de Rastrear", bonusTexto:"Alcance 10m +2m/nível de Rastrear", revisado:false},
+    {nome:"Tenketsu Byakugan", tipo:"Restrita de Clã (evolução do Byakugan)", origem:"Clã Hyuuga", prereq:"Byakugan; Procurar 7; Prontidão 7; Rastrear 7", restricao:"", descricao:"O Byakugan passa a enxergar os Tenketsus, permitindo selá-los com chakra", beneficio:"Ao acertar Juuken, alvo testa Vigor (dif 7+2x nível de Juuken) ou tem um tenketsu selado, perdendo 2 de chakra; habilita o poder restrito Juuken", bonusTexto:"-2 chakra por tenketsu selado", revisado:false},
+    {nome:"Companheiro Animal", tipo:"Restrita de Clã", origem:"Clã Inuzuka", prereq:"Lidar com Animais 1", restricao:"Ficha do animal com -2 em todos os atributos/habilidades/perícias; só usa perícias e aptidões de uma lista restrita", descricao:"Possui um animal de estimação (cão ou lobo) que o auxilia em missões e combate", beneficio:"Animal companheiro tratado como Parceiro, evoluindo junto com o Inuzuka; cresce de tamanho Pequeno a Grande conforme o nível de Lidar com Animais; pode ganhar mais animais (Matilha) em níveis altos", escolha:"Espécie do animal: lobo ou cão", revisado:false},
+    {nome:"Hakken no Jutsu (Técnica de Detecção)", tipo:"Restrita de Clã", origem:"Clã Inuzuka", prereq:"Rastrear 1", restricao:"", descricao:"Consegue rastrear qualquer criatura através de um olfato super apurado", beneficio:"Ativa/desativa como ação livre (2 chakra, duração contínua); alcance 10m +2m por nível de Rastrear; detecta odores sem teste (salvo interferências); dá teste extra de Rastrear contra ataque surpresa; -1 dificuldade em Prontidão/Rastrear/Procurar quando pode usar o olfato", bonusTexto:"Alcance 10m +2m/nível de Rastrear", revisado:false},
+    {nome:"Maximizar", tipo:"Restrita de Clã / Aptidão Especial (Tensai)", origem:"Clã Senju", prereq:"Espírito ou Inteligência 15; Potencializar (aptidão)", restricao:"", descricao:"Capaz de potencializar seu ninjutsu elemental até o máximo que o elemento permite", beneficio:"Escolhe Mokuton ou Suiton; ao usar a meta-aptidão Potencializar nesse elemento, aplica todos os benefícios dela ao mesmo tempo; pode ser escolhida como uma das Aptidões Especiais do hijutsu Tensai", escolha:"Elemento: Mokuton ou Suiton", revisado:false},
+    {nome:"Vontade do Fogo", tipo:"Restrita de Clã / Aptidão Especial (Tensai)", origem:"Clã Sarutobi", prereq:"Tensai (Hijutsu), Vigor 6, Resistência Maior (Vigor) e Clone Verdadeiro (Kage Bunshin)", restricao:"Não pode criar outro clone além dos dois Kage Bunshins na cena", descricao:"Sustentado por uma vontade inabalável, tão robusto quanto homens com o dobro do tamanho", beneficio:"Recebe gratuitamente Duro de Matar; resiste mais aos efeitos da velhice; pode criar e usar até 2 clones verdadeiros (Kage Bunshin) simultâneos, mais resistentes (Vit = 1/5 da Vit do usuário e com Duro de Matar)", bonusTexto:"Vitalidade dos clones = 1/5 da Vit do usuário", revisado:false},
+    {nome:"Presa de Prata", tipo:"Restrita de Clã / Aptidão Especial (Tensai)", origem:"Clã Hatake", prereq:"Tensai (Hijutsu)", restricao:"", descricao:"O brilhantismo de uma linhagem única", beneficio:"Escolhida como uma das Aptidões Especiais do Tensai; concede Usar Arma para a Espada de Chakra Branco; concede uma aptidão de Domínio Elemental e Maestria para um dos cinco poderes elementais básicos, à escolha", escolha:"Elemento do Domínio/Maestria (Água, Fogo, Ar, Terra ou Raio)", revisado:false},
+    {nome:"Elemento Natural: Katon", tipo:"Restrita de Clã", origem:"Clã Uchiha", prereq:"Espírito 1", restricao:"Uchiha é obrigado a ter o poder Katon ou esta aptidão desde a criação de personagem", descricao:"'Um Uchiha só é reconhecido como tal quando é capaz de utilizar o Katon: Goukakyuu no Jutsu'", beneficio:"Usa o efeito Sopro Destrutivo 4 para Katon mesmo sem possuir o poder, mesmo em nível Genin; dano base = Espírito +2; custo de chakra = metade do Espírito (arredondado para cima)", bonusTexto:"Dano base = Espírito +2", revisado:false},
+    {nome:"Mangekyou Sharingan", tipo:"Restrita de Clã (evolução do Sharingan)", origem:"Clã Uchiha", prereq:"Percepção 16; Sandan Sharingan; um evento traumático", restricao:"Não pode usar meta-aptidões nem Técnica Acelerada com técnicas do Mangekyou; 10 pontos de visão totais, perdidos ao usar as técnicas, causando cegueira progressiva", descricao:"Estágio final do Sharingan, revelando sua verdadeira forma através de um selo único em cada par de olhos", beneficio:"Escolhe um par de técnicas exclusivas (Tsukuyomi+Amaterasu, Kagutsuchi+Amaterasu, ou Kamui Curto/Longo alcance), além do Susanoo quando cumpridos os requisitos das duas técnicas escolhidas", bonusTexto:"10 pontos de visão totais", escolha:"Par de técnicas: Tsukuyomi+Amaterasu / Kagutsuchi+Amaterasu / Kamui (curto e longo)", revisado:false},
+    {nome:"Nidan Sharingan", tipo:"Restrita de Clã (evolução do Sharingan)", origem:"Clã Uchiha", prereq:"Percepção 6, Sharingan", restricao:"", descricao:"Melhor domínio da kekkei genkai; a íris ganha duas vírgulas negras", beneficio:"Concede gratuitamente Intuição e +2 em Prontidão contra Finta; Foco Aprimorado (não pode ser flanqueado); Olhar Hipnótico (usa Fascinar via contato visual); +2 de resistência contra genjutsu", bonusTexto:"+2 Prontidão contra finta / +2 resistência a genjutsu", revisado:false},
+    {nome:"Sandan Sharingan", tipo:"Restrita de Clã (evolução do Sharingan)", origem:"Clã Uchiha", prereq:"Percepção 9; Nidan Sharingan", restricao:"", descricao:"Estágio mais maduro, com a terceira vírgula, do Sharingan", beneficio:"Ganha acesso à Hipnose Sharingan; Visão Acelerada Maior (imune a finta acelerada, ataque oportuno contra acelerados); Previsão Perfeita; Reverter Ilusão (devolve genjutsus)", revisado:false},
+    {nome:"Sharingan", tipo:"Restrita de Clã (Doujutsu)", origem:"Clã Uchiha", prereq:"Percepção 3", restricao:"", descricao:"Doujutsu exclusivo do clã Uchiha; percepção avançada dos movimentos, como visão em câmera lenta", beneficio:"Ativa com ação parcial + 1 chakra, duração contínua por cena; concede Visão de Chakra, Medir Poder, Distinguir Chakra e Esquiva Perceptiva (usa LM no lugar de Esquiva)", revisado:false},
+    {nome:"Chakra Expandido", tipo:"Restrita de Clã", origem:"Clã Uzumaki", prereq:"", restricao:"", descricao:"Dotado de uma quantidade extra de chakra", beneficio:"Aumenta em 50% a quantidade total de chakra do personagem", bonusTexto:"+50% de chakra total", revisado:false},
+    {nome:"Kongou Fuusa (Correntes de Selamento Inquebráveis)", tipo:"Restrita de Clã", origem:"Clã Uzumaki", prereq:"Espírito 14", restricao:"", descricao:"Molda chakra em correntes extremamente duráveis, usadas em combate ou para imobilizar (até um Bijuu)", beneficio:"Ataque: dano 1 por nível de Espírito; Capturar: paralisa o alvo por até 5 turnos de concentração; Barreira: semiesfera com absorção 4x Espírito e diâmetro escolhido", bonusTexto:"Dano = 1/nível Espírito; Barreira absorção = 4x Espírito", escolha:"Uso: Ataque, Capturar ou Barreira", revisado:false},
+    {nome:"Mil Clones", tipo:"Restrita de Clã", origem:"Clã Uzumaki", prereq:"Espírito 10; Chakra Expandido; Clone nível 2; Clone Verdadeiro (Kage Bunshin)", restricao:"Não é possível usar outros tipos de clone junto; ataque em grupo não funciona com armas pesadas, aptidões de manobra ou testes especiais", descricao:"Capaz de fazer incontáveis clones, limitado apenas pelo chakra", beneficio:"Paga 6 de Vitalidade + ação padrão para criar 1 Kage Bunshin por ponto de chakra que possuir, dividindo todo o chakra entre eles; com 8+ clones, pode fazer Ataque em Grupo (+3 de dano, alvo flanqueado)", bonusTexto:"+3 de dano no Ataque em Grupo (8+ clones)", escolha:"Quantidade de clones a criar (limitada pelo chakra)", revisado:false},
+    {nome:"Regeneração", tipo:"Restrita de Clã", origem:"Clã Uzumaki", prereq:"", restricao:"", descricao:"Reprodução celular fora do comum, curando ferimentos rapidamente", beneficio:"Cura 1 nível de sangramento por turno automaticamente (sem teste); pode ainda testar Vigor para curar +1 nível adicional; sucesso automático em testes para se estabilizar morrendo; cura recebida é aumentada em 25%; +2 de resistência contra doenças e venenos", bonusTexto:"+25% em cura recebida / +2 resistência doenças e venenos", revisado:false},
+    {nome:"Estilo da Lótus", tipo:"Restrita de Hijutsu", origem:"Hachimon Tonkou (Hijutsu)", prereq:"Hachimon 1", restricao:"Só pode ser usada com o poder Hachimon Tonkou ativo; pode ser comprada até 3 vezes, para aptidões de manobra diferentes", descricao:"Ao usar o Hachimon Tonkou, executa técnicas de Taijutsu ainda melhores", beneficio:"Adquire duas aptidões de manobra à escolha (cumprindo pré-requisitos delas)", escolha:"Duas aptidões de manobra, à escolha", revisado:false},
+    {nome:"Ilusão Fluida [META]", tipo:"Restrita de Hijutsu", origem:"Magen — Ilusão Demoníaca (Hijutsu)", prereq:"Inteligência 12; Magen 6", restricao:"Só pode ser usada se a Inteligência do usuário for igual ou maior que o dobro do nível de Magen", descricao:"Adapta a ilusão conforme a vítima para ajustar a resistência", beneficio:"No cálculo de dificuldade do teste de resistência, usa o nível de Inteligência do alvo em vez do próprio", revisado:false},
+    {nome:"Kagura Shingan (Olho Divino da Mente)", tipo:"Restrita de Hijutsu", origem:"Hijutsu dos Ninjas Sensores", prereq:"Rastrear 1", restricao:"", descricao:"Técnica final dos Ninjas Sensores, permite Sentir Chakra e rastrear indivíduos", beneficio:"Distingue todas as criaturas pela assinatura de chakra e localiza cada uma com precisão exata; alcance 20m +4m por nível de Rastrear (metade se passivo); imune a ataque surpresa", bonusTexto:"Alcance 20m +4m/nível de Rastrear", revisado:false},
+    {nome:"Ryoushitsu Kagura Shingan", tipo:"Restrita de Hijutsu (evolução do Kagura Shingan)", origem:"Hijutsu dos Ninjas Sensores", prereq:"Kagura Shingan; Rastrear 6", restricao:"", descricao:"Aprimora o Kagura Shingan, dobrando alcances e concedendo novas habilidades", beneficio:"Dobra o alcance padrão e passivo do Kagura Shingan; identifica genjutsu ativo em seu alcance como reação, sem teste; permite testar Percepção (com -2 de dificuldade) para saber se o próprio usuário está sob genjutsu", bonusTexto:"Dobra o alcance do Kagura Shingan", revisado:false},
+    {nome:"Aprendizagem Rápida", tipo:"Restrita de Poder", origem:"Tensai — Genialidade (Hijutsu)", prereq:"Versatilidade 5", restricao:"Pode ser comprada mais de uma vez", descricao:"Facilidade em dominar diversas áreas de atuação", beneficio:"Permite comprar o poder Versatilidade uma segunda vez, escolhendo dois novos poderes versáteis; benefícios gerais da Versatilidade (como Maestria) são mantidos para os novos poderes", escolha:"Dois novos poderes versáteis", revisado:false},
+    {nome:"Capacidade", tipo:"Aptidão Especial (Tensai)", origem:"Tensai — Genialidade (Hijutsu)", prereq:"Espírito 8", restricao:"Escolhida como 1 das 2 Aptidões Especiais do Tensai (nível 2 não conta no limite)", descricao:"Chakra especialmente poderoso", beneficio:"+1 de dano base nos efeitos de Ninpou e elementos (inclusive Versatilidade e Hibon Ninpou), cumulativo com outros bônus; Nível 2 (Espírito 12): pode usar meta-aptidões como ação parcial", bonusTexto:"+1 dano base (escalável)", revisado:false},
+    {nome:"Controle Perfeito", tipo:"Aptidão Especial (Tensai)", origem:"Tensai — Genialidade (Hijutsu)", prereq:"Inteligência 8", restricao:"Escolhida como 1 das 2 Aptidões Especiais do Tensai; troca todos os parâmetros da técnica, não afeta pré-requisitos", descricao:"Treino inteligente que extrai o máximo de técnicas e do corpo", beneficio:"Usa Inteligência em vez de Espírito para dano, tamanho, alcance, dificuldade e outros parâmetros de poderes e aptidões, inclusive custo de chakra; Nível 2 (Inteligência 12): bônus de chakra total igual à Inteligência", bonusTexto:"+ chakra total = Inteligência (Nível 2)", revisado:false},
+    {nome:"Deus do Trovão", tipo:"Aptidão Especial (Tensai)", origem:"Tensai — Genialidade (Hijutsu)", prereq:"Fuuinjutsu 8; Inteligência 14", restricao:"", descricao:"Concede acesso a uma das técnicas de espaço-tempo mais icônicas do jogo", beneficio:"Permite utilizar a técnica Hiraishin; Nível 2 (Inteligência 18): permite usar o Hiraishin: Dörai (Deus Voador do Trovão: Trovão Guiado)", revisado:false},
+    {nome:"Instinto de Batalha", tipo:"Aptidão Especial (Tensai)", origem:"Tensai — Genialidade (Hijutsu)", prereq:"Destreza ou Agilidade 8", restricao:"Sem benefício se já tiver valor base 5 em todas as Habilidades de Combate", descricao:"Instintos afiados que tornam o personagem mais capaz que qualquer outro", beneficio:"Escolhe uma Habilidade de Combate e aumenta seu valor base em +1; Nível 2 (Destreza ou Agilidade 12): reduz a penalidade máxima de precisão para -2", bonusTexto:"+1 valor base de Habilidade de Combate", escolha:"Uma Habilidade de Combate (CC, CD, ESQ ou LM)", revisado:false},
+    {nome:"Talento Natural", tipo:"Restrita de Poder", origem:"Tensai — Genialidade (Hijutsu)", prereq:"Inteligência ou Espírito 6", restricao:"Não conta para o limite de escolha de efeitos de poderes versáteis", descricao:"Não perde qualidade mesmo quando escolhe quantidade", beneficio:"Escolhe um efeito possível (não exclusivo de elemento) para um poder versátil ou Hibon Ninpou; ganha o efeito e todas as suas evoluções gratuitamente ao atingir o nível necessário", escolha:"Um efeito de poder versátil ou Hibon Ninpou", revisado:false},
+    {nome:"Técnica Avançada", tipo:"Restrita de Poder", origem:"Tensai — Genialidade (Hijutsu)", prereq:"Atender aos requisitos das aptidões recebidas", restricao:"", descricao:"Excelente controle na utilização de suas técnicas", beneficio:"Adquire duas aptidões de técnica, à escolha", escolha:"Duas aptidões de técnica", revisado:false},
+    {nome:"Senjutsu (Técnica Eremita)", tipo:"Aptidão Restrita (Níveis 1 a 3)", origem:"Senjutsu (Hijutsu)", prereq:"Vigor e Espírito 10; (Kuchiyose Restrito 7) ou (Mokuton 7 + Regeneração)", restricao:"Máx. 10 min/dia no Modo Eremita; perde a concentração se atacado/sofrer dano ao entrar no modo; se drenado de chakra no Modo Eremita-Kuchiyose, vira pedra e morre (a menos que tenha Senjutsu Nível 1 ou o hijutsu Senninka)", descricao:"Absorve e mistura a energia da natureza com o chakra, entrando no Modo Eremita (Sennin Modo) para um grande aumento de poder", beneficio:"Nível 1: ação padrão de concentração para entrar no Modo Eremita, ganhando Pontos de Chakra Senjutsu = ½ Vigor ou Espírito (o maior), mesmo limite; formas alternativas de entrada (Kage Bunshin, Transplante Senninka, Concentração Furtiva); Sensor gratuito (5m+1m/Espírito); bônus de Senjutsu por 1 ponto cada (Força +4, Dano Base +2, Precisão de Ataque +1, Precisão de Defesa +1, Acelerado, Dificuldade de Técnicas +1, Dureza de Corpo +1) até o próximo turno; dá acesso às técnicas Gyaku Kuchiyose e Senpou: Ryousei no Jutsu. Nível 2 (Kuchiyose Restrito 8 ou Mokuton 8): mantém o Modo Eremita entre cenas; +2 bônus de Senjutsu (Chakra +20 e Vitalidade +30, 1x/cena); Sensor dobra de alcance (10m+2m/Espírito). Nível 3 (Kuchiyose Restrito 9 ou Mokuton 9): nova entrada via Surto de Chakra Natural (ação padrão, 1x por descanso); Sensor Maximizado (ação completa + 2 pontos, alcance 50m/nível de Espírito até o fim do próximo turno)", bonusTexto:"Bônus escaláveis por nível (ver Benefícios)", escolha:"Origem do Senjutsu: Kuchiyose ou Mokuton", revisado:false},
+    {nome:"Alcance Estendido", tipo:"Restrita de Hijutsu", origem:"Saika Ikki (Hijutsu)", prereq:"Percepção 12; Tiro Longo", restricao:"O bônus não é multiplicado por Tiro Longo", descricao:"Compensa a queda do projétil para atingir inimigos mais longe", beneficio:"Armas de fogo recebem +10m de alcance", bonusTexto:"+10m alcance", revisado:false},
+    {nome:"Armamento Pesado", tipo:"Restrita de Hijutsu", origem:"Saika Ikki (Hijutsu)", prereq:"Mecanismo 12; Especialista: Armas de Fogo", restricao:"Só o próprio usuário tem proficiência com as armas modificadas (outros sofrem -3)", descricao:"Customizou suas armas de fogo para serem mais potentes", beneficio:"Após 8 horas de trabalho modificando as armas de fogo, elas recebem +1 de Dano de Arma", bonusTexto:"+1 dano de arma", revisado:false},
+    {nome:"Atirador Ágil", tipo:"Restrita de Hijutsu", origem:"Saika Ikki (Hijutsu)", prereq:"Agilidade 12; Retirada Rápida", restricao:"", descricao:"Extremamente difícil de ser posto em xeque numa posição sem poder disparar com precisão", beneficio:"Empunhando arma de fogo, usa Retirada Rápida gastando apenas a ação de movimento, mantendo a ação parcial", revisado:false},
+    {nome:"Disparos Sujos", tipo:"Restrita de Hijutsu", origem:"Saika Ikki (Hijutsu)", prereq:"Especialista: Armas de Fogo; Combate à Distância 11; Inteligência 3", restricao:"", descricao:"Especialista em manobras de combate à distância com armas de fogo", beneficio:"Recebe gratuitamente Desarme à Distância e Flechada no Joelho; disparos bem-sucedidos com essas aptidões causam +1 grau de dano; Nível 2 (Combate à Distância 17, Inteligência 7): recebe as evoluções de Nível 2 de ambas as aptidões", bonusTexto:"+1 grau de dano", revisado:false},
+    {nome:"Gun Fu", tipo:"Restrita de Hijutsu", origem:"Saika Ikki (Hijutsu)", prereq:"Destreza 11; Especialista: Armas de Fogo; Guerreiro", restricao:"", descricao:"Aprendeu um estilo secreto de arte marcial com armas de fogo", beneficio:"Empunhando arma de fogo: bloqueia usando precisão de CD (arma não fica Danificada); realiza Golpear Corpo-a-corpo com precisão de CD (dano da arma de fogo, -2); pode bloquear com CD contra ataque corpo-a-corpo, desviando a mira do adversário se vencer; testa Prestidigitação (dif CC+3 do inimigo) para disparar sem penalidade de combate próximo", revisado:false},
+    {nome:"Mira Vital", tipo:"Restrita de Hijutsu", origem:"Saika Ikki (Hijutsu)", prereq:"Destreza 12; Mira Apurada", restricao:"Só sem usar Desarme à Distância ou Flechada no Joelho", descricao:"Despende mais tempo por disparo para causar mais dano em pontos vitais", beneficio:"Com os benefícios de Mira Apurada, o disparo recebe +0,5 Grau de Dano", bonusTexto:"+0,5 Grau de Dano", revisado:false},
+    {nome:"Recarga Precisa", tipo:"Restrita de Hijutsu", origem:"Saika Ikki (Hijutsu)", prereq:"Destreza 9; Usar Pólvora; Saque Rápido", restricao:"", descricao:"Recarrega armas de fogo com velocidade e maestria", beneficio:"Pode 'Simular 1 Dado' ao realizar Recarga Rápida de Pólvora com arma de fogo compatível, mesmo sob estresse de combate", revisado:false}
   ],
   poderes: [
     {nome:"Ninpou (Arte Ninja)", tipo:"Comum", prereq:"", restricao:"", descricao:"Domínio de uma arte ninja. Ao subir de nível ganha Efeitos (Canhão, Orbe, Barreira, Sopro Destrutivo...) que personalizam o poder. Dano base e Dureza = Nível usado + ½ Espírito (arred. p/ cima). Custo de chakra = nível do efeito usado.", revisado:false},
@@ -1591,7 +1880,7 @@ const SEED_DB = {
     {nome:"Criar Arma", poder:"Ninpou", nivel:3, custo:"1 (criação)", dano:"conforme a arma", descricao:"Molda o elemento em uma arma utilizável."},
     {nome:"Segurar", poder:"Ninpou", nivel:4, custo:"= nível usado", dano:"—", descricao:"Imobiliza o alvo com o elemento."},
     {nome:"Coluna", poder:"Ninpou", nivel:4, custo:"= nível usado", dano:"padrão do poder", acao:"Padrão", alvo:"1 criatura", alcance:"", duracao:"Instantânea", descricao:"Ergue uma coluna do elemento que empurra ou atinge o alvo."},
-    {nome:"Flechas", poder:"Ninpou", nivel:4, custo:"= nível usado", dano:"padrão do poder", acao:"Padrão", alvo:"1+ criaturas", alcance:"", duracao:"Instantânea", descricao:"Dispara múltiplos projéteis do elemento."},
+    {nome:"Flechas", poder:"Ninpou", nivel:4, qtdNivel:true, custo:"= nível usado", dano:"padrão do poder", acao:"Padrão", alvo:"1+ criaturas", alcance:"", duracao:"Instantânea", descricao:"Dispara múltiplos projéteis do elemento."},
     {nome:"Lança", poder:"Ninpou", nivel:4, custo:"= nível usado", dano:"padrão do poder", acao:"Padrão", alvo:"1 criatura", alcance:"", duracao:"Instantânea", descricao:"Projétil perfurante à distância."},
     {nome:"Sopro Destrutivo", poder:"Ninpou", nivel:4, custo:"= nível usado", dano:"padrão do poder", acao:"Padrão", alvo:"Área (cone)", alcance:"", duracao:"Instantânea", descricao:"Ataque em cone/área à frente do usuário."},
     {nome:"Ricochete", poder:"Ninpou", nivel:5, custo:"= nível usado", dano:"padrão do poder", acao:"Padrão", alvo:"1+ criaturas", alcance:"", duracao:"Instantânea", descricao:"O ataque salta entre múltiplos alvos. Em Nv 9, cada salto altera o dano."},
@@ -1750,22 +2039,65 @@ function usoPermite(uso, hab){
   if(u !== "CC" && u !== "CD") return false;        /* "—" ou vazio */
   return u === hab;
 }
+/* lista de aptidões nova no seed: texto vem do seed, ajustes mecânicos feitos no BD (Bônus em/Valor/Cond./Rev.)
+   são mantidos, e aptidões criadas à mão (fora do seed) continuam no fim da lista */
+function mesclarAptidoes(salvas){
+  const chave = x => semAcento(String(x||"")).trim().toLowerCase();
+  const porNome = {}; salvas.forEach(a => { if(a && a.nome) porNome[chave(a.nome)] = a; });
+  const doSeed = {};
+  const out = clone(SEED_DB.aptidoes).map(sd => {
+    doSeed[chave(sd.nome)] = 1;
+    const sv = porNome[chave(sd.nome)]; if(!sv) return sd;
+    if(sv.alvo != null && String(sv.alvo).trim() !== "") sd.alvo = sv.alvo;
+    if(sv.valor != null && String(sv.valor).trim() !== "") sd.valor = sv.valor;
+    if(sv.condicional) sd.condicional = true;
+    if(sv.revisado) sd.revisado = true;
+    return sd;
+  });
+  salvas.forEach(a => { if(a && a.nome && !doSeed[chave(a.nome)]) out.push(a); });
+  return out;
+}
+/* monta o DB a partir das linhas do compêndio (categorias ausentes ficam vazias) */
+function dbDoCompendio(){
+  const base = clone(SEED_DB);
+  const porCat = {};
+  COMPENDIO.rows.forEach(r => { (porCat[r.categoria] = porCat[r.categoria] || []).push(r); });
+  COMP_CATS.forEach(cat => {
+    base[cat] = (porCat[cat] || []).slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
+      .map(r => Object.assign({}, r.dados, { _id: r.id }));
+  });
+  (porCat.config || []).forEach(r => {
+    _compCfgIds[r.nome] = r.id;
+    if(r.nome === "calc" && r.dados) Object.assign(base.calc, r.dados);
+    if(r.nome === "elementos" && r.dados) base.elementos = r.dados;
+  });
+  return base;
+}
 function carregarDB(){
+  if(compendioEmUso()){
+    const b = dbDoCompendio();
+    migrarArmasUso(b); migrarPoderes(b); migrarTecnicas(b); migrarLinhagens(b); migrarItens(b);
+    try{ b.foto = localStorage.getItem(FOTO_KEY) || ""; }catch(e){ b.foto = ""; }
+    return b;
+  }
   const base = clone(SEED_DB);
   try{
     const raw = localStorage.getItem(DB_KEY);
     if(raw){
       const s = JSON.parse(raw);
       ["aptidoes","poderes","armas","armaduras","efeitos","tecnicas","linhagens","itens","venenos"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
+      if(Array.isArray(s.aptidoes) && (num(s.aptidoesVersao) || 1) < (SEED_DB.aptidoesVersao || 1)) base.aptidoes = mesclarAptidoes(s.aptidoes);
       migrarArmasUso(base); migrarPoderes(base); migrarTecnicas(base); migrarLinhagens(base); migrarItens(base);
       if(s.calc) Object.assign(base.calc, s.calc);
       if(s.elementos) Object.assign(base.elementos, s.elementos);
       if(typeof s.foto === "string") base.foto = s.foto;
     }
   }catch(e){}
+  if(!base.foto){ try{ base.foto = localStorage.getItem(FOTO_KEY) || ""; }catch(e){} }
   return base;
 }
 let DB = carregarDB();
+if(compendioEmUso()) _compSnap = assinaturasCompendio(DB);
 
 /* ===================================================================
    LINHAGENS (Clãs e Hijutsus) — Livro Básico p.29 "Escolhendo Clã ou
@@ -1835,7 +2167,13 @@ function opcoesPoderJutsu(selecionado){
   return html;
 }
 function atualizarSelectsPoderJutsu(){
-  document.querySelectorAll("#jutsu_grid .jutsu-poder").forEach(sel => { sel.innerHTML = opcoesPoderJutsu(sel.value); });
+  document.querySelectorAll("#jutsu_grid .jutsu-card").forEach(card => {
+    const sel = card.querySelector(".jutsu-poder"); if(!sel) return;
+    sel.innerHTML = opcoesPoderJutsu(sel.value);
+    const nvEl = card.querySelector(".jutsu-nivel-poder");
+    const nv = nivelDoPoderEscolhido(sel.value);
+    if(nvEl && nv !== "" && nvEl.value !== String(nv) && card.querySelector(".jf-dano-tipo")){ nvEl.value = nv; syncJutsuCalc(card); }
+  });
 }
 /* ===== Dropdown custom de Clã / Hijutsu (mesmo visual do seletor de poderes) =====
    #in_cla é um input oculto que guarda a chave (persistência + filtro).
@@ -1908,6 +2246,13 @@ function refreshLinhagensUI(){ montarLinhagens(); atualizarSelectsPoderJutsu(); 
 })();
 function setStatus(txt){ const el = document.getElementById("bd_status"); if(el) el.textContent = txt; }
 function persist(){
+  if(compendioEmUso()){
+    try{ localStorage.setItem(FOTO_KEY, DB.foto || ""); }catch(e){}
+    agendarSyncCompendio(DB);
+    if(typeof salvarNaNuvem === "function") salvarNaNuvem();
+    return;
+  }
+  try{ localStorage.setItem(FOTO_KEY, DB.foto || ""); }catch(e){}
   try{ localStorage.setItem(DB_KEY, JSON.stringify(DB)); setStatus("Salvo neste navegador."); }
   catch(e){ setStatus("Não foi possível salvar localmente. Use Exportar JSON."); }
   if(typeof salvarNaNuvem === "function") salvarNaNuvem();
@@ -2038,23 +2383,37 @@ document.addEventListener("click", (e) => {
 });
 
 const POWERS_WITH_EFFECTS = ["Ninpou","Doton","Fuuton","Katon","Raiton","Suiton"];
+const JUTSU_DANO_TIPOS = [["comum","Comum"],["diferente","Diferente"],["especial","Especial"],["nenhum","Sem dano"]];
+const JUTSU_CUSTO_TIPOS = [["nivel","= nível usado"],["metade","Metade (nível ÷ 2)"],["sem","Sem custo"]];
+function _optsLista(lista, sel){ return lista.map(o => '<option value="'+o[0]+'"'+(o[0]===sel?' selected':'')+'>'+o[1]+'</option>').join(""); }
 function criarJutsuCard(jid){
   const card = document.createElement("div");
   card.className = "jutsu-card";
   if(jid) card.dataset.jid = jid;
+  card.dataset.dano = "comum";
   const opts = opcoesPoderJutsu("");
+  const atrOpts = ["Força","Destreza","Agilidade","Percepção","Inteligência","Vigor","Espírito"]
+    .map(a => '<option value="'+a+'"'+(a==="Espírito"?' selected':'')+'>'+a+'</option>').join("");
   card.innerHTML =
     '<span class="jutsu-del-btn" title="Remover jutsu">×</span>' +
-    '<div class="jutsu-field"><span>Poder:</span><select class="jutsu-poder">'+opts+'</select><span>Nv:</span><input class="jutsu-nivel-poder" style="width:38px;flex:none;"></div>' +
+    '<div class="jutsu-field"><span>Poder:</span><select class="jutsu-poder">'+opts+'</select><span>Nv:</span><input class="jutsu-nivel-poder jf-ro" readonly tabindex="-1" title="Nível do poder na aba Skills. Libera só os efeitos até esse nível." style="width:38px;flex:none;"></div>' +
     '<button class="jutsu-efeito-btn" type="button">+ Puxar efeito do poder</button>' +
     '<div class="jutsu-field"><span>Nome:</span><input class="jf-nome"></div>' +
-    '<div class="jutsu-field"><span>Ação:</span><input class="half jf-acao"><span>Nível:</span><input class="jf-nivel" style="width:40px;flex:none;"></div>' +
-    '<div class="jutsu-field"><span>Alvo:</span><input class="half jf-alvo"><span>Dano:</span><input class="jf-dano"></div>' +
+    '<div class="jutsu-field"><span>Ação:</span><input class="half jf-acao"><span>Qtd:</span><input class="jf-qtd" placeholder="1" style="width:34px;flex:none;text-align:center;">' +
+      '<label class="jf-qtdnv" title="Marcado: a Qtd acompanha o nível escolhido na hora de rolar (ex: Flechas)"><input type="checkbox" class="jf-qtd-nivel">=Nv</label></div>' +
+    '<div class="jutsu-field"><span>Alvo:</span><input class="half jf-alvo"><span>Dano:</span><select class="jf-dano-tipo">'+_optsLista(JUTSU_DANO_TIPOS,"comum")+'</select></div>' +
+    '<div class="jf-calc"><div class="jf-calc-tit">Cálculo do Dano</div>' +
+      '<div class="jc-f jc-comum">Nv usado + ½ <select class="jc-atr">'+atrOpts+'</select><i class="jc-atr-val"></i> + Bônus <input class="jc-bonus" placeholder="0" title="Bônus descrito no livro (ex: Katon +2). Vem preenchido com o bônus do elemento."></div>' +
+      '<div class="jc-f jc-diferente">Nv usado + Livro <input class="jc-valor" placeholder="0" title="Valor descrito no livro para este efeito"> + Qtd <i class="jc-qtd-val"></i></div>' +
+      '<div class="jc-f jc-especial">2 × Nv do elemento <i class="jc-nvelem-val"></i></div>' +
+      '<div class="jc-f jc-nenhum">Não causa dano (suporte / controle).</div>' +
+      '<div class="jc-preview"></div>' +
+    '</div>' +
     '<div class="jutsu-field"><span>Alcance:</span><input class="jf-alcance"></div>' +
     '<div class="jutsu-field"><span>Modo:</span><select class="jf-modo"><option value="CC">CC (corpo/toque)</option><option value="CD">CD (à distância)</option><option value="CCCD">CC · CD (escolhe ao usar)</option><option value="SUPORTE">Suporte (buff numa arma, sem dano)</option><option value="PESSOAL">Pessoal (sem acerto)</option></select></div>' +
     '<div class="jutsu-field"><span>Duração:</span><input class="jf-duracao"></div>' +
-    '<div class="jutsu-field"><span>Efeitos:</span><input class="jf-efeitos"></div>' +
-    '<div class="jutsu-field"><span>Custo de Chakra:</span><input class="jf-custo"></div>' +
+    '<div class="jutsu-field"><span>Efeitos:</span><input class="jf-efeitos jf-ro" readonly tabindex="-1" title="Vem do efeito puxado do BD"></div>' +
+    '<div class="jutsu-field"><span>Custo de Chakra:</span><select class="jf-custo-tipo">'+_optsLista(JUTSU_CUSTO_TIPOS,"nivel")+'</select></div>' +
     '<div class="jutsu-desc-bar">Descrição</div>' +
     '<div class="jutsu-desc-lines"><textarea class="jf-desc"></textarea></div>';
   return card;
@@ -2067,21 +2426,24 @@ function criarLinhaCalcJutsu(jid){
   const ccd = document.createElement("td"); ccd.className = "cj-causa-dano-cell";
   ccd.innerHTML = '<input type="checkbox" class="cj-causa-dano" checked title="Este jutsu causa dano?">';
   tr.appendChild(ccd);   // Causa dano?
+  const cbe = celInput(""); cbe.querySelector("input").className = "cj-base-efeito"; cbe.querySelector("input").title = "Preencha só se o efeito tiver base fixa própria (ex: Flechas = 2). Vazio = usa ½ Espírito (padrão do livro)."; tr.appendChild(cbe);   // Base do Efeito
   const cc = celInput(""); cc.querySelector("input").className = "cj-custo"; tr.appendChild(cc);   // Custo
   const cn = celInput(""); cn.querySelector("input").className = "cj-nv"; tr.appendChild(cn);      // Nv. Usado do Poder
   const cd = celInput(""); cd.querySelector("input").className = "cj-dureza calc-ro"; cd.querySelector("input").readOnly = true; tr.appendChild(cd);  // Dureza
   const ce = celInput(""); ce.querySelector("input").className = "cj-delem calc-ro"; ce.querySelector("input").readOnly = true; tr.appendChild(ce);   // Dano Elemental
   const cbo = celInput(""); cbo.querySelector("input").className = "cj-bonus"; tr.appendChild(cbo);  // Bônus de Dano (manual)
   const cb = celInput(""); cb.querySelector("input").className = "cj-dbase calc-ro"; cb.querySelector("input").readOnly = true; tr.appendChild(cb);   // Dano Base
+  const cfx = celInput(""); cfx.querySelector("input").className = "cj-fixo"; cfx.querySelector("input").title = "Preencha SÓ se este jutsu causa dano fixo (não multiplica pelo grau). Vazio = usa o cálculo padrão."; tr.appendChild(cfx);   // Dano Fixo
   tr.appendChild(celAcoesCalc("jutsu", true));
   tbody.appendChild(tr);
   aplicarVisibilidadeDano(tr);
 }
+function jutsuEhDanoFixo(tr){ return valDe(tr, ".cj-fixo") > 0; }
 function aplicarVisibilidadeDano(tr){
   const chk = tr.querySelector(".cj-causa-dano");
   if(!chk) return;
   const causaDano = chk.checked;
-  tr.querySelectorAll(".cj-dureza, .cj-delem, .cj-bonus, .cj-dbase").forEach(el => {
+  tr.querySelectorAll(".cj-dureza, .cj-delem, .cj-bonus, .cj-dbase, .cj-fixo").forEach(el => {
     const td = el.closest("td");
     if(td) td.style.visibility = causaDano ? "" : "hidden";
   });
@@ -2255,43 +2617,183 @@ function efeitosDisponiveis(poder, nivelStr){
   const tecs = (DB.tecnicas||[]).filter(t => num(t.nivel) <= n && (!poder || normNome(t.poder) === normNome(poder)));
   return lista.concat(tecs).filter(tecnicaVisivel);
 }
+/* ===== Dano do jutsu (tipos do Livro Básico) =====
+   Comum:     Nível usado + ½ Atributo (arred. p/ cima) + Bônus
+   Diferente: Nível usado + valor do livro + Qtd
+   Especial:  2 × Nível do elemento (nível do poder)
+   Linhas sem card (legado) continuam no cálculo antigo. */
+function elemBonusDoPoder(nome){ const k = poderBaseKey(nome); return (DB.elementos[k] && num(DB.elementos[k].bonusDano)) || 0; }
+function tipoDanoDoTexto(t){
+  const s = semAcento(String(t||"")).trim().toLowerCase();
+  if(!s || s.indexOf("padrao") >= 0 || s.indexOf("arma") >= 0) return "comum";
+  if(/^[—–\-]+$/.test(s) || s.indexOf("sem dano") >= 0) return "nenhum";
+  return "diferente";
+}
+function tipoCustoDoTexto(t){
+  const s = semAcento(String(t||"")).trim().toLowerCase();
+  if(s.indexOf("metade") >= 0 || s.indexOf("½") >= 0 || /\/\s*2/.test(s)) return "metade";
+  if(s.indexOf("sem") >= 0 || s === "0") return "sem";
+  return "nivel";
+}
+function danoJutsuLinha(tr, nivel){
+  const d = tr.dataset, nv = num(nivel);
+  const qtd = d.jqtdnv === "1" ? nv : num(d.jqtd);
+  if(!d.jdano){
+    const baseEfEl = tr.querySelector(".cj-base-efeito");
+    const temBase = baseEfEl && String(baseEfEl.value).trim() !== "";
+    const esp = attrVal("Espírito");
+    const baseFixa = temBase ? num(baseEfEl.value) : metadeCima(esp);
+    const base = Math.max(0, nv + baseFixa);
+    const elem = (DB.elementos[d.poder] && num(DB.elementos[d.poder].bonusDano)) || 0;
+    const f = "Dano Base = Nível usado (" + nv + ") + " + (temBase ? "Base do Efeito (" + baseFixa + ")" : "½ Espírito (" + metadeCima(esp) + ")") + (elem ? " · elemento +" + elem : "");
+    return { base:base, extra:elem, dureza:base, qtd:0, formula:f, legado:true };
+  }
+  const durPadrao = Math.max(0, nv + metadeCima(attrVal("Espírito")));
+  if(d.jdano === "comum"){
+    const atr = d.jatr || "Espírito", m = metadeCima(attrVal(atr)), bn = num(d.jbonus);
+    const base = Math.max(0, nv + m);
+    return { base:base, extra:bn, dureza:base, qtd:qtd, formula:"Comum: Nível usado (" + nv + ") + ½ " + atr + " (" + m + ") + Bônus (" + bn + ")" };
+  }
+  if(d.jdano === "diferente"){
+    const v = num(d.jvalor);
+    return { base:Math.max(0, nv + v + qtd), extra:0, dureza:durPadrao, qtd:qtd, formula:"Diferente: Nível usado (" + nv + ") + Livro (" + v + ") + Qtd (" + qtd + ")" };
+  }
+  if(d.jdano === "especial"){
+    const ne = num(d.jnvelem);
+    return { base:2 * ne, extra:0, dureza:durPadrao, qtd:qtd, formula:"Especial: 2 × Nível do elemento (" + ne + ")" };
+  }
+  return { base:0, extra:0, dureza:durPadrao, qtd:qtd, formula:"Sem dano", semDano:true };
+}
+function atualizarPreviewCard(card){
+  const q = sel => card.querySelector(sel);
+  const pv = q(".jc-preview"); if(!pv) return;
+  const nv = num((q(".jutsu-nivel-poder")||{}).value);
+  const atrSel = q(".jc-atr"), av = q(".jc-atr-val");
+  if(atrSel && av) av.textContent = "(" + metadeCima(attrVal(atrSel.value)) + ")";
+  const qtdNv = q(".jf-qtd-nivel") && q(".jf-qtd-nivel").checked;
+  const qv = q(".jc-qtd-val"); if(qv) qv.textContent = qtdNv ? "(= nível usado)" : "(" + num((q(".jf-qtd")||{}).value) + ")";
+  const ne = q(".jc-nvelem-val"); if(ne) ne.textContent = "(" + nv + ")";
+  const row = card.dataset.jid ? document.querySelector('#calc_jutsu_rows tr[data-jid="'+card.dataset.jid+'"]') : null;
+  if(!row || !row.dataset.jdano || row.dataset.jdano === "nenhum"){ pv.innerHTML = ""; return; }
+  const r = danoJutsuLinha(row, nv || 1);
+  pv.innerHTML = "No Nv " + (nv || 1) + ": dano base <b>" + (r.base + r.extra) + "</b>" + (r.qtd ? " · Qtd " + r.qtd : "") + (nv ? "" : " <i>(escolha o poder)</i>");
+}
 function syncJutsuCalc(card){
-  const jid = card.dataset.jid; if(!jid) return;
-  const row = document.querySelector('#calc_jutsu_rows tr[data-jid="'+jid+'"]'); if(!row) return;
-  const nome = card.querySelector(".jf-nome"), custo = card.querySelector(".jf-custo"), nv = card.querySelector(".jutsu-nivel-poder"), poder = card.querySelector(".jutsu-poder");
-  const cj = row.querySelector(".cj-jutsu"); if(cj && nome) cj.value = nome.value;
-  const cc = row.querySelector(".cj-custo"); if(cc && custo) cc.value = custo.value;
-  const cn = row.querySelector(".cj-nv"); if(cn && nv) cn.value = nv.value;
-  if(poder) row.dataset.poder = poderBaseKey(poder.value);
-  const _jm = card.querySelector(".jf-modo"); if(_jm) row.dataset.jmodo = _jm.value;
+  const q = sel => card.querySelector(sel);
+  const tipo = (q(".jf-dano-tipo")||{}).value || "comum";
+  card.dataset.dano = tipo;
+  const qtdChk = q(".jf-qtd-nivel"), qtdEl = q(".jf-qtd");
+  const qtdNv = !!(qtdChk && qtdChk.checked);
+  if(qtdEl){ qtdEl.disabled = qtdNv; qtdEl.placeholder = qtdNv ? "Nv" : "1"; }
+  const jid = card.dataset.jid;
+  const row = jid ? document.querySelector('#calc_jutsu_rows tr[data-jid="'+jid+'"]') : null;
+  if(row){
+    const nomeEl = q(".jf-nome"), nvEl = q(".jutsu-nivel-poder"), poder = q(".jutsu-poder");
+    const cj = row.querySelector(".cj-jutsu"); if(cj && nomeEl) cj.value = nomeEl.value;
+    const cn = row.querySelector(".cj-nv"); if(cn && nvEl) cn.value = nvEl.value;
+    if(poder) row.dataset.poder = poderBaseKey(poder.value);
+    const _jm = q(".jf-modo"); if(_jm) row.dataset.jmodo = _jm.value;
+    const tipoAntes = row.dataset.jdano;
+    row.dataset.jdano  = tipo;
+    row.dataset.jatr   = (q(".jc-atr")||{}).value || "Espírito";
+    row.dataset.jbonus = (q(".jc-bonus")||{}).value || "";
+    row.dataset.jvalor = (q(".jc-valor")||{}).value || "";
+    row.dataset.jqtd   = qtdEl ? qtdEl.value : "";
+    row.dataset.jqtdnv = qtdNv ? "1" : "0";
+    row.dataset.jnvelem = nvEl ? nvEl.value : "";
+    const ct = (q(".jf-custo-tipo")||{}).value || "nivel";
+    row.dataset.jcusto = ct;
+    const cc = row.querySelector(".cj-custo");
+    if(cc){ cc.value = ct === "metade" ? "½ nível usado" : (ct === "sem" ? "sem custo" : "= nível usado"); cc.readOnly = true; cc.classList.add("calc-ro"); }
+    const be = row.querySelector(".cj-base-efeito");
+    if(be){ const lb = JUTSU_DANO_TIPOS.find(x => x[0] === tipo); be.value = lb ? lb[1].replace(" do Poder","") : ""; be.readOnly = true; be.classList.add("calc-ro"); }
+    const chk = row.querySelector(".cj-causa-dano");
+    if(chk && tipoAntes !== tipo){ chk.checked = (tipo !== "nenhum"); aplicarVisibilidadeDano(row); }
+  }
   recalc();
 }
 function preencherEfeitoNoJutsu(card, it){
   const set = (sel, val) => { const el = card.querySelector(sel); if(el && val != null && val !== "") el.value = val; };
   set(".jf-nome", it.nome);
-  set(".jf-efeitos", it.nome);
-  set(".jf-nivel", it.nivel);
-  set(".jf-dano", it.dano);
-  set(".jf-custo", it.custo);
+  const ef = card.querySelector(".jf-efeitos"); if(ef) ef.value = it.nome || "";
   set(".jf-acao", it.acao);
   set(".jf-alvo", it.alvo);
-  set(".jf-alcance", it.alcance);
+  const al = card.querySelector(".jf-alcance"); if(al) al.value = it.alcance || "";
   const _md = card.querySelector(".jf-modo"); if(_md) _md.value = modoDoAlcance(it.alcance, it.alvo);
-  set(".jf-duracao", it.duracao);
+  const du = card.querySelector(".jf-duracao"); if(du) du.value = it.duracao || "";
   const desc = card.querySelector(".jf-desc"); if(desc) desc.value = it.descricao || "";
+  card.dataset.efnivel = it.nivel != null ? it.nivel : "";
+  /* dano */
+  const tipo = tipoDanoDoTexto(it.dano);
+  const dt = card.querySelector(".jf-dano-tipo"); if(dt) dt.value = tipo;
+  const bn = card.querySelector(".jc-bonus");
+  if(bn){ const eb = elemBonusDoPoder((card.querySelector(".jutsu-poder")||{}).value); bn.value = eb ? eb : ""; }
+  const vl = card.querySelector(".jc-valor"); if(vl) vl.value = "";
+  /* quantidade: efeitos que escalam com o nível (ex: Flechas) já vêm ligados ao nível */
+  const qn = card.querySelector(".jf-qtd-nivel"); if(qn) qn.checked = !!(it.qtdNivel || /flecha/i.test(it.nome || ""));
+  const qt = card.querySelector(".jf-qtd"); if(qt) qt.value = "";
+  /* custo */
+  const ct = card.querySelector(".jf-custo-tipo"); if(ct) ct.value = tipoCustoDoTexto(it.custo);
   syncJutsuCalc(card);
 }
 document.getElementById("jutsu_grid").addEventListener("input", (e) => {
   const card = e.target.closest(".jutsu-card"); if(card) syncJutsuCalc(card);
 });
 document.getElementById("jutsu_grid").addEventListener("change", (e) => {
-  const sel = e.target.closest(".jutsu-poder"); if(!sel) return;
-  const card = sel.closest(".jutsu-card");
-  const nvEl = card.querySelector(".jutsu-nivel-poder");
-  const nv = nivelDoPoderEscolhido(sel.value);
-  if(nvEl && nv !== "") nvEl.value = nv;   // nível vem do que foi escolhido na aba Skills
+  const card = e.target.closest(".jutsu-card"); if(!card) return;
+  const sel = e.target.closest(".jutsu-poder");
+  if(sel){
+    const nvEl = card.querySelector(".jutsu-nivel-poder");
+    const nv = nivelDoPoderEscolhido(sel.value);
+    if(nvEl) nvEl.value = nv;   // nível vem do que foi escolhido na aba Skills (travado no card)
+    const bn = card.querySelector(".jc-bonus");
+    if(bn){ const eb = elemBonusDoPoder(sel.value); bn.value = eb ? eb : ""; }
+  }
   syncJutsuCalc(card);
 });
+/* nível/nome do poder mudou na aba Skills: atualiza os cards */
+document.addEventListener("input", (e) => {
+  if(e.target.closest && e.target.closest("#poderes_rows")) atualizarSelectsPoderJutsu();
+});
+/* cards salvos no formato antigo ganham o layout novo, mantendo o que foi preenchido */
+function migrarCardsJutsu(){
+  document.querySelectorAll("#jutsu_grid .jutsu-card").forEach(velho => {
+    if(velho.querySelector(".jf-dano-tipo")){
+      /* cards da versão sem Alcance visível: troca o campo oculto pelo campo normal, mantendo o valor */
+      const h = velho.querySelector('input[type="hidden"].jf-alcance');
+      if(h){
+        const div = document.createElement("div"); div.className = "jutsu-field";
+        div.innerHTML = '<span>Alcance:</span><input class="jf-alcance">';
+        div.querySelector("input").value = h.value;
+        h.replaceWith(div);
+      }
+      return;
+    }
+    const jid = velho.dataset.jid || ("jt" + (idSeq++));
+    const novo = criarJutsuCard(jid);
+    const g = sel => { const el = velho.querySelector(sel); return el ? (el.value || "") : ""; };
+    const set = (sel, v) => { const el = novo.querySelector(sel); if(el) el.value = v; };
+    const pod = g(".jutsu-poder");
+    novo.querySelector(".jutsu-poder").innerHTML = opcoesPoderJutsu(pod);
+    const nvSk = nivelDoPoderEscolhido(pod);
+    set(".jutsu-nivel-poder", nvSk !== "" ? nvSk : g(".jutsu-nivel-poder"));
+    ["jf-nome","jf-acao","jf-alvo","jf-alcance","jf-duracao","jf-efeitos","jf-desc"].forEach(c => set("." + c, g("." + c)));
+    set(".jf-modo", g(".jf-modo") || "CC");
+    const row = document.querySelector('#calc_jutsu_rows tr[data-jid="'+jid+'"]');
+    const baseEf = row ? ((row.querySelector(".cj-base-efeito")||{}).value || "") : "";
+    const chk = row ? row.querySelector(".cj-causa-dano") : null;
+    let tipo = tipoDanoDoTexto(g(".jf-dano"));
+    if(String(baseEf).trim() !== "") tipo = "diferente";
+    if(chk && !chk.checked) tipo = "nenhum";
+    set(".jf-dano-tipo", tipo);
+    if(tipo === "diferente") set(".jc-valor", String(baseEf).trim());
+    const eb = elemBonusDoPoder(pod); set(".jc-bonus", eb ? eb : "");
+    set(".jf-custo-tipo", tipoCustoDoTexto(g(".jf-custo")));
+    const qn = novo.querySelector(".jf-qtd-nivel"); if(qn) qn.checked = /flecha/i.test(g(".jf-nome") + " " + g(".jf-efeitos"));
+    velho.replaceWith(novo);
+    syncJutsuCalc(novo);
+  });
+}
 document.getElementById("jutsu_grid").addEventListener("click", (e) => {
   const btn = e.target.closest(".jutsu-efeito-btn");
   if(!btn) return;
@@ -2373,7 +2875,7 @@ function parsearComp(txt){
   if(!s || s === "---" || s === "—") return null;
   const mGanho = /^\+\s*(\d+)\s*comp/i.exec(s);
   if(mGanho) return { ganho: parseInt(mGanho[1], 10) || 0 };
-  const mRazao = /(\d+)\s*itens?\s*\/\s*(\d+)\s*comp/i.exec(s);
+  const mRazao = /(\d+)\s*ite(?:m|ns)\s*\/\s*(\d+)\s*comp/i.exec(s);
   if(mRazao) return { porItem: parseInt(mRazao[1], 10) || 1, porComp: parseInt(mRazao[2], 10) || 1 };
   const mReduz = /^[-–]\s*(\d+)\s*comp/i.exec(s);
   if(mReduz) return { reduz: parseInt(mReduz[1], 10) || 0 };
@@ -2686,18 +3188,13 @@ function recalc(){
   const esp = attrVal("Espírito");
   document.querySelectorAll("#calc_jutsu_rows tr").forEach(tr => {
     const nvEl = tr.querySelector(".cj-nv"); if(!nvEl) return;
-    const dbase = Math.max(0, num(nvEl.value) + metadeCima(esp));
-    const poder = tr.dataset.poder || "";
-    const elem = (DB.elementos[poder] && num(DB.elementos[poder].bonusDano)) || 0;
-    const dur = tr.querySelector(".cj-dureza"); if(dur) dur.value = dbase;
-    const del = tr.querySelector(".cj-delem"); if(del) del.value = elem;
+    const r = danoJutsuLinha(tr, num(nvEl.value));
+    const dur = tr.querySelector(".cj-dureza"); if(dur) dur.value = r.dureza;
+    const del = tr.querySelector(".cj-delem"); if(del) del.value = r.extra;
     const db = tr.querySelector(".cj-dbase");
-    if(db){
-      db.value = dbase;
-      const _tj = "Dano Base = Nível usado (" + num(nvEl.value) + ") + ½ Espírito (" + metadeCima(esp) + ")" + (elem ? " · Dano elemental +" + elem + " (coluna à parte)" : "");
-      db.title = _tj; db.setAttribute("data-tip", _tj);
-    }
+    if(db){ db.value = r.base; db.title = r.formula; db.setAttribute("data-tip", r.formula); }
   });
+  document.querySelectorAll("#jutsu_grid .jutsu-card").forEach(atualizarPreviewCard);
   /* Arma: Dano Base = ½ atributo (arred. p/ cima) + dano da arma; nunca negativo (Básico p.257) */
   document.querySelectorAll("#calc_armado_rows tr").forEach(tr => {
     const dbEl = tr.querySelector(".ca-dbase"); if(!dbEl) return;
@@ -2731,8 +3228,7 @@ function recalc(){
   /* ---- Compartimentos: exibe X / 3 e a penalidade acima disso (Básico p.127) ---- */
   const compDisp = document.getElementById("in_comp_usados");
   if(compDisp){
-    compDisp.value = compsUsados + " / " + compCapacidade +
-      (compExcesso > 0 ? "  ⚠ " + compItensSlot + "/3 itens (-" + compExcesso + " prec · -" + (compExcesso*3) + "m)" : "");
+    compDisp.value = compsUsados + " / " + compCapacidade + (compExcesso > 0 ? "  ⚠" : "");
   }
 
   /* Barra de status: totais de Vida/Chakra + munições */
@@ -2974,7 +3470,7 @@ const selCancelar = document.getElementById("seletor_cancelar");
 let selItens = [], selCallback = null, selEscolhido = null;
 
 function corpoDe(it){ return it.beneficio || it.descricao || it.desc || ""; }
-const ORDEM_GRUPOS = ["Armas","Armaduras","Item Geral","Hospedagem e Serviços","Animais","Veículos","Poderes Normais","Poderes Restritos","Poderes de Clã","Efeitos","Técnicas Básicas","Técnicas Ninpou","Técnicas Elementais","Técnicas de Clã","Técnicas"];
+const ORDEM_GRUPOS = ["Aptidões de Combate","Aptidões de Manobra","Aptidões de Técnicas","Aptidões de Shinobi","Aptidões de Geral","Armas","Armaduras","Item Geral","Hospedagem e Serviços","Animais","Veículos","Poderes Normais","Poderes Restritos","Poderes de Clã","Efeitos","Técnicas Básicas","Técnicas Ninpou","Técnicas Elementais","Técnicas de Clã","Técnicas"];
 function renderLista(filtro){
   selLista.innerHTML = "";
   const f = (filtro||"").toLowerCase();
@@ -3001,11 +3497,17 @@ function renderLista(filtro){
     mapa[g].forEach(it => selLista.appendChild(itemDiv(it)));
   });
 }
+function grupoAptidao(a){
+  if(a.origem) return "Restritas · " + a.origem;
+  const t = String(a.tipo||"").trim();
+  return t ? "Aptidões de " + t : "Aptidões";
+}
 function acharItem(nome){ return selItens.find(it => it.nome === nome); }
 function mostrarDesc(it){
   if(!it){ selDesc.innerHTML = '<span class="md-meta">Selecione um item para ver a descrição.</span>'; selOk.disabled = true; selEscolhido = null; return; }
   selEscolhido = it; selOk.disabled = false;
   let meta = it.tipo || "";
+  if(it.origem) meta += (meta ? " · " : "") + it.origem;
   if(it.poder) meta += (meta ? " · " : "") + it.poder;
   if(it.nivel !== undefined && it.nivel !== "") meta += (meta ? " · " : "") + "Nível " + it.nivel;
   if(it.acao) meta += (meta ? " · " : "") + "Ação: " + it.acao;
@@ -3017,9 +3519,11 @@ function mostrarDesc(it){
   if(it.dano) meta += (meta ? " · " : "") + "Dano: " + it.dano;
   if(it.custo) meta += (meta ? " · " : "") + "Custo: " + it.custo;
   if(it.alvo && it.valor != null && String(it.valor).trim() !== "") meta += (meta ? " · " : "") + "Bônus: " + (num(it.valor) >= 0 ? "+" : "") + it.valor + " em " + it.alvo;
+  else if(it.bonusTexto) meta += (meta ? " · " : "") + "Bônus: " + it.bonusTexto;
   selDesc.innerHTML =
     '<span class="md-title">' + escapeHtml(it.nome) + (it.revisado ? '<span class="md-rev">Revisado · Guia</span>' : '') + '</span>' +
     (meta ? '<span class="md-meta">' + escapeHtml(meta) + '</span>' : '') +
+    (it.beneficio && it.descricao ? '<div style="font-style:italic;opacity:.8;margin-bottom:4px;">' + escapeHtml(it.descricao) + '</div>' : '') +
     '<div>' + escapeHtml(corpoDe(it)) + '</div>';
 }
 function categoriaPoder(nome){
@@ -3209,7 +3713,7 @@ document.querySelectorAll(".btn-add-row[data-catalogo]").forEach(btn => {
   btn.addEventListener("click", () => {
     const cat = btn.dataset.catalogo;
     if(cat === "poderes")  abrirSeletor("Escolher Poder", DB.poderes.filter(p => poderVisivel(p.nome)), adicionarPoder);
-    if(cat === "aptidoes") abrirSeletor("Escolher Aptidão", DB.aptidoes, adicionarAptidao);
+    if(cat === "aptidoes") abrirSeletor("Escolher Aptidão", DB.aptidoes.map(a => Object.assign({}, a, {_grupo: grupoAptidao(a)})), adicionarAptidao);
     if(cat === "equipamentos") abrirSeletor("Escolher Equipamento", equipamentosParaSeletor(), adicionarEquipamento);
   });
 });
@@ -3219,6 +3723,7 @@ const BD_SCHEMAS = {
   aptidoes: { titulo:"Aptidões", cols:[
     {campo:"nome", rotulo:"Nome", w:"15%", tipo:"input"},
     {campo:"tipo", rotulo:"Tipo", w:"9%", tipo:"input"},
+    {campo:"origem", rotulo:"Origem", w:"9%", tipo:"input"},
     {campo:"prereq", rotulo:"Pré-requisitos", w:"15%", tipo:"textarea"},
     {campo:"restricao", rotulo:"Restrições", w:"14%", tipo:"textarea"},
     {campo:"beneficio", rotulo:"Descrição / Benefícios", w:"auto", tipo:"textarea"},
@@ -3401,7 +3906,34 @@ function renderBD(){
   html += bdElementosHtml();
   ["armas","armaduras","itens","venenos"].forEach(cat => html += bdSectionHtml(cat));
   bdRoot.innerHTML = html;
+  aplicarPermissaoBD();
 }
+/* com o compêndio em uso, só o mestre edita; o jogador vê o banco sem poder mudar */
+function aplicarPermissaoBD(){
+  const emUso = compendioEmUso();
+  const soLeitura = emUso && !podeEditarCompendio();
+  document.body.classList.toggle("bd-somente-leitura", soLeitura);
+  if(soLeitura) bdRoot.querySelectorAll("input, textarea, select").forEach(el => { el.disabled = true; });
+  const pub = document.getElementById("bd_publicar");
+  const podePublicar = !emUso && _compDisponivel && _souMestre && NUVEM_ATIVA;
+  if(pub) pub.style.display = podePublicar ? "" : "none";
+  const av = document.getElementById("bd_comp_aviso");
+  if(av){
+    if(emUso && soLeitura) av.textContent = "Este é o compêndio da mesa, compartilhado por todas as fichas. Só o mestre pode editar.";
+    else if(emUso) av.textContent = "Você está editando o compêndio da mesa: cada mudança vale para todas as fichas.";
+    else if(podePublicar) av.textContent = "O compêndio da mesa está vazio. Revise o banco abaixo e clique em Publicar no compêndio para que todas as fichas passem a usá-lo.";
+    else av.textContent = "";
+  }
+}
+document.getElementById("bd_publicar").addEventListener("click", async () => {
+  if(!confirm("Publicar este banco de dados como o compêndio da mesa? Todas as fichas passarão a usar esta versão.")) return;
+  const btn = document.getElementById("bd_publicar"); btn.disabled = true;
+  _statusBD("Publicando…");
+  _compSnap = {};
+  const ok = await sincronizarCompendio(DB);
+  btn.disabled = false;
+  if(ok){ renderBD(); if(typeof salvarNaNuvem === "function") salvarNaNuvem(); _statusBD("Compêndio publicado. As fichas passam a usá-lo ao abrir."); }
+});
 function vazioDe(cat){
   const o = {};
   BD_SCHEMAS[cat].cols.forEach(c => o[c.campo] = (c.tipo === "check") ? false : "");
@@ -3465,23 +3997,41 @@ document.getElementById("bd_arquivo").addEventListener("change", (e) => {
   reader.onload = () => {
     try{
       const s = JSON.parse(reader.result);
-      const base = clone(SEED_DB);
-      ["aptidoes","poderes","armas","armaduras","efeitos","tecnicas","linhagens","itens","venenos"].forEach(k => { if(Array.isArray(s[k])) base[k] = s[k]; });
+      /* importar MESCLA por nome: atualiza quem já existe, acrescenta os novos, não apaga nada */
+      const base = clone(DB);
+      const chave = x => semAcento(String(x||"")).trim().toLowerCase();
+      ["aptidoes","poderes","armas","armaduras","efeitos","tecnicas","linhagens","itens","venenos"].forEach(k => {
+        if(!Array.isArray(s[k])) return;
+        const atual = Array.isArray(base[k]) ? base[k] : (base[k] = []);
+        const idx = {}; atual.forEach((it, i) => { if(it && it.nome) idx[chave(it.nome)] = i; });
+        s[k].forEach(novo => {
+          if(!novo || !novo.nome) return;
+          const n = Object.assign({}, novo); delete n._id;
+          const i = idx[chave(n.nome)];
+          if(i != null){ if(atual[i]._id) n._id = atual[i]._id; atual[i] = n; }
+          else { idx[chave(n.nome)] = atual.length; atual.push(n); }
+        });
+      });
       migrarArmasUso(base); migrarPoderes(base); migrarTecnicas(base); migrarLinhagens(base); migrarItens(base);
       if(s.calc) Object.assign(base.calc, s.calc);
       if(s.elementos) Object.assign(base.elementos, s.elementos);
-      if(typeof s.foto === "string") base.foto = s.foto;
+      if(typeof s.foto === "string" && !compendioEmUso()) base.foto = s.foto;
       DB = base; persist(); renderBD(); refreshLinhagensUI(); recalc();
-      setStatus("Banco de dados importado.");
+      setStatus(compendioEmUso() ? "Importado e mesclado no compêndio." : "Banco de dados importado (mesclado por nome).");
     }catch(err){ setStatus("Arquivo inválido: " + err.message); }
   };
   reader.readAsText(file);
   e.target.value = "";
 });
 document.getElementById("bd_restaurar").addEventListener("click", () => {
-  if(!confirm("Restaurar o banco de dados para o padrão dos livros? Suas edições locais serão perdidas.")) return;
-  DB = clone(SEED_DB);
+  const _msg = compendioEmUso()
+    ? "Restaurar o COMPÊNDIO DA MESA para o padrão embutido na ficha? Isso vale para todas as fichas e apaga as edições do compêndio."
+    : "Restaurar o banco de dados para o padrão dos livros? Suas edições locais serão perdidas.";
+  if(!confirm(_msg)) return;
+  const _foto = DB.foto;
+  DB = clone(SEED_DB); DB.foto = _foto;
   try{ localStorage.removeItem(DB_KEY); }catch(e){}
+  if(compendioEmUso()) persist();
   renderBD(); refreshLinhagensUI(); recalc();
   setStatus("Banco de dados restaurado ao padrão.");
 });
@@ -3525,17 +4075,25 @@ function destacarGrau(g){
   document.querySelectorAll('.d8-cell[data-grau="'+g+'"]').forEach(c => c.classList.add("hit"));
 }
 function valDe(tr, sel){ const e = tr.querySelector(sel); return e ? num(e.value) : 0; }
+function custoPadraoLinha(tr){ return custoDoJutsu(tr, num((tr.querySelector(".cj-nv")||{}).value) || 1); }
 function rolarDano(tr, tipo){
-  const total = (tipo === "jutsu")
-    ? valDe(tr,".cj-dbase") + valDe(tr,".cj-delem") + valDe(tr,".cj-bonus")
-    : valDe(tr,".ca-dbase") + valDe(tr,".ca-bonus");
+  const ehFixo = (tipo === "jutsu") && jutsuEhDanoFixo(tr);
+  const total = ehFixo
+    ? valDe(tr, ".cj-fixo")
+    : (tipo === "jutsu")
+      ? valDe(tr,".cj-dbase") + valDe(tr,".cj-delem") + valDe(tr,".cj-bonus")
+      : valDe(tr,".ca-dbase") + valDe(tr,".ca-bonus");
   const nomeEl = tr.querySelector("input");
   const nome = (nomeEl && nomeEl.value.trim()) ? nomeEl.value.trim() : (tipo === "jutsu" ? "Jutsu" : "Ataque");
   const a = d8(), b = d8(), soma = a + b, g = grauDe(soma);
   destacarGrau(g);
   let badge, linhas = [];
-  if(g === 0){ badge = { texto: "Falha", classe: "fail" }; }
-  else {
+  if(ehFixo){
+    badge = { texto: "Dano Fixo", classe: "ini" };
+    linhas.push("Dano Fixo <b>" + total + "</b> (não multiplica pelo grau — Básico p.258)");
+  } else if(g === 0){
+    badge = { texto: "Falha", classe: "fail" };
+  } else {
     badge = { texto: (soma >= 15 ? "Crítico · " : "") + "Grau " + g, classe: (soma >= 15 ? "crit" : classeGrau(g)) };
     linhas.push("Dano <b>" + (total * g) + "</b> = " + total + " × Grau " + g);
   }
@@ -3551,7 +4109,7 @@ function rolarDano(tr, tipo){
   emitirResultado({ dados: [a, b], titulo: nome, badge: badge, linhas: linhas }, false, meta);
   /* consumo ao usar: chakra do jutsu; munição do arremesso */
   if(tipo === "jutsu"){
-    let custo = valDe(tr, ".cj-custo"); if(custo <= 0) custo = valDe(tr, ".cj-nv");
+    let custo = custoPadraoLinha(tr);
     if(custo > 0) ajustarChakra(-custo);
   } else {
     /* munição só é gasta em ataque à distância — armas CC/CD usadas em CC não consomem */
@@ -3607,8 +4165,13 @@ function nivelMaxDoPoderRow(tr){
   return mx > 0 ? Math.max(mx, atual, 1) : Math.max(atual, 10);
 }
 function custoDoJutsu(tr, nivel){
+  const _ct = tr.dataset.jcusto;
+  if(_ct === "nivel") return nivel;
+  if(_ct === "metade") return Math.ceil(nivel / 2);
+  if(_ct === "sem") return 0;
   const raw = String((tr.querySelector(".cj-custo")||{}).value || "").toLowerCase();
   const n = parseFloat(raw.replace(",", "."));
+  if(raw.indexOf("sem") >= 0) return 0;
   if(raw.indexOf("dobro") >= 0) return nivel * 2;
   if(raw.indexOf("nível usado") >= 0 || raw.indexOf("nivel usado") >= 0) return nivel;
   if(!isNaN(n) && n > 0) return n;
@@ -3705,9 +4268,9 @@ function executarUso(){
   }
   let total;
   if(tipo === "jutsu"){
-    const dbase = Math.max(0, usarState.nivel + metadeCima(attrVal("Espírito")));
-    const elem = (DB.elementos[tr.dataset.poder] && num(DB.elementos[tr.dataset.poder].bonusDano)) || 0;
-    total = dbase + elem + num((tr.querySelector(".cj-bonus")||{}).value);
+    const _rj = danoJutsuLinha(tr, usarState.nivel);
+    total = _rj.base + _rj.extra + num((tr.querySelector(".cj-bonus")||{}).value);
+    usarState._rj = _rj;
   } else {
     if(usarState.modos.length > 1){
       tr.dataset.modo = usarState.modo;
@@ -3727,6 +4290,10 @@ function executarUso(){
   else {
     badge = { texto: (soma >= 15 ? "Crítico · " : "") + "Grau " + g, classe: (soma >= 15 ? "crit" : classeGrau(g)) };
     linhas.push("Dano <b>" + (total * g) + "</b> = " + total + " × Grau " + g);
+  }
+  if(tipo === "jutsu" && usarState._rj && !usarState._rj.legado){
+    linhas.push('<span style="font-size:11px;opacity:.8">' + usarState._rj.formula + '</span>');
+    if(usarState._rj.qtd) linhas.push("Qtd <b>" + usarState._rj.qtd + "</b>");
   }
   const titulo = nome + (tipo === "jutsu" ? " — Nv " + usarState.nivel : (usarState.modos.length>1 ? " — " + usarState.modo : ""));
   emitirResultado({ dados:[a,b], titulo:titulo, badge:badge, linhas:linhas }, false);
@@ -4095,7 +4662,7 @@ function popularReferenciaDefesa(){
     const el = tr.querySelector(".cj-jutsu");
     const nome = el ? el.value.trim() : "";
     if(!nome) return;
-    let custo = valDe(tr, ".cj-custo"); if(custo <= 0) custo = valDe(tr, ".cj-nv");
+    let custo = custoPadraoLinha(tr);
     const idx = rlRefDefRows.length;
     rlRefDefRows.push(tr);
     const o = document.createElement("option");
@@ -4277,17 +4844,24 @@ function rolarAtaquePopup(){
         nomeArma = nome;
 
         if(causaDano){
-          const total = ehJutsu
-            ? valDe(tr,".cj-dbase") + valDe(tr,".cj-delem") + valDe(tr,".cj-bonus")
-            : valDe(tr,".ca-dbase") + valDe(tr,".ca-bonus");
-          titulo = (nome ? nome + " · " : "") + "Dano " + (total * g);
-          linhas.push("Dano <b>" + (total * g) + "</b> = " + total + " × Grau " + g);
+          const ehFixo = ehJutsu && jutsuEhDanoFixo(tr);
+          if(ehFixo){
+            const fixo = valDe(tr, ".cj-fixo");
+            titulo = (nome ? nome + " · " : "") + "Dano Fixo " + fixo;
+            linhas.push("Dano Fixo <b>" + fixo + "</b> (não multiplica pelo grau — Básico p.258)");
+          } else {
+            const total = ehJutsu
+              ? valDe(tr,".cj-dbase") + valDe(tr,".cj-delem") + valDe(tr,".cj-bonus")
+              : valDe(tr,".ca-dbase") + valDe(tr,".ca-bonus");
+            titulo = (nome ? nome + " · " : "") + "Dano " + (total * g);
+            linhas.push("Dano <b>" + (total * g) + "</b> = " + total + " × Grau " + g);
+          }
         } else if(nome){
           titulo = nome + " · acertou";
         }
 
         if(ehJutsu){
-          let custo = valDe(tr, ".cj-custo"); if(custo <= 0) custo = valDe(tr, ".cj-nv");
+          let custo = custoPadraoLinha(tr);
           if(custo > 0){
             if(custo > chakraAtual()) aviso = "Chakra insuficiente (precisa de " + custo + ", você tem " + chakraAtual() + ").";
             ajustarChakra(-custo);
@@ -4337,7 +4911,7 @@ function rolarDefesaPopup(){
     if(trTec){
       const el = trTec.querySelector(".cj-jutsu");
       nomeTec = el ? el.value : "";
-      custo = valDe(trTec, ".cj-custo"); if(custo <= 0) custo = valDe(trTec, ".cj-nv");
+      custo = custoPadraoLinha(trTec);
     }
   }
 
@@ -4546,6 +5120,21 @@ function restaurarEstado(){
         const nomeCell = tr.querySelector(".td-nome");
         if(nomeCell) nomeCell.insertAdjacentElement("afterend", td);
       }
+      /* limpeza: remove as colunas "Elemento" e "Tipo" (existiram só numa entrega curta, removidas por redundantes/confusas) */
+      const elObsoleto = tr.querySelector(".cj-elemento");
+      if(elObsoleto){ const td = elObsoleto.closest("td"); if(td) td.remove(); }
+      const tipoObsoleto = tr.querySelector(".cj-tipo-dano");
+      if(tipoObsoleto){ const td = tipoObsoleto.closest("td"); if(td) td.remove(); }
+      if(!tr.querySelector(".cj-base-efeito")){
+        const td = celInput(""); td.querySelector("input").className = "cj-base-efeito";
+        const causaDanoCell = tr.querySelector(".cj-causa-dano-cell");
+        if(causaDanoCell) causaDanoCell.insertAdjacentElement("afterend", td);
+      }
+      if(!tr.querySelector(".cj-fixo")){
+        const td = celInput(""); td.querySelector("input").className = "cj-fixo";
+        const dbaseCell = tr.querySelector(".cj-dbase"); const dbaseTd = dbaseCell ? dbaseCell.closest("td") : null;
+        if(dbaseTd) dbaseTd.insertAdjacentElement("afterend", td);
+      }
       aplicarVisibilidadeDano(tr);
     });
   }
@@ -4582,6 +5171,7 @@ renderBD();
 montarLinhagens();
 restaurarEstado();
 migrarCardsItens();
+migrarCardsJutsu();
 migrarNomesUsar();
 atualizarVenenosAtivos();
 refreshLinhagensUI();
@@ -4726,6 +5316,7 @@ montarControlesMestre();
   if(NUVEM_ATIVA && typeof sb !== "undefined"){
     const ok = await carregarDaNuvem();
     if(!ok) return;              // redirecionado para login/home
+    await carregarCompendio();   // banco compartilhado (cai no embutido se a tabela não existir)
   }
   iniciarFicha();
 })();
