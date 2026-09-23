@@ -134,6 +134,28 @@
   .log-item.mensagem .texto{ color:var(--ink); }
   .log-vazio{ color:var(--gray-text); font-size:12.5px; text-align:center; padding:14px 0; }
 
+  .carta-rolagem{
+    border:1px solid var(--border); border-left:3px solid #0f4c9c; border-radius:8px;
+    padding:8px 10px; background:#fbfbfc;
+  }
+  .cr-cab{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:3px; }
+  .cr-titulo{
+    font-family:var(--font-display); font-weight:800; font-size:13px; text-transform:uppercase;
+    color:var(--ink); letter-spacing:0.2px;
+  }
+  .cr-quem{ font-size:10.5px; color:var(--gray-text); font-weight:700; white-space:nowrap; }
+  .cr-linha{ display:flex; align-items:center; gap:6px; font-size:12.5px; padding:2px 0; flex-wrap:wrap; }
+  .cr-etapa{ font-weight:700; color:var(--gray-text); min-width:44px; font-size:11.5px; }
+  .cr-desc{ font-size:11.5px; color:var(--ink); opacity:0.8; margin:0 0 4px 50px; }
+  .cr-badge{
+    font-size:10px; font-weight:800; text-transform:uppercase; padding:2px 8px; border-radius:999px; letter-spacing:0.2px;
+  }
+  .cr-badge.cr-fail{ background:#fdecec; color:#a32020; }
+  .cr-badge.cr-crit{ background:#fff3cd; color:#8a6d00; }
+  .cr-badge.cr-ok, .cr-badge.cr-g3, .cr-badge.cr-g4{ background:#e9f8ef; color:#0f7a3d; }
+  .cr-badge.cr-g1, .cr-badge.cr-g2, .cr-badge.cr-ini{ background:#eef4fc; color:#0f4c9c; }
+  .cr-badge.cr-default{ background:var(--gray-light); color:var(--ink); }
+
   .item-iniciativa{ display:flex; align-items:center; gap:8px; padding:8px 4px; border-bottom:1px solid var(--border); font-size:13px; }
   .item-iniciativa:last-child{ border-bottom:none; }
   .item-iniciativa.atual{ background:#fff6d8; border-radius:8px; }
@@ -1106,12 +1128,27 @@ document.getElementById("btn_iniciativa_limpar").addEventListener("click", async
 let feedEventos = [];
 let nomesCache = {};
 
+const ROTULO_ETAPA = { ataque:"Ataque", dano:"Dano", defesa:"Defesa", manobra:"Manobra", teste:"Teste", uso:"Uso", iniciativa:"Iniciativa" };
+
 async function nomeDoUsuario(uid){
   if(nomesCache[uid]) return nomesCache[uid];
   const { data } = await sb.from("perfis").select("nome").eq("id", uid).single();
   const nome = (data && data.nome) || "Jogador";
   nomesCache[uid] = nome;
   return nome;
+}
+
+function parteDeLinha(row){
+  const r = row.resultado || {};
+  return {
+    etapa: r.etapa || null,
+    formula: row.formula,
+    dados: Array.isArray(r.dados) ? r.dados : [],
+    modificador: r.modificador || 0,
+    total: (r.total != null) ? r.total : "?",
+    badge: r.badge || null,
+    linhas: Array.isArray(r.linhas) ? r.linhas : null
+  };
 }
 
 async function carregarFeed(){
@@ -1122,9 +1159,26 @@ async function carregarFeed(){
     sb.from("mensagens").select("*").eq("sala_id", salaId).order("criado_em", { ascending:false }).limit(30)
   ]);
 
+  const porGrupo = {};
+  const rolagensEventos = [];
+  (rolagens || []).slice().reverse().forEach(row => {
+    const grupo = (row.resultado || {}).grupo || null;
+    if(grupo && porGrupo[grupo]){
+      porGrupo[grupo].partes.push(parteDeLinha(row));
+      return;
+    }
+    const entrada = {
+      tipo: "rolagem", user_id: row.user_id, criado_em: row.criado_em,
+      grupo: grupo, arma: (row.resultado || {}).arma || null,
+      partes: [parteDeLinha(row)]
+    };
+    if(grupo) porGrupo[grupo] = entrada;
+    rolagensEventos.push(entrada);
+  });
+
   const eventos = [
-    ...((rolagens || []).map(r => ({ tipo:"rolagem", ...r }))),
-    ...((mensagens || []).map(m => ({ tipo:"mensagem", ...m })))
+    ...rolagensEventos,
+    ...((mensagens || []).slice().reverse().map(m => ({ tipo:"mensagem", ...m })))
   ];
   eventos.sort((a, b) => new Date(a.criado_em) - new Date(b.criado_em));
   feedEventos = eventos.slice(-40);
@@ -1139,30 +1193,53 @@ function empilharEvento(ev){
   renderizarFeed();
 }
 
+function empilharRolagem(row){
+  const grupo = (row.resultado || {}).grupo || null;
+  const parte = parteDeLinha(row);
+  if(grupo){
+    const existente = feedEventos.find(ev => ev.tipo === "rolagem" && ev.grupo === grupo);
+    if(existente){
+      existente.partes.push(parte);
+      renderizarFeed();
+      return;
+    }
+  }
+  empilharEvento({
+    tipo: "rolagem", user_id: row.user_id, criado_em: row.criado_em,
+    grupo: grupo, arma: (row.resultado || {}).arma || null,
+    partes: [parte]
+  });
+}
+
+function cartaRolagemHtml(ev, nome){
+  const titulo = ev.arma || (ev.partes[0] && ev.partes[0].formula) || "Rolagem";
+  const linhasHtml = ev.partes.map(p => {
+    const rotulo = p.etapa ? (ROTULO_ETAPA[p.etapa] || p.etapa) : p.formula;
+    const dadosHtml = p.dados.map(d => '<span class="dado-cubo">' + d + '</span>').join("");
+    const modHtml = p.modificador ? '<span class="modificador">' + (p.modificador > 0 ? "+" : "") + p.modificador + '</span>' : "";
+    const badgeHtml = (p.badge && p.badge.texto)
+      ? '<span class="cr-badge cr-' + (p.badge.classe || "default") + '">' + escapeHtml(p.badge.texto) + '</span>' : "";
+    const descHtml = p.linhas ? p.linhas.map(l => '<div class="cr-desc">' + l + '</div>').join("") : "";
+    return '<div class="cr-linha">' +
+      '<span class="cr-etapa">' + escapeHtml(rotulo) + '</span>' +
+      '<span class="dados-visual">' + dadosHtml + modHtml + '</span>' +
+      '<span class="total">' + p.total + '</span>' +
+      badgeHtml +
+    '</div>' + descHtml;
+  }).join("");
+
+  return '<div class="carta-rolagem">' +
+    '<div class="cr-cab"><span class="cr-titulo">' + escapeHtml(titulo) + '</span><span class="cr-quem">' + escapeHtml(nome) + '</span></div>' +
+    linhasHtml +
+  '</div>';
+}
+
 function renderizarFeed(){
   const area = document.getElementById("log_rolagens");
   if(!feedEventos.length){ area.innerHTML = '<div class="log-vazio">Nenhuma atividade ainda.</div>'; return; }
   area.innerHTML = feedEventos.map(ev => {
     const nome = nomesCache[ev.user_id] || "Jogador";
-    if(ev.tipo === "rolagem"){
-      const total = (ev.resultado && ev.resultado.total != null) ? ev.resultado.total : "?";
-      const listaDados = (ev.resultado && Array.isArray(ev.resultado.dados)) ? ev.resultado.dados : null;
-      const mod = (ev.resultado && ev.resultado.modificador) ? ev.resultado.modificador : 0;
-
-      let visual = "";
-      if(listaDados && listaDados.length){
-        visual = '<div class="dados-visual">' +
-          listaDados.map(d => '<span class="dado-cubo">' + d + '</span>').join("") +
-          (mod ? '<span class="modificador">' + (mod > 0 ? "+" : "") + mod + '</span>' : "") +
-          '</div>';
-      }
-
-      return '<div class="log-item">' +
-        '<span class="quem">' + escapeHtml(nome) + '</span> rolou <span class="formula">' + escapeHtml(ev.formula) + '</span>' +
-        visual +
-        '<span class="total">= ' + total + '</span>' +
-      '</div>';
-    }
+    if(ev.tipo === "rolagem") return cartaRolagemHtml(ev, nome);
     return '<div class="log-item mensagem"><span class="quem">' + escapeHtml(nome) + ':</span> ' +
       '<span class="texto">' + escapeHtml(ev.texto) + '</span></div>';
   }).join("");
@@ -1418,7 +1495,7 @@ function conectarPresenca(){
     { event: "INSERT", schema: "public", table: "rolagens", filter: "sala_id=eq." + salaId },
     async (payload) => {
       await nomeDoUsuario(payload.new.user_id);
-      empilharEvento({ tipo: "rolagem", ...payload.new });
+      empilharRolagem(payload.new);
     }
   );
 
