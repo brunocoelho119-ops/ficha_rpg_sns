@@ -592,6 +592,7 @@
   .jc-f select{ font-family:var(--font-body); font-size:10.5px; font-weight:600; padding:2px 3px; border:1px solid var(--input-border);
     background:#fff; border-radius:var(--radius-sm); color:var(--ink); cursor:pointer; }
   .jc-f i{ font-style:normal; color:var(--gray-text); }
+  .jutsu-card:not([data-custo="fixo"]) .jf-custo-valor{ display:none; }
   .jc-preview{ font-size:10.5px; color:var(--ink); margin-top:5px; }
   .jc-preview:empty{ display:none; }
   .if-equip-row{ display:flex; align-items:center; gap:7px; margin:2px 0 9px 0; padding:6px 10px; border-radius:999px;
@@ -1704,13 +1705,13 @@ const SEED_DB = {
     {nome:"Recarga Precisa", tipo:"Restrita de Hijutsu", origem:"Saika Ikki (Hijutsu)", prereq:"Destreza 9; Usar Pólvora; Saque Rápido", restricao:"", descricao:"Recarrega armas de fogo com velocidade e maestria", beneficio:"Pode 'Simular 1 Dado' ao realizar Recarga Rápida de Pólvora com arma de fogo compatível, mesmo sob estresse de combate", revisado:false}
   ],
   poderes: [
-    {nome:"Ninpou (Arte Ninja)", tipo:"Comum", prereq:"", restricao:"", descricao:"Domínio de uma arte ninja. Ao subir de nível ganha Efeitos (Canhão, Orbe, Barreira, Sopro Destrutivo...) que personalizam o poder. Dano base e Dureza = Nível usado + ½ Espírito (arred. p/ cima). Custo de chakra = nível do efeito usado.", revisado:false},
-    {nome:"Doton (Elemento Terra)", tipo:"Comum", prereq:"", restricao:"", descricao:"Ninpou do elemento Terra. Cria e manipula terra e rocha para atacar, erguer defesas e prender inimigos.", revisado:false},
-    {nome:"Fuuton (Elemento Vento)", tipo:"Comum", prereq:"", restricao:"", descricao:"Ninpou do elemento Vento. Lâminas e rajadas de ar cortantes, com bom alcance e mobilidade.", revisado:false},
-    {nome:"Katon (Elemento Fogo)", tipo:"Comum", prereq:"", restricao:"", descricao:"Ninpou do elemento Fogo. Alto poder ofensivo com bolas e sopros de fogo em área.", revisado:false},
-    {nome:"Raiton (Elemento Trovão)", tipo:"Comum", prereq:"", restricao:"", descricao:"Ninpou do elemento Trovão. Ataques rápidos e precisos de eletricidade, difíceis de esquivar.", revisado:false},
-    {nome:"Suiton (Elemento Água)", tipo:"Comum", prereq:"", restricao:"", descricao:"Ninpou do elemento Água. Versátil: dragões, prisões e paredes de água para atacar e bloquear técnicas.", revisado:false},
-    {nome:"Iryou Ninjutsu (Ninjutsu Médico)", tipo:"Comum", prereq:"", restricao:"", descricao:"Técnicas médicas: cura a Vitalidade de aliados, trata condições e, em níveis altos, realiza cirurgia com chakra.", revisado:false},
+    {"nome": "Ninpou (Arte Ninja)", "tipo": "Comum", "prereq": "", "restricao": "", "revisado": false, "descricao": "Ninjutsu não-elemental (o jogador escolhe o visual e o material, e dá um nome ao poder). Ganha 1 efeito no nível 1 e escolhe um novo efeito (de nível igual ou menor) a cada nível, ou evolui um já escolhido. Custo de chakra = nível do efeito usado; pode usar o efeito num nível maior, até o nível do poder. Dano base e Dureza = nível usado + ½ Espírito (arred. p/ cima). Dif dos testes = 9 + nível usado + ½ Espírito. Alcance médio (10m + 2m por Espírito). Tamanho: 1m por Espírito. Criação livre: ação padrão, custo = nível usado, parâmetros pela metade, sem uso ofensivo. (Básico p.91-95)"},
+    {"nome": "Doton (Elemento Terra)", "tipo": "Comum", "prereq": "", "restricao": "Só 1 elemento básico até Espírito 10.", "revisado": false, "descricao": "Segue as regras do Ninpou e usa todos os seus efeitos. Alcance curto (5m + 1m por Espírito); tamanho 1m por Espírito; +2 de dureza em toda criação Doton. Exclusivos: Imergir, Tremor, Pele de Pedra. (Básico p.103-104)"},
+    {"nome": "Fuuton (Elemento Vento)", "tipo": "Comum", "prereq": "", "restricao": "Só 1 elemento básico até Espírito 10.", "revisado": false, "descricao": "Segue as regras do Ninpou, sem acesso a todos os efeitos (o vento é imaterial). Alcance médio (10m + 2m por Espírito); tamanho 1m por Espírito; +2 de dano base em todo efeito. Exclusivos: Venenoso, Afiar, Lâmina de Vento. (Básico p.105-107)"},
+    {"nome": "Katon (Elemento Fogo)", "tipo": "Comum", "prereq": "", "restricao": "Só 1 elemento básico até Espírito 10.", "revisado": false, "descricao": "Segue as regras do Ninpou, sem acesso a todos os efeitos (o fogo é imaterial). Maior área entre os elementos: alcance médio (10m + 2m por Espírito); tamanho 2m por Espírito; +2 de dano base em todo efeito. Exclusivos: Inflamável, Meteoros. (Básico p.107-108)"},
+    {"nome": "Raiton (Elemento Trovão)", "tipo": "Comum", "prereq": "", "restricao": "Só 1 elemento básico até Espírito 10.", "revisado": false, "descricao": "Segue as regras do Ninpou, sem acesso a todos os efeitos. Maior alcance e menor área: alcance longo (15m + 3m por Espírito); tamanho 0,5m por Espírito; +1 de dano base em todo efeito. Exclusivos: Lâmina de Raios, Arma Elétrica, Descarga. (Básico p.109-111)"},
+    {"nome": "Suiton (Elemento Água)", "tipo": "Comum", "prereq": "", "restricao": "Só 1 elemento básico até Espírito 10.", "revisado": false, "descricao": "Segue as regras do Ninpou e usa todos os seus efeitos, além de Inflamável, Venenoso e Imergir. Alcance médio (10m + 2m por Espírito); tamanho 1m por Espírito. Exclusivos: Névoa, Prisão de Água, Colisão de Ondas. (Básico p.111-114)"},
+    {"nome": "Iryou Ninjutsu (Ninjutsu Médico)", "tipo": "Comum", "prereq": "Ninja Médico (aptidão); Espírito 6", "restricao": "", "revisado": false, "descricao": "Cura com chakra: alcance toque, ação padrão, concentração, sem selos. Recupera nível usado + ½ Medicina de Vitalidade por turno; custo = nível usado. Técnicas: Bisturi de Chakra e In'yu Shōmetsu (Nv 6), Shousen no Jutsu (Nv 7). (Básico p.120-121)"},
     {nome:"Taijutsu", tipo:"Restrito", prereq:"", restricao:"Ver livro para regras completas.", descricao:"Combate corporal puro, sem uso de ninjutsu. Técnicas físicas avançadas (estilo Rock Lee / Might Guy).", revisado:false},
     {nome:"Genjutsu", tipo:"Restrito", prereq:"", restricao:"Ver livro para pré-requisitos e regras completas.", descricao:"Ilusões que afetam os sentidos e a mente do alvo.", revisado:false},
     {nome:"Kuchiyose (Invocação)", tipo:"Restrito", prereq:"", restricao:"Ver livro para regras completas.", descricao:"Invoca criaturas contratadas para lutar ao seu lado (sapos, cobras, lesmas etc.).", revisado:false},
@@ -1743,7 +1744,8 @@ const SEED_DB = {
     {nome:"Jinchuuriki", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Poder da Besta com Cauda selada: manto de chakra, força e regeneração ampliadas.", revisado:false},
     {nome:"Kikaichuu (Insetos Parasitas)", tipo:"Restrito", prereq:"Clã Aburame.", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Insetos que consomem o chakra do alvo e obedecem ao usuário.", revisado:false},
     {nome:"Edo Tensei (Reanimação)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Traz almas de volta em corpos quase imortais.", revisado:false},
-    {nome:"Fuinjutsu (Arte dos Selos)", tipo:"Restrito", prereq:"", restricao:"Ver livro de Hijutsus para regras completas.", descricao:"Sela chakra, criaturas, técnicas e objetos.", revisado:false}
+    {"nome": "Fuuinjutsu (Selamento)", "tipo": "Comum", "prereq": "Inteligência 6", "restricao": "", "revisado": false, "descricao": "Técnicas de selamento com técnicas prontas por nível: selos de armazenamento (Nv 1-2), selos avançados em tarjas especiais (Nv 3-8) e selos épicos (Nv 8-10, geralmente Kinjutsus; o mestre deve pensar bem antes de liberá-los). Alcance toque, ação padrão, tipo Ninjutsu. (Básico p.114-120)"},
+    {"nome": "Rasengan (Explosão Espiral)", "tipo": "Comum", "prereq": "Espírito 8", "restricao": "", "revisado": false, "descricao": "Esfera giratória de chakra na mão; ataque de toque com teste de CC. Evoluir o poder aumenta o dano, e as formas avançadas exigem Espírito alto: Básico (Nv 1), Completo (Nv 6), Oodama (Nv 7), Elemental (Nv 9). (Básico p.121-123)"}
   ],
   armas: [
     {nome:"Ataque Desarmado", categoria:"Simples", classe:"Base", preco:"---", dano:"+0", alcance:"---", critico:"15-16", comp:"---", tipo:"Esmagamento", uso:"CC"},
@@ -1920,12 +1922,6 @@ const SEED_DB = {
   ],
   /* Config de cada elemento: quais efeitos gerais do Ninpou ele permite + modificador. */
   tecnicas: [
-    {nome:"Henge no Jutsu (Transformação)", poder:"Ninpou", nivel:1, tipo:"Técnica", custo:"", dano:"", descricao:""},
-    {nome:"Kawarimi no Jutsu (Substituição)", poder:"Ninpou", nivel:1, tipo:"Técnica", custo:"", dano:"", descricao:""},
-    {nome:"Shunshin no Jutsu (Corpo Piscante)", poder:"Ninpou", nivel:2, tipo:"Técnica", custo:"", dano:"", descricao:""},
-    {nome:"Bunshin no Jutsu (Clone)", poder:"Ninpou", nivel:1, tipo:"Técnica", custo:"", dano:"", descricao:""},
-    {nome:"Rasengan", poder:"Ninpou", nivel:7, tipo:"Técnica", custo:"", dano:"", descricao:""},
-    {nome:"Oodama Rasengan", poder:"Ninpou", nivel:9, tipo:"Técnica", custo:"", dano:"", descricao:""},
     {nome:"Shintenshin no Jutsu (Yamanaka)", poder:"Ninpou", nivel:4, tipo:"Técnica", custo:"", dano:"", descricao:""},
     {nome:"Kage Mane no Jutsu (Nara)", poder:"Ninpou", nivel:3, tipo:"Técnica", custo:"", dano:"", descricao:""},
     {nome:"Kage Shibari no Jutsu (Nara)", poder:"Ninpou", nivel:6, tipo:"Técnica", custo:"", dano:"", descricao:""},
@@ -1933,12 +1929,6 @@ const SEED_DB = {
     {nome:"Kugutsu no Jutsu (Marionete)", poder:"Ninpou", nivel:4, tipo:"Técnica", custo:"", dano:"", descricao:""},
     {nome:"Souma no Jutsu", poder:"Ninpou", nivel:8, tipo:"Técnica", custo:"", dano:"", descricao:""},
     {nome:"Yamata no Jutsu", poder:"Ninpou", nivel:10, tipo:"Técnica", custo:"", dano:"", descricao:""},
-    {nome:"Goukakyuu no Jutsu (Grande Bola de Fogo)", poder:"Katon", nivel:3, tipo:"Técnica", custo:"", dano:"", descricao:""},
-    {nome:"Housenka no Jutsu (Flor de Fênix)", poder:"Katon", nivel:4, tipo:"Técnica", custo:"", dano:"", descricao:""},
-    {nome:"Ryuuka no Jutsu (Chama do Dragão)", poder:"Katon", nivel:5, tipo:"Técnica", custo:"", dano:"", descricao:""},
-    {nome:"Shoukakyuu no Jutsu", poder:"Katon", nivel:2, tipo:"Técnica", custo:"", dano:"", descricao:""},
-    {nome:"Mizu Bunshin no Jutsu (Clone de Água)", poder:"Suiton", nivel:3, tipo:"Técnica", custo:"", dano:"", descricao:""},
-    {nome:"Kirigakure no Jutsu (Névoa Oculta)", poder:"Suiton", nivel:4, tipo:"Técnica", custo:"", dano:"", descricao:""},
     {nome:"Suika no Jutsu", poder:"Suiton", nivel:6, tipo:"Técnica", custo:"", dano:"", descricao:""},
     {nome:"Kaiten (Rotação Celestial)", poder:"Juuken", nivel:7, tipo:"Técnica", custo:"", dano:"", descricao:""},
     {nome:"Hakke Rokujuuyon Shou (64 Palmas)", poder:"Juuken", nivel:8, tipo:"Técnica", custo:"", dano:"", descricao:""},
@@ -1950,7 +1940,33 @@ const SEED_DB = {
     {nome:"Amaterasu", poder:"Enton", nivel:9, tipo:"Técnica", custo:"", dano:"", descricao:""},
     {nome:"Kagutsuchi", poder:"Enton", nivel:10, tipo:"Técnica", custo:"", dano:"", descricao:""},
     {nome:"Moku Bunshin no Jutsu", poder:"Mokuton", nivel:5, tipo:"Técnica", custo:"", dano:"", descricao:""},
-    {nome:"Kuchiyose no Jutsu (Invocação)", poder:"Kuchiyose", nivel:3, tipo:"Técnica", custo:"", dano:"", descricao:""}
+    {nome:"Kuchiyose no Jutsu (Invocação)", poder:"Kuchiyose", nivel:3, tipo:"Técnica", custo:"", dano:"", descricao:""},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "fixo", "nome": "Bunshin no Jutsu (Técnica de Duplicação)", "poder": "Jutsus Básicos", "nivel": 1, "acao": "Movimento ou Padrão", "alcance": "Pessoal", "alvo": "", "duracao": "Sustentada", "custo": "1 (ou 4 para fintar)", "custoValor": 1, "dano": "Nenhum", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.123-124", "descricao": "Ninjutsu Rank E. Cria um ou dois clones ilusórios; o custo é sempre 1 de chakra. Os clones são só imagens: não usam jutsus nem manobras e não causam dano; somem quando algo os toca. Têm todas as ações de combate, sem iniciativa própria, agindo no seu turno. Fintar: com ação padrão e 4 de chakra, use os clones para confundir o inimigo; teste Prestidigitação contra a Prontidão dele; se vencer, ele fica fintado contra seu próximo ataque corporal ou arremesso. Usados assim, os clones não fazem mais nada e somem após o seu ataque."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "fixo", "nome": "Henge no Jutsu (Técnica de Transformação)", "poder": "Jutsus Básicos", "nivel": 1, "acao": "Movimento", "alcance": "Pessoal", "alvo": "", "duracao": "Sustentada", "custo": "1", "custoValor": 1, "dano": "Nenhum", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.124", "descricao": "Ninjutsu Rank E. Transforma-se em outra pessoa, ou num animal ou objeto da mesma categoria de tamanho. Não exige teste; quem interagir com você tem direito a um teste de Percepção (Dif 7 + seu nível de Disfarces) para notar algum erro na transformação. Serve também para disfarçar detalhes (cicatrizes, cabelo, sinais). É cancelado na hora se entrar em conflito com o uso de alguma técnica."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "sem", "nome": "Kai (Liberar)", "poder": "Jutsus Básicos", "nivel": 1, "acao": "Padrão", "alcance": "Toque", "alvo": "Você ou outra pessoa", "duracao": "Instantânea", "custo": "Igual ao do Genjutsu cancelado", "dano": "Nenhum", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.124", "descricao": "Ninjutsu Rank D, sem selos de mão. Liberta alguém de um Genjutsu: teste Espírito ou Inteligência contra a dificuldade de resistência do Genjutsu (sem as reduções dos testes sucessivos de Notar Genjutsu). O custo de chakra é igual ao do Genjutsu cancelado (desconte na mão). Em si mesmo, não exige teste nem custo, mas você precisa ter tido sucesso antes em notar o genjutsu; funciona mesmo paralisado, indefeso ou com as ações controladas. Também cancela seus próprios jutsus, sem teste nem custo."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "fixo", "nome": "Kawarimi no Jutsu (Técnica de Substituição de Corpo)", "poder": "Jutsus Básicos", "nivel": 1, "acao": "Movimento (ou reação, 1x por cena)", "alcance": "Pessoal", "alvo": "", "duracao": "Instantânea", "custo": "1", "custoValor": 1, "dano": "Nenhum", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.124-125", "descricao": "Ninjutsu Rank E / Shunjutsu, selos opcionais. Troca de lugar com um objeto de tamanho parecido (ou um punhado de folhas, terra ou pedras). Uma vez por cena, como ação defensiva e por 1 de chakra, evita totalmente um ataque sem nenhum teste: o inimigo acerta o substituto e você se move até o seu deslocamento máximo, sem provocar ataque oportuno. Vale contra projéteis, ataques comuns, técnicas de projétil (Canhão, Flechas) e corpo-a-corpo (Lâmina de Raios, Rasengan); não vale contra ataques em área nem se estiver desprevenido, fintado ou com o movimento restrito. Depois, com ação padrão e camuflagem ou cobertura, pode testar Furtividade contra a Prontidão do oponente para se esconder."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "fixo", "nome": "Kinobori (Técnica de Escalar Árvores)", "poder": "Jutsus Básicos", "nivel": 1, "acao": "Livre", "alcance": "Pessoal", "alvo": "", "duracao": "Contínua (a cena)", "custo": "1", "custoValor": 1, "dano": "Nenhum", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.125", "descricao": "Ninjutsu Rank E / Controle de Chakra, sem selos de mão. Concentra chakra nos pés para andar em paredes, árvores e tetos por toda a cena. Não exige testes, salvo se algo tirar seu equilíbrio ou concentração (Atletismo para se agarrar ou Acrobacia para se equilibrar)."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "fixo", "nome": "Shunshin no Jutsu (Técnica de Movimentação Instantânea)", "poder": "Jutsus Básicos", "nivel": 1, "acao": "Movimento", "alcance": "Pessoal", "alvo": "", "duracao": "Instantânea", "custo": "1", "custoValor": 1, "dano": "Nenhum", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.125-126", "descricao": "Ninjutsu Rank D / Shunjutsu. Move-se até o máximo do deslocamento em altíssima velocidade, com efeitos visuais à escolha (folhas, fumaça, areia). É só apresentação: não dá vantagem em combate, pois qualquer ninja acompanha o movimento."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "fixo", "nome": "Tadayou (Caminhar sobre Águas)", "poder": "Jutsus Básicos", "nivel": 1, "acao": "Livre", "alcance": "Pessoal", "alvo": "", "duracao": "Contínua", "custo": "1", "custoValor": 1, "dano": "Nenhum", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.126", "descricao": "Ninjutsu Rank D / Controle de Chakra, sem selos de mão. Permite andar sobre água ou qualquer líquido que não seja inflamável nem ácido. Testes (de Espírito) só quando algo tirar seu equilíbrio ou concentração."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "fixo", "nome": "Selo de Armazenamento", "poder": "Fuuinjutsu", "nivel": 1, "acao": "1 rodada (selar)", "alcance": "Toque", "alvo": "Objetos ou técnicas", "duracao": "Permanente", "custo": "1 por compartimento (jutsu: 1 + custo do jutsu)", "custoValor": 1, "dano": "Nenhum", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.114-115", "descricao": "Sela em outra dimensão, num Pergaminho de Jutsus (10 Ryos, 1 compartimento, não reutilizável): até 3 compartimentos de itens, ou jutsus de até 3 de chakra, ou 1 objeto pequeno por compartimento. Não dá para guardar um pergaminho dentro de outro. Cada compartimento custa 1 de chakra para guardar ou retirar. Guardar um jutsu custa 1 + o custo do jutsu, e liberá-lo exige pagar o custo dele de novo. Pode guardar jutsus seus, de aliados ou de duração contínua/permanente já no ambiente (com os parâmetros de quem conjurou); não guarda técnicas pessoais, de toque, sustentadas ou por concentração. Liberar exige a ação normal do que foi selado (sacar arma: parcial; jutsu de ataque: padrão, teste de CD com as regras do jutsu), com o pergaminho em mãos, 1 compartimento ou jutsu por ação. Liberar jutsus sempre exige selos. Qualquer um pode desfazer o selo, mas só usa jutsus compatíveis com seu NC. Kage Bunshin e Moku Bunshin liberam objetos; para jutsus, precisam de Clone Verdadeiro."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "fixo", "nome": "Selo de Armazenamento Maior", "poder": "Fuuinjutsu", "nivel": 2, "acao": "Ver texto", "alcance": "Toque", "alvo": "Objetos ou técnicas", "duracao": "Permanente", "custo": "Ver texto", "custoValor": 1, "dano": "Nenhum", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.115", "descricao": "Como o Selo de Armazenamento, mas com até 6 compartimentos de itens, ou jutsus de até 1 + 1 por nível do poder em chakra. Com Fuuinjutsu 3, guarda 1 objeto médio (ocupando todos os compartimentos); com nível 5, 1 objeto grande."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "fixo", "nome": "Misshi (Mensageiro)", "poder": "Fuuinjutsu", "nivel": 3, "acao": "Padrão", "alcance": "Toque", "alvo": "Selo avançado", "duracao": "Permanente (até a mensagem tocar)", "custo": "3", "custoValor": 3, "dano": "Nenhum", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.115", "descricao": "Selo avançado (tarja especial em branco; criar custa chakra igual ao nível usado e ação completa; é consumido ao usar, destruído por dano cortante ou de fogo e só o criador usa). Grava uma mensagem falada de até 20 palavras, que toca quando uma criatura com a assinatura de chakra escolhida (você precisa conhecê-la) tocar o selo, que então se autodestrói. Você sabe na hora quando a mensagem é reproduzida."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "metade", "nome": "Bakudan (Bomba)", "poder": "Fuuinjutsu", "nivel": 4, "acao": "Padrão", "alcance": "Toque", "alvo": "Área: esfera de 2m de diâmetro por nível do poder", "duracao": "Permanente (até explodir)", "custo": "1 por tarja na criação; ½ do nível do poder na ativação", "dano": "2 por nível usado", "danoTipo": "especial", "modo": "CD", "fonte": "Básico p.116", "descricao": "Selo avançado que cria tarjas explosivas customizadas, seguindo as regras de tarjas explosivas (Armas, p.130) com estas diferenças: explosão em esfera de 2m de diâmetro por nível do poder, com 2 de dano por nível usado; os testes dos alvos contra ativação remota têm Dif 9 + 2× nível do poder; só um Bakudan por ataque. As regras de dano/dificuldade extra por mais tarjas não valem, mas meta-aptidões como Potencializar valem (gaste a ação de movimento quando o selo explodir). Serve para armadilhas pela perícia Mecanismos, com o dano limitado por essas regras. Custo na ficha: metade do nível na ativação; a criação custa 1 por tarja."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "fixo", "nome": "Gensou no In (Selo de Ilusão)", "poder": "Fuuinjutsu", "nivel": 5, "acao": "Padrão", "alcance": "Toque", "alvo": "Ilusão de até 1m por nível de Inteligência", "duracao": "Permanente", "custo": "5", "custoValor": 5, "dano": "Nenhum", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.116", "descricao": "Selo avançado que cria a ilusão de que objetos ou criaturas existem no local do selo, com até 1m de dimensão por nível de Inteligência. Só se reconhece a ilusão interagindo com ela. Por ser ninjutsu, Kai não a cancela. Some quando o selo é removido ou destruído."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "fixo", "nome": "Ninjutsu no Wana (Armadilha de Ninjutsu)", "poder": "Fuuinjutsu", "nivel": 6, "acao": "1 rodada (criação)", "alcance": "Toque", "alvo": "Área: círculo de 0,5m de diâmetro por nível de Inteligência", "duracao": "Permanente (até ativar)", "custo": "4 + chakra do ninjutsu selado", "custoValor": 4, "dano": "Do ninjutsu selado", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.116-117", "descricao": "Pré-requisito: Mecanismos 10. Transforma o selo numa armadilha fixa que lança um ninjutsu seu previamente escolhido (poder ou efeito de nível máximo 8, se o NC permitir, de alcance à distância; poderes restritos não valem). O custo, pago só na criação, é 4 + o custo da técnica (some o da técnica na mão). Ao criar, faça o teste de CD como se usasse o ninjutsu; o resultado fica registrado. A primeira criatura que passar pela área sofre a técnica e se defende com -1 de precisão. Técnicas com área viram cone a partir do selo. Não pode ser desarmada (só dissipada por você ou ativada à força). Procurar/Prontidão para notá-la: Dif 7 + 2× nível do poder, só para quem tem Ocultismo ou Fuuinjutsu."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "sem", "nome": "Chakra no Souin (Selo de Contenção de Chakra)", "poder": "Fuuinjutsu", "nivel": 7, "acao": "Completa (ativação)", "alcance": "Toque", "alvo": "Área: círculo de 1m de diâmetro por nível de Inteligência", "duracao": "Permanente", "custo": "Todo o chakra menos 1 (mínimo 15 antes)", "dano": "Nenhum", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.117", "descricao": "Pré-requisito: Fuuinjutsu 7. Selo de absorção que não pode ser colocado em objetos em movimento nem movido. Ao ativar, seu chakra cai para 1 (você precisa ter ao menos 15, contando o dividido em Kage Bunshins; desconte na mão). Toda criatura sobre a área perde 2 de chakra por turno, exceto quem tem a sua assinatura de chakra; não reduz ninguém abaixo de 1."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "fixo", "nome": "Kekkai no In (Barreira de Selo)", "poder": "Fuuinjutsu", "nivel": 8, "acao": "Completa", "alcance": "Toque", "alvo": "Parede de 0,5m de altura e largura por nível de Inteligência", "duracao": "Permanente", "custo": "8", "custoValor": 8, "dano": "Nenhum", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.117", "descricao": "Cria uma parede quadrada, invisível e indestrutível de chakra (1cm de espessura), com o selo num canto ou no centro. Não pode ser movida, danificada nem alterada; nada a atravessa e ela dá cobertura contra ataques (sem esconder, por ser invisível). Não impede técnicas de tempo-espaço (Hiraishin) nem doujutsus. Acaba se o selo for movido, removido ou destruído."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "fixo", "nome": "Shishou Fuuin (Selo dos Quatro Símbolos)", "poder": "Fuuinjutsu", "nivel": 8, "acao": "3 dias (ritual)", "alcance": "20m", "alvo": "1 Bijuu", "duracao": "Permanente", "custo": "16", "custoValor": 16, "dano": "Nenhum", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.118", "descricao": "Selo épico. Pré-requisito: Ocultismo 16. Técnica genérica para selar uma Bijuu numa pessoa ou objeto preparado (Tekkou Fuuin na Nuvem; Hakke no Fuuin Shiki em Konoha). Ritual sem testes, com ao menos 10 participantes (um deles conhecendo a técnica); qualquer perturbação o cancela. Após três dias, a Bijuu fica selada num pote especial por até 10 anos, ou transforma a pessoa em Jinchuuriki (pode comprar esse hijutsu, p.213). Pode ser feita instantaneamente ao final do Shiki Fuujin."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "fixo", "nome": "Keiyaku Fuuin (Selo Anticontrato)", "poder": "Fuuinjutsu", "nivel": 9, "acao": "Padrão", "alcance": "Toque", "alvo": "1 criatura", "duracao": "Permanente", "custo": "8", "custoValor": 8, "dano": "Nenhum", "danoTipo": "nenhum", "modo": "CC", "fonte": "Básico p.118", "descricao": "Selo épico. Pré-requisito: Ocultismo 16. Usado em quem controla uma Bijuu com a Hipnose do Mangekyou Sharingan: tocando o alvo (só o teste de toque), você cancela na hora o controle dele sobre a Bijuu."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "fixo", "nome": "Shiki Fuujin (Selamento do Demônio da Morte)", "poder": "Fuuinjutsu", "nivel": 10, "acao": "Padrão", "alcance": "75m", "alvo": "1 criatura", "duracao": "Permanente", "custo": "10", "custoValor": 10, "dano": "Nenhum (mata o alvo)", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.118-120", "descricao": "Selo épico do clã Uzumaki. Pré-requisito: Ocultismo 20. Invoca o Shinigami (só você o vê). Preparação: dura 1 turno, e você age e se defende normalmente (dano não cancela). No turno seguinte, projeta os braços do Shinigami e agarra a alma do alvo a qualquer distância no alcance, com sucesso automático; ele fica indefeso, sem se mover nem usar técnicas (só as já ativas de ação livre). Selamento: até o início do seu próximo turno a alma é extraída e selada em você, matando o alvo; se você for atacado nesse meio-tempo, teste Concentração (Dif do mestre) ou precisa de mais 1 turno. Selamento parcial (ação parcial, a qualquer fim de turno seu): sela só membros, que ficam inutilizáveis, e a vítima fica exausta para sempre. Com Kage Bunshin (Clone Verdadeiro) sela até 2 alvos extras. Pode selar uma Bijuu em você ou em outra pessoa. Ao final, você vive mais 5 minutos e as almas vão para o estômago do Shinigami, sem possibilidade de reviver."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "nivel", "nome": "Cura (Iryou Ninjutsu)", "poder": "Iryou Ninjutsu", "nivel": 1, "acao": "Padrão", "alcance": "Toque", "alvo": "1 criatura", "duracao": "Concentração", "custo": "= nível usado", "dano": "Cura: nível usado + ½ Medicina por turno", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.120", "descricao": "Pré-requisitos do poder: Ninja Médico (aptidão) e Espírito 6. Sem selos de mão. Com as mãos carregadas de chakra, você trata o paciente (os dois imóveis, com concentração máxima). No fim de cada turno de tratamento, ele recupera Vitalidade igual ao nível usado + ½ Medicina (arred. p/ cima); +1 com Perito: Medicina e mais +1 com Perícia Inata: Medicina. Sangramento e tecidos cortados pelo Bisturi de Chakra são curados no primeiro turno. Em si mesmo, cura só metade, até usar o poder no nível 4 ou mais."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "nivel", "nome": "Chakra no Mesu (Bisturi de Chakra)", "poder": "Iryou Ninjutsu", "nivel": 6, "acao": "Movimento", "alcance": "Pessoal (ataques de toque)", "alvo": "", "duracao": "Sustentada", "custo": "= nível usado", "dano": "2 por nível usado (letal)", "danoTipo": "especial", "modo": "CC", "fonte": "Básico p.120", "descricao": "Ninjutsu Rank B / Controle de Chakra. Cria duas lâminas de chakra nas mãos, usadas em cirurgias sem abrir feridas. Em combate, seus ataques contam como técnicas de toque e causam dano letal de 2 por nível usado; vale com Ataque Múltiplo (dividindo o dano pelas regras da aptidão). Não se pode usar Bloqueio desarmado contra ele. Atingido três vezes, o alvo testa Vigor (Dif 7 + nível usado + ½ Medicina) ou fica lento e debilitado, com os músculos cortados por 2 meses (curados com 1 turno de Iryou Ninjutsu ou 1 mês de repouso)."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "sem", "nome": "In'yu Shōmetsu (Recuperação Secreta de Ferimentos)", "poder": "Iryou Ninjutsu", "nivel": 6, "acao": "Movimento", "alcance": "Pessoal", "alvo": "", "duracao": "Instantânea", "custo": "1 para cada 2 de Vitalidade curada", "dano": "Nenhum", "danoTipo": "nenhum", "modo": "PESSOAL", "fonte": "Básico p.121", "descricao": "Ninjutsu Rank A / Controle de Chakra. Pré-requisitos: Iryou Ninjutsu 6; Perito e Perícia Inata em Medicina. Sem selos de mão. De forma defensiva, prevê onde o golpe vai atingir e já regenera a região: cura em você até o dano recebido num ataque, sem testes. Não funciona contra acertos críticos nem ataques em área. Só uma vez por dia. Custo: 1 de chakra para cada 2 de Vitalidade curada (desconte na mão)."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "nivel", "nome": "Shousen no Jutsu (Técnica da Mão Mística)", "poder": "Iryou Ninjutsu", "nivel": 7, "acao": "Padrão", "alcance": "Toque", "alvo": "1 criatura", "duracao": "Concentração", "custo": "= nível usado", "dano": "Nenhum", "danoTipo": "nenhum", "modo": "CC", "fonte": "Básico p.121", "descricao": "Ninjutsu Rank A / Controle de Chakra. Sem selos de mão. Envia chakra direto à ferida, tratando o paciente pela taxa de cura padrão do Iryou Ninjutsu. Uso ofensivo: sobrecarrega a circulação de chakra do alvo, que testa Vigor (Dif 7 + nível usado + ½ Medicina) ou fica atordoado até o fim do próximo turno; numa falha crítica, repete o teste e, se falhar de novo, fica inconsciente."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "nivel", "nome": "Rasengan Básico", "poder": "Rasengan", "nivel": 1, "acao": "Completa", "alcance": "Toque", "alvo": "1 criatura", "duracao": "Instantânea ou Sustentada", "custo": "1 por nível do poder", "dano": "2 + nível do poder + ½ Espírito", "danoTipo": "comum", "danoBonus": 2, "modo": "CC", "fonte": "Básico p.121-122", "descricao": "Pré-requisito do poder: Espírito 8. Sem selos de mão. Esfera giratória de chakra na palma da mão; ataque com teste de CC. Na forma incompleta, exige ação completa para preparar e atacar; com ajuda de um Kage Bunshin (mesmo sem Clone Verdadeiro) ou de outra pessoa gastando a ação de movimento, você ataca com ação padrão. Dano: 2 + nível do poder + ½ Espírito (o 2 já vem no Bônus). Pode manter o Rasengan na mão com ação parcial (sustentada). O alvo é arremessado 3m e testa Vigor (Dif 7 + nível do poder + ½ Espírito) ou Acrobacia (+2 na Dif) para não cair. Destrói qualquer arma comum usada para bloquear, mesmo energizada (falha na defesa). Não combina com meta-aptidões."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "nivel", "nome": "Rasengan Completo", "poder": "Rasengan", "nivel": 6, "acao": "Padrão", "alcance": "Toque", "alvo": "1 criatura", "duracao": "Instantânea ou Sustentada", "custo": "1 por nível do poder", "dano": "Nível do poder + Espírito", "danoTipo": "comum", "danoAtrInteiro": true, "modo": "CC", "fonte": "Básico p.122", "descricao": "Pré-requisitos: Rasengan 6; Espírito 14 (ou 12 + Chakra Expandido). Funciona como o Rasengan Básico, mas preparar e atacar leva só uma ação padrão (se preferir usar um Kage Bunshin, ele só precisa de uma ação livre). Dano: nível do poder + Espírito inteiro."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "nivel", "nome": "Oodama Rasengan", "poder": "Rasengan", "nivel": 7, "acao": "Completa (Padrão + Meta-aptidão)", "alcance": "Toque", "alvo": "1 criatura", "duracao": "Instantânea", "custo": "1 por nível do poder", "dano": "Nível do poder + Espírito (+ Técnica Poderosa)", "danoTipo": "comum", "danoAtrInteiro": true, "modo": "CC", "fonte": "Básico p.122-123", "descricao": "Pré-requisitos: Rasengan 7; Espírito 16 (ou 14 + Chakra Expandido); Técnica Poderosa. Esfera gigante (cerca de 0,5m). Funciona como o Rasengan Completo aplicando a meta-aptidão Técnica Poderosa para aumentar o dano (some o bônus dela no campo Bônus ao usar). O teste para se manter de pé recebe +1 de dificuldade."},
+    {"tipo": "Técnica", "revisado": false, "custoTipo": "nivel", "nome": "Rasengan Elemental", "poder": "Rasengan", "nivel": 9, "acao": "Completa", "alcance": "Toque", "alvo": "1 criatura + área de 10m", "duracao": "Instantânea", "custo": "2 + 1 por nível do poder", "dano": "Nível do poder + Espírito", "danoTipo": "comum", "danoAtrInteiro": true, "modo": "CC", "fonte": "Básico p.123", "descricao": "Pré-requisitos: Rasengan 9; Katon, Raiton ou Fuuton no nível 2 (Enka Rasengan, Raiõu Rasengan ou Rasen Shuriken). Usa as regras do Rasengan Completo, com: vantagens e desvantagens do elemento (sem o bônus de dano); dano irresistível (grau mínimo 2 no alvo direto); explosão que atinge todos a até 10m do alvo (sem o dano irresistível); dano colateral (você sofre o dano base com grau 1). Senpou Rasengan: com Senjutsu, gastando 1 de Chakra Senjutsu extra, vira ataque à distância (teste de CD, alcance comum do elemento), sem dano colateral. Custo real: 2 + 1 por nível do poder (some 2 na mão)."}
   ],
   venenos: [
     {nome:"Veneno de Coceira", categoria:"0", prereq:"Venefício 4", contagio:"Toque", difTeste:"9 + ½ Venefício", condicao:"", efeito:"Debilitado -1 em testes de Agilidade e perícias relacionadas (Acrobacia, Escapar, Furtividade) por 1h ou até ser tratado."},
@@ -2080,7 +2096,7 @@ function dbDoCompendio(){
 function carregarDB(){
   if(compendioEmUso()){
     const b = dbDoCompendio();
-    migrarArmasUso(b); migrarPoderes(b); migrarTecnicas(b); migrarLinhagens(b); migrarItens(b);
+    migrarArmasUso(b);   /* só completa campos; não re-adiciona itens do seed (o compêndio manda) */
     try{ b.foto = localStorage.getItem(FOTO_KEY) || ""; }catch(e){ b.foto = ""; }
     return b;
   }
@@ -2166,8 +2182,9 @@ function opcoesPoderJutsu(selecionado){
   /* mantém uma seleção antiga visível mesmo se o poder foi removido do Skills */
   if(selecionado && nomes.indexOf(selecionado) === -1) nomes.push(selecionado);
   nomes.sort((a,b) => a.localeCompare(b, "pt-BR"));
-  let html = '<option value="">— Poder —</option>';
-  nomes.forEach(n => { html += '<option value="'+escapeAttr(n)+'"'+(n===selecionado?' selected':'')+'>'+escapeHtml(n)+'</option>'; });
+  let html = '<option value="">— Poder —</option>' +
+    '<option value="Jutsus Básicos"'+(selecionado === "Jutsus Básicos" ? ' selected' : '')+'>Jutsus Básicos</option>';
+  nomes.filter(n => n !== "Jutsus Básicos").forEach(n => { html += '<option value="'+escapeAttr(n)+'"'+(n===selecionado?' selected':'')+'>'+escapeHtml(n)+'</option>'; });
   return html;
 }
 function atualizarSelectsPoderJutsu(){
@@ -2388,13 +2405,13 @@ document.addEventListener("click", (e) => {
 
 const POWERS_WITH_EFFECTS = ["Ninpou","Doton","Fuuton","Katon","Raiton","Suiton"];
 const JUTSU_DANO_TIPOS = [["comum","Comum"],["diferente","Diferente"],["especial","Especial"],["livro","Valor do livro"],["nenhum","Sem dano"]];
-const JUTSU_CUSTO_TIPOS = [["nivel","= nível usado"],["metade","Metade (nível ÷ 2)"],["sem","Sem custo"]];
+const JUTSU_CUSTO_TIPOS = [["nivel","= nível usado"],["metade","Metade (nível ÷ 2)"],["fixo","Fixo"],["sem","Sem custo"]];
 function _optsLista(lista, sel){ return lista.map(o => '<option value="'+o[0]+'"'+(o[0]===sel?' selected':'')+'>'+o[1]+'</option>').join(""); }
 function jutsuCalcHtml(atrOpts){
   if(!atrOpts) atrOpts = ["Força","Destreza","Agilidade","Percepção","Inteligência","Vigor","Espírito"]
     .map(a => '<option value="'+a+'"'+(a==="Espírito"?' selected':'')+'>'+a+'</option>').join("");
   return '<div class="jf-calc"><div class="jf-calc-tit">Cálculo do Dano</div>' +
-    '<div class="jc-f jc-comum">Nv usado + ½ <select class="jc-atr">'+atrOpts+'</select><i class="jc-atr-val"></i> + Bônus</div>' +
+    '<div class="jc-f jc-comum">Nv usado + <select class="jc-mult" title="Metade do atributo (padrão) ou atributo inteiro (ex: Rasengan Completo)"><option value="0.5">½</option><option value="1">1×</option></select> <select class="jc-atr">'+atrOpts+'</select><i class="jc-atr-val"></i> + Bônus</div>' +
     '<div class="jc-f jc-diferente">Nv usado + Livro + Qtd <i class="jc-qtd-val"></i> + Bônus</div>' +
     '<div class="jc-f jc-especial">2 × Nv usado + Bônus</div>' +
     '<div class="jc-f jc-livro">Valor do livro + Bônus</div>' +
@@ -2427,7 +2444,7 @@ function criarJutsuCard(jid){
     '<div class="jutsu-field"><span>Modo:</span><select class="jf-modo"><option value="CC">CC (corpo/toque)</option><option value="CD">CD (à distância)</option><option value="CCCD">CC · CD (escolhe ao usar)</option><option value="SUPORTE">Suporte (buff numa arma, sem dano)</option><option value="PESSOAL">Pessoal (sem acerto)</option></select></div>' +
     '<div class="jutsu-field"><span>Duração:</span><input class="jf-duracao"></div>' +
     '<div class="jutsu-field"><span>Efeitos:</span><input class="jf-efeitos jf-ro" readonly tabindex="-1" title="Vem do efeito puxado do BD"></div>' +
-    '<div class="jutsu-field"><span>Custo de Chakra:</span><select class="jf-custo-tipo">'+_optsLista(JUTSU_CUSTO_TIPOS,"nivel")+'</select></div>' +
+    '<div class="jutsu-field"><span>Custo de Chakra:</span><select class="jf-custo-tipo">'+_optsLista(JUTSU_CUSTO_TIPOS,"nivel")+'</select><input class="jf-custo-valor" placeholder="0" title="Custo fixo de chakra" style="width:34px;flex:none;text-align:center;"></div>' +
     '<div class="jutsu-desc-bar">Descrição</div>' +
     '<div class="jutsu-desc-lines"><textarea class="jf-desc"></textarea></div>';
   return card;
@@ -2654,6 +2671,7 @@ function tipoCustoDoTexto(t){
   const s = semAcento(String(t||"")).trim().toLowerCase();
   if(s.indexOf("metade") >= 0 || s.indexOf("½") >= 0 || /\/\s*2/.test(s)) return "metade";
   if(s.indexOf("sem") >= 0 || s === "0") return "sem";
+  if(/^\d/.test(s) && s.indexOf("nivel") < 0) return "fixo";
   return "nivel";
 }
 function danoJutsuLinha(tr, nivel){
@@ -2671,9 +2689,10 @@ function danoJutsuLinha(tr, nivel){
   }
   const durPadrao = Math.max(0, nv + metadeCima(attrVal("Espírito")));
   if(d.jdano === "comum"){
-    const atr = d.jatr || "Espírito", m = metadeCima(attrVal(atr)), bn = num(d.jbonus);
+    const atr = d.jatr || "Espírito", inteiro = d.jmult === "1";
+    const m = inteiro ? attrVal(atr) : metadeCima(attrVal(atr)), bn = num(d.jbonus);
     const base = Math.max(0, nv + m);
-    return { base:base, extra:bn, dureza:base, qtd:qtd, formula:"Comum: Nível usado (" + nv + ") + ½ " + atr + " (" + m + ") + Bônus (" + bn + ")" };
+    return { base:base, extra:bn, dureza:base, qtd:qtd, formula:"Comum: Nível usado (" + nv + ") + " + (inteiro ? "" : "½ ") + atr + " (" + m + ") + Bônus (" + bn + ")" };
   }
   const bn = num(d.jbonus);
   if(d.jdano === "diferente"){
@@ -2695,7 +2714,8 @@ function atualizarPreviewCard(card){
   const pv = q(".jc-preview"); if(!pv) return;
   const nv = num((q(".jutsu-nivel-poder")||{}).value);
   const atrSel = q(".jc-atr"), av = q(".jc-atr-val");
-  if(atrSel && av) av.textContent = "(" + metadeCima(attrVal(atrSel.value)) + ")";
+  const _mult = q(".jc-mult");
+  if(atrSel && av) av.textContent = "(" + ((_mult && _mult.value === "1") ? attrVal(atrSel.value) : metadeCima(attrVal(atrSel.value))) + ")";
   const qtdNv = q(".jf-qtd-nivel") && q(".jf-qtd-nivel").checked;
   const qv = q(".jc-qtd-val"); if(qv) qv.textContent = qtdNv ? "(= nível usado)" : "(" + num((q(".jf-qtd")||{}).value) + ")";
   const row = card.dataset.jid ? document.querySelector('#calc_jutsu_rows tr[data-jid="'+card.dataset.jid+'"]') : null;
@@ -2707,6 +2727,7 @@ function syncJutsuCalc(card){
   const q = sel => card.querySelector(sel);
   const tipo = (q(".jf-dano-tipo")||{}).value || "comum";
   card.dataset.dano = tipo;
+  card.dataset.custo = (q(".jf-custo-tipo")||{}).value || "nivel";
   const qtdChk = q(".jf-qtd-nivel"), qtdEl = q(".jf-qtd");
   const qtdNv = !!(qtdChk && qtdChk.checked);
   if(qtdEl){ qtdEl.disabled = qtdNv; qtdEl.placeholder = qtdNv ? "Nv" : "1"; }
@@ -2727,9 +2748,11 @@ function syncJutsuCalc(card){
     row.dataset.jqtdnv = qtdNv ? "1" : "0";
     row.dataset.jnvelem = nvEl ? nvEl.value : "";
     const ct = (q(".jf-custo-tipo")||{}).value || "nivel";
-    row.dataset.jcusto = ct;
+    const cv = (q(".jf-custo-valor")||{}).value || "";
+    row.dataset.jcusto = ct; row.dataset.jcustoval = cv;
+    row.dataset.jmult = (q(".jc-mult")||{}).value || "0.5";
     const cc = row.querySelector(".cj-custo");
-    if(cc){ cc.value = ct === "metade" ? "½ nível usado" : (ct === "sem" ? "sem custo" : "= nível usado"); cc.readOnly = true; cc.classList.add("calc-ro"); }
+    if(cc){ cc.value = ct === "metade" ? "½ nível usado" : (ct === "sem" ? "sem custo" : (ct === "fixo" ? String(num(cv)) : "= nível usado")); cc.readOnly = true; cc.classList.add("calc-ro"); }
     const be = row.querySelector(".cj-base-efeito");
     if(be){ const lb = JUTSU_DANO_TIPOS.find(x => x[0] === tipo); be.value = lb ? lb[1].replace(" do Poder","") : ""; be.readOnly = true; be.classList.add("calc-ro"); }
     const chk = row.querySelector(".cj-causa-dano");
@@ -2759,13 +2782,17 @@ function preencherEfeitoNoJutsu(card, it){
   const tipo = it.danoTipo || tipoDanoDoTexto(it.dano);
   const dt = card.querySelector(".jf-dano-tipo"); if(dt) dt.value = tipo;
   const bn = card.querySelector(".jc-bonus");
-  if(bn){ const eb = elemBonusDoPoder((card.querySelector(".jutsu-poder")||{}).value); bn.value = eb ? eb : ""; }
+  if(bn){ const eb = elemBonusDoPoder((card.querySelector(".jutsu-poder")||{}).value) + num(it.danoBonus); bn.value = eb ? eb : ""; }
+  const mu = card.querySelector(".jc-mult"); if(mu) mu.value = it.danoAtrInteiro ? "1" : "0.5";
   const vl = card.querySelector(".jc-valor"); if(vl) vl.value = (it.danoLivro != null && it.danoLivro !== "") ? it.danoLivro : "";
   /* quantidade: efeitos que escalam com o nível (ex: Flechas) já vêm ligados ao nível */
   const qn = card.querySelector(".jf-qtd-nivel"); if(qn) qn.checked = !!(it.qtdNivel || /flecha/i.test(it.nome || ""));
   const qt = card.querySelector(".jf-qtd"); if(qt) qt.value = "";
   /* custo */
-  const ct = card.querySelector(".jf-custo-tipo"); if(ct) ct.value = tipoCustoDoTexto(it.custo);
+  const _ctipo = it.custoTipo || tipoCustoDoTexto(it.custo);
+  const ct = card.querySelector(".jf-custo-tipo"); if(ct) ct.value = _ctipo;
+  const cvv = card.querySelector(".jf-custo-valor");
+  if(cvv) cvv.value = _ctipo === "fixo" ? String(it.custoValor != null && it.custoValor !== "" ? it.custoValor : (parseFloat(String(it.custo||"").replace(",", ".")) || "")) : "";
   syncJutsuCalc(card);
 }
 document.getElementById("jutsu_grid").addEventListener("input", (e) => {
@@ -2788,6 +2815,26 @@ document.addEventListener("input", (e) => {
   if(e.target.closest && e.target.closest("#poderes_rows")) atualizarSelectsPoderJutsu();
 });
 /* cards salvos no formato antigo ganham o layout novo, mantendo o que foi preenchido */
+function garantirCamposCard(card){
+  const ct = card.querySelector(".jf-custo-tipo");
+  if(ct){
+    const v = ct.value; ct.innerHTML = _optsLista(JUTSU_CUSTO_TIPOS, v); ct.value = v;
+    if(!card.querySelector(".jf-custo-valor")){
+      const i = document.createElement("input"); i.className = "jf-custo-valor"; i.placeholder = "0";
+      i.title = "Custo fixo de chakra"; i.style.cssText = "width:34px;flex:none;text-align:center;";
+      ct.insertAdjacentElement("afterend", i);
+    }
+  }
+  const atr = card.querySelector(".jc-atr");
+  if(atr && !card.querySelector(".jc-mult")){
+    const tmp = document.createElement("span");
+    tmp.innerHTML = '<select class="jc-mult" title="Metade do atributo (padrão) ou atributo inteiro (ex: Rasengan Completo)"><option value="0.5">½</option><option value="1">1×</option></select> ';
+    const prev = atr.previousSibling;
+    if(prev && prev.nodeType === 3) prev.textContent = prev.textContent.replace("½", "");
+    atr.insertAdjacentElement("beforebegin", tmp.firstElementChild);
+  }
+  card.dataset.custo = (ct && ct.value) || "nivel";
+}
 function migrarCardsJutsu(){
   document.querySelectorAll("#jutsu_grid .jutsu-card").forEach(velho => {
     if(velho.querySelector(".jf-dano-tipo") && !velho.querySelector(".jc-extra")){
@@ -2806,6 +2853,7 @@ function migrarCardsJutsu(){
       if(sel){ const v = sel.value; sel.innerHTML = _optsLista(JUTSU_DANO_TIPOS, v); sel.value = v; }
       if(velho.dataset.jid) setTimeout(() => syncJutsuCalc(velho), 0);
     }
+    if(velho.querySelector(".jf-dano-tipo")) garantirCamposCard(velho);
     if(velho.querySelector(".jf-dano-tipo")){
       /* cards da versão sem Alcance visível: troca o campo oculto pelo campo normal, mantendo o valor */
       const h = velho.querySelector('input[type="hidden"].jf-alcance');
@@ -3577,11 +3625,12 @@ function mostrarDesc(it){
 function categoriaPoder(nome){
   const n = normNome(nome);
   if(["sharingan","byakugan","rinnegan","juuken","kikaichuu"].some(c => n.indexOf(c) === 0)) return "Poderes de Clã";
-  if(["ninpou","doton","fuuton","katon","raiton","suiton","iryou","fuinjutsu","fuuinjutsu"].some(c => n.indexOf(c) === 0)) return "Poderes Normais";
+  if(["ninpou","doton","fuuton","katon","raiton","suiton","iryou","fuinjutsu","fuuinjutsu","rasengan"].some(c => n.indexOf(c) === 0)) return "Poderes Normais";
   return "Poderes Restritos";
 }
 function grupoJutsu(it){
   if(it.tipo !== "Técnica") return "Efeitos";
+  if(normNome(it.poder) === "jutsus basicos") return "Técnicas Básicas";
   const n = normNome(it.nome), p = normNome(it.poder);
   if(["henge no jutsu","kawarimi no jutsu","shunshin no jutsu","bunshin no jutsu"].some(b => n.indexOf(b) === 0)) return "Técnicas Básicas";
   if(/\((nara|yamanaka|akimichi|hyuuga|uchiha)\)/.test(n)) return "Técnicas de Clã";
@@ -3811,6 +3860,8 @@ const BD_SCHEMAS = {
     {campo:"dano", rotulo:"Dano", w:"9%", tipo:"input"},
     {campo:"danoTipo", rotulo:"Tipo dano", w:"8%", tipo:"select", opcoes:["comum","diferente","especial","livro","nenhum"]},
     {campo:"danoLivro", rotulo:"Livro", w:"4%", tipo:"input"},
+    {campo:"custoTipo", rotulo:"Tipo custo", w:"7%", tipo:"select", opcoes:["nivel","metade","fixo","sem"]},
+    {campo:"custoValor", rotulo:"Custo fixo", w:"4%", tipo:"input"},
     {campo:"disponivel", rotulo:"Disponível para", w:"11%", tipo:"textarea"},
     {campo:"descricao", rotulo:"Descrição", w:"auto", tipo:"textarea"},
     {campo:"evolucoes", rotulo:"Evoluções", w:"14%", tipo:"textarea"},
@@ -3827,7 +3878,13 @@ const BD_SCHEMAS = {
     {campo:"duracao", rotulo:"Duração", w:"9%", tipo:"input"},
     {campo:"custo", rotulo:"Custo", w:"9%", tipo:"input"},
     {campo:"dano", rotulo:"Dano", w:"9%", tipo:"input"},
-    {campo:"descricao", rotulo:"Descrição", w:"auto", tipo:"textarea"}
+    {campo:"danoTipo", rotulo:"Tipo dano", w:"8%", tipo:"select", opcoes:["comum","diferente","especial","livro","nenhum"]},
+    {campo:"danoLivro", rotulo:"Livro", w:"4%", tipo:"input"},
+    {campo:"danoBonus", rotulo:"Bônus", w:"4%", tipo:"input"},
+    {campo:"custoTipo", rotulo:"Tipo custo", w:"7%", tipo:"select", opcoes:["nivel","metade","fixo","sem"]},
+    {campo:"custoValor", rotulo:"Custo fixo", w:"4%", tipo:"input"},
+    {campo:"descricao", rotulo:"Descrição", w:"auto", tipo:"textarea"},
+    {campo:"fonte", rotulo:"Fonte", w:"7%", tipo:"input"}
   ]},
   armas: { titulo:"Armas", cols:[
     {campo:"nome", rotulo:"Arma", w:"14%", tipo:"input"},
@@ -4054,6 +4111,14 @@ document.getElementById("bd_arquivo").addEventListener("change", (e) => {
       /* importar MESCLA por nome: atualiza quem já existe, acrescenta os novos, não apaga nada */
       const base = clone(DB);
       const chave = x => semAcento(String(x||"")).trim().toLowerCase();
+      /* "_remover": { categoria: ["nome", ...] } apaga itens pelo nome (usado nas cargas dos livros) */
+      if(s._remover && typeof s._remover === "object"){
+        Object.keys(s._remover).forEach(k => {
+          if(!Array.isArray(base[k]) || !Array.isArray(s._remover[k])) return;
+          const fora = s._remover[k].map(chave);
+          base[k] = base[k].filter(it => !it || fora.indexOf(chave(it.nome)) < 0);
+        });
+      }
       ["aptidoes","poderes","armas","armaduras","efeitos","tecnicas","linhagens","itens","venenos"].forEach(k => {
         if(!Array.isArray(s[k])) return;
         const atual = Array.isArray(base[k]) ? base[k] : (base[k] = []);
@@ -4066,15 +4131,8 @@ document.getElementById("bd_arquivo").addEventListener("change", (e) => {
           else { idx[chave(n.nome)] = atual.length; atual.push(n); }
         });
       });
-      /* "_remover": { categoria: ["nome", ...] } apaga itens pelo nome (usado nas cargas dos livros) */
-      if(s._remover && typeof s._remover === "object"){
-        Object.keys(s._remover).forEach(k => {
-          if(!Array.isArray(base[k]) || !Array.isArray(s._remover[k])) return;
-          const fora = s._remover[k].map(chave);
-          base[k] = base[k].filter(it => !it || fora.indexOf(chave(it.nome)) < 0);
-        });
-      }
-      migrarArmasUso(base); migrarPoderes(base); migrarTecnicas(base); migrarLinhagens(base); migrarItens(base);
+      migrarArmasUso(base);
+      if(!compendioEmUso()){ migrarPoderes(base); migrarTecnicas(base); migrarLinhagens(base); migrarItens(base); }
       if(s.calc) Object.assign(base.calc, s.calc);
       if(s.elementos) Object.assign(base.elementos, s.elementos);
       if(typeof s.foto === "string" && !compendioEmUso()) base.foto = s.foto;
@@ -4232,6 +4290,7 @@ function custoDoJutsu(tr, nivel){
   if(_ct === "nivel") return nivel;
   if(_ct === "metade") return Math.ceil(nivel / 2);
   if(_ct === "sem") return 0;
+  if(_ct === "fixo") return num(tr.dataset.jcustoval);
   const raw = String((tr.querySelector(".cj-custo")||{}).value || "").toLowerCase();
   const n = parseFloat(raw.replace(",", "."));
   if(raw.indexOf("sem") >= 0) return 0;
