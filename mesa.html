@@ -92,6 +92,12 @@
   .submenu-formas .forma-btn{ width:32px; height:32px; border-radius:8px; }
   .submenu-formas .forma-btn svg{ width:16px; height:16px; }
   .submenu-formas .forma-btn.selecionada{ opacity:1; background:rgba(255,255,255,0.22); }
+  .submenu-formas .tam-fixo{ width:36px; margin-top:4px; display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .submenu-formas .tam-fixo input{
+    width:36px; padding:4px 2px; border-radius:6px; border:1px solid rgba(255,255,255,0.3); text-align:center;
+    background:rgba(255,255,255,0.12); color:#fff; font-size:11px; font-weight:700; font-family:var(--font-body);
+  }
+  .submenu-formas .tam-fixo span{ color:rgba(255,255,255,0.7); font-size:9px; font-weight:700; text-transform:uppercase; }
 
   .painel-dados{
     position:absolute; top:0; left:52px; bottom:0; width:300px; max-width:calc(100vw - 52px);
@@ -223,7 +229,9 @@
     <button class="btn-mapa" id="btn_add_token" style="display:none;">+ Token</button>
     <div class="grid-ajuste" id="grid_ajuste" style="display:none;">
       <label for="in_grid_px">Grid</label>
-      <input type="number" id="in_grid_px" min="10" max="500" step="1">
+      <input type="number" id="in_grid_px" min="10" max="500" step="1" title="Tamanho da casa em pixels">
+      <label for="in_metros_casa" title="Quantos metros vale uma casa">m/casa</label>
+      <input type="number" id="in_metros_casa" min="0.5" max="20" step="0.5" style="width:48px;">
     </div>
     <button class="btn-mapa" id="btn_fog_revelar" style="display:none;">Revelar</button>
     <button class="btn-mapa" id="btn_fog_esconder" style="display:none;">Esconder</button>
@@ -283,18 +291,25 @@
       </svg>
     </button>
     <div class="submenu-formas" id="submenu_formas" style="display:none;">
-      <button type="button" class="forma-btn selecionada" data-forma="linha" title="Linha">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="20" x2="20" y2="4"></line></svg>
+      <button type="button" class="forma-btn selecionada" data-forma="regua" title="Régua (distância)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 3"><line x1="4" y1="20" x2="20" y2="4"></line></svg>
       </button>
-      <button type="button" class="forma-btn" data-forma="cone" title="Cone">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 4 L20 20 L4 20 Z"></path></svg>
+      <button type="button" class="forma-btn" data-forma="linha" title="Linha (1m de largura)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 10 L21 10 L21 14 L3 14 Z"></path></svg>
       </button>
-      <button type="button" class="forma-btn" data-forma="circulo" title="Círculo / Esfera">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"></circle></svg>
+      <button type="button" class="forma-btn" data-forma="cone" title="Cone (largura final = comprimento)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 12 L21 3 L21 21 Z"></path></svg>
       </button>
-      <button type="button" class="forma-btn" data-forma="quadrado" title="Quadrado / Cubo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14"></rect></svg>
+      <button type="button" class="forma-btn" data-forma="circulo" title="Círculo / Esfera / Cilindro (pelo diâmetro)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"></circle><line x1="4" y1="12" x2="20" y2="12" stroke-dasharray="2 2"></line></svg>
       </button>
+      <button type="button" class="forma-btn" data-forma="onda" title="Onda (largura = comprimento)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 4 L20 4 L20 20 L4 20 Z"></path><path d="M7 12 Q10 8 12 12 T17 12"></path></svg>
+      </button>
+      <label class="tam-fixo" title="Tamanho fixo em metros (o tamanho do poder). Vazio: o arrasto define o tamanho.">
+        <input type="number" id="in_tam_fixo" min="0" step="0.5" placeholder="—">
+        <span>m</span>
+      </label>
     </div>
     <button type="button" id="btn_cursor_toggle" title="Mostrar meu cursor pros jogadores" style="display:none;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -413,9 +428,14 @@ let compartilharCursor = false;
 let iniciativaOrdem = [];
 let iniciativaAtual = 0;
 let modoMedir = false;
-let formaSelecionada = "linha"; // "linha" | "cone" | "circulo" | "quadrado"
+let formaSelecionada = "regua"; // "regua" | "linha" | "cone" | "circulo" | "onda"
 let formaAtiva = null;
-const METROS_POR_CASA = 1.5;
+let medidasRemotas = {};        // medições de outras pessoas, por usuário (efêmero)
+let ultimoEnvioMedidaMs = 0;
+/* O Shinobi no Sho mede tudo em metros e não define casas: a cena guarda quantos metros vale uma casa. */
+function metrosPorCasa(){ const v = cenaAtual && Number(cenaAtual.metros_casa); return v > 0 ? v : 1; }
+function pxPorMetro(){ return ((cenaAtual && cenaAtual.grid_px) || 70) / metrosPorCasa(); }
+function fmtM(v){ return (Math.round(v * 10) / 10).toString().replace(".", ",") + " m"; }
 
 function souMestreDaSala(){
   return !!salaAtual && salaAtual.mestre_id === meuId;
@@ -552,6 +572,8 @@ function atualizarSub(){
   document.getElementById("sub_sala").textContent = cenaAtual ? cenaAtual.nome : "Nenhuma cena ativa";
   const inGrid = document.getElementById("in_grid_px");
   if(inGrid) inGrid.value = cenaAtual ? (cenaAtual.grid_px || 70) : 70;
+  const inMc = document.getElementById("in_metros_casa");
+  if(inMc && document.activeElement !== inMc) inMc.value = metrosPorCasa();
 }
 
 /* ===== Canvas: mapa + zoom + pan ===== */
@@ -578,7 +600,9 @@ function prepararCanvas(){
     const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
 
     if(modoMedir){
-      const mapX0 = (cx - cam.x) / cam.escala, mapY0 = (cy - cam.y) / cam.escala;
+      let mapX0 = (cx - cam.x) / cam.escala, mapY0 = (cy - cam.y) / cam.escala;
+      const tokOrigem = encontrarTokenEm(cx, cy);           // começando num token, mede do centro dele
+      if(tokOrigem){ mapX0 = tokOrigem.x; mapY0 = tokOrigem.y; }
       formaAtiva = { x0: mapX0, y0: mapY0, x1: mapX0, y1: mapY0 };
       palco.setPointerCapture(e.pointerId);
       return;
@@ -622,6 +646,7 @@ function prepararCanvas(){
       formaAtiva.x1 = (cx0 - cam.x) / cam.escala;
       formaAtiva.y1 = (cy0 - cam.y) / cam.escala;
       desenhar();
+      enviarMedida(false);
       return;
     }
     if(tokenArrastando){
@@ -642,6 +667,7 @@ function prepararCanvas(){
   function soltar(e){
     if(formaAtiva){
       formaAtiva = null;
+      enviarMedida(true);
       desenhar();
       return;
     }
@@ -1214,75 +1240,92 @@ function desenharCursorMestre(){
   ctx.fillText("Mestre", sx, sy - 11);
 }
 
-function desenharFormaMedicao(){
-  if(!formaAtiva) return;
-  const gridPx = cenaAtual ? (cenaAtual.grid_px || 70) : 70;
-  const dx = formaAtiva.x1 - formaAtiva.x0, dy = formaAtiva.y1 - formaAtiva.y0;
-  const distPx = Math.hypot(dx, dy);
-  const casas = distPx / gridPx;
-  const metros = casas * METROS_POR_CASA;
-
-  const s0x = cam.x + formaAtiva.x0 * cam.escala, s0y = cam.y + formaAtiva.y0 * cam.escala;
-  const s1x = cam.x + formaAtiva.x1 * cam.escala, s1y = cam.y + formaAtiva.y1 * cam.escala;
-
+/* tamanho fixo digitado (metros) ou nulo */
+function tamanhoFixoM(){
+  const el = document.getElementById("in_tam_fixo");
+  const v = el ? parseFloat(String(el.value).replace(",", ".")) : NaN;
+  return v > 0 ? v : null;
+}
+/* Áreas do Livro Básico p.87-88: Linha (1m de largura), Cone (largura final = comprimento),
+   Círculo/Esfera/Cilindro (pelo diâmetro, a partir do centro), Onda (largura = comprimento). */
+function desenharForma(f, cor, quem){
+  const ppm = pxPorMetro();
+  const dx = f.x1 - f.x0, dy = f.y1 - f.y0;
+  const arrasto = Math.hypot(dx, dy);
+  if(arrasto < 1 && !f.tam) return;
+  const ang = Math.atan2(dy, dx);
+  const ux = Math.cos(ang), uy = Math.sin(ang), nx = -uy, ny = ux;
+  const tela = (mx, my) => [cam.x + mx * cam.escala, cam.y + my * cam.escala];
+  const [s0x, s0y] = tela(f.x0, f.y0);
+  const corFill = hexParaRgba(cor, 0.22);
   ctx.save();
-  ctx.fillStyle = "rgba(15,76,156,0.22)";
-  ctx.strokeStyle = "#0f4c9c";
-  ctx.lineWidth = 2;
-
-  let rotulo = casas.toFixed(1) + " casas (~" + metros.toFixed(1) + "m)";
-
-  if(formaSelecionada === "linha"){
-    ctx.setLineDash([6, 5]);
+  ctx.fillStyle = corFill; ctx.strokeStyle = cor; ctx.lineWidth = 2;
+  let rotulo = "", lx, ly;
+  const poligono = (pts) => {
     ctx.beginPath();
-    ctx.moveTo(s0x, s0y);
-    ctx.lineTo(s1x, s1y);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    [[s0x, s0y], [s1x, s1y]].forEach(([px, py]) => {
-      ctx.beginPath();
-      ctx.arc(px, py, 4, 0, Math.PI * 2);
-      ctx.fillStyle = "#0f4c9c";
-      ctx.fill();
-    });
-  } else if(formaSelecionada === "circulo"){
-    const raioTela = distPx * cam.escala;
-    ctx.beginPath();
-    ctx.arc(s0x, s0y, raioTela, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    rotulo = "raio " + rotulo;
-  } else if(formaSelecionada === "quadrado"){
-    const lado = Math.max(Math.abs(dx), Math.abs(dy));
-    const ladoTela = lado * cam.escala;
-    const sinalX = dx < 0 ? -1 : 1, sinalY = dy < 0 ? -1 : 1;
-    ctx.beginPath();
-    ctx.rect(s0x, s0y, ladoTela * sinalX, ladoTela * sinalY);
-    ctx.fill();
-    ctx.stroke();
-    const casasLado = lado / gridPx;
-    rotulo = casasLado.toFixed(1) + " casas de lado (~" + (casasLado * METROS_POR_CASA).toFixed(1) + "m)";
-  } else if(formaSelecionada === "cone"){
-    const anguloBase = Math.atan2(dy, dx);
-    const abertura = (55 * Math.PI / 180) / 2;
-    const comp = distPx * cam.escala;
-    ctx.beginPath();
-    ctx.moveTo(s0x, s0y);
-    ctx.arc(s0x, s0y, comp, anguloBase - abertura, anguloBase + abertura);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
+    pts.forEach((p, i) => { const [x, y] = tela(p[0], p[1]); if(i) ctx.lineTo(x, y); else ctx.moveTo(x, y); });
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  };
+  if(f.forma === "circulo"){
+    /* arrasto = raio; o tamanho do livro é o diâmetro */
+    const diamM = f.tam || (arrasto * 2 / ppm);
+    const raioTela = (diamM / 2) * ppm * cam.escala;
+    ctx.beginPath(); ctx.arc(s0x, s0y, raioTela, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(s0x - raioTela * ux, s0y - raioTela * uy); ctx.lineTo(s0x + raioTela * ux, s0y + raioTela * uy); ctx.stroke(); ctx.setLineDash([]);
+    rotulo = "diâmetro " + fmtM(diamM); lx = s0x; ly = s0y;
+  } else {
+    const compM = f.tam || (arrasto / ppm);
+    const L = compM * ppm;
+    if(f.forma === "regua"){
+      const [s1x, s1y] = tela(f.x0 + ux * L, f.y0 + uy * L);
+      ctx.setLineDash([6, 5]); ctx.beginPath(); ctx.moveTo(s0x, s0y); ctx.lineTo(s1x, s1y); ctx.stroke(); ctx.setLineDash([]);
+      [[s0x, s0y], [s1x, s1y]].forEach(([px, py]) => { ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fillStyle = cor; ctx.fill(); });
+      rotulo = fmtM(compM) + " (" + (compM / metrosPorCasa()).toFixed(1).replace(".", ",") + " casas)";
+    } else if(f.forma === "linha"){
+      const w = 0.5 * ppm;   // meia largura de 1m
+      poligono([[f.x0 + nx * w, f.y0 + ny * w], [f.x0 + ux * L + nx * w, f.y0 + uy * L + ny * w],
+                [f.x0 + ux * L - nx * w, f.y0 + uy * L - ny * w], [f.x0 - nx * w, f.y0 - ny * w]]);
+      rotulo = "linha " + fmtM(compM) + " × 1 m";
+    } else if(f.forma === "cone"){
+      const w = L / 2;       // largura final = comprimento
+      poligono([[f.x0, f.y0], [f.x0 + ux * L + nx * w, f.y0 + uy * L + ny * w], [f.x0 + ux * L - nx * w, f.y0 + uy * L - ny * w]]);
+      rotulo = "cone " + fmtM(compM);
+    } else if(f.forma === "onda"){
+      const w = L / 2;       // largura = comprimento
+      poligono([[f.x0 + nx * w, f.y0 + ny * w], [f.x0 + ux * L + nx * w, f.y0 + uy * L + ny * w],
+                [f.x0 + ux * L - nx * w, f.y0 + uy * L - ny * w], [f.x0 - nx * w, f.y0 - ny * w]]);
+      rotulo = "onda " + fmtM(compM) + " × " + fmtM(compM);
+    }
+    [lx, ly] = tela(f.x0 + ux * L / 2, f.y0 + uy * L / 2);
   }
   ctx.restore();
-
-  const mx = (s0x + s1x) / 2, my = (s0y + s1y) / 2;
+  if(quem) rotulo = quem + ": " + rotulo;
   ctx.font = "700 12px Inter, Arial, sans-serif";
   const largura = ctx.measureText(rotulo).width;
-  ctx.fillStyle = "rgba(15,76,156,0.92)";
-  ctx.fillRect(mx - largura / 2 - 6, my - 22, largura + 12, 20);
+  ctx.fillStyle = hexParaRgba(cor, 0.92);
+  ctx.fillRect(lx - largura / 2 - 6, ly - 22, largura + 12, 20);
   ctx.fillStyle = "#fff";
   ctx.textAlign = "center";
-  ctx.fillText(rotulo, mx, my - 8);
+  ctx.fillText(rotulo, lx, ly - 8);
+}
+function desenharFormaMedicao(){
+  const agora = Date.now();
+  Object.keys(medidasRemotas).forEach(uid => {
+    const m = medidasRemotas[uid];
+    if(agora - m.em > 4000){ delete medidasRemotas[uid]; return; }   // some se a pessoa sumir sem avisar
+    desenharForma(m.f, m.cor || "#0f4c9c", m.nome || "");
+  });
+  if(formaAtiva) desenharForma(Object.assign({ forma: formaSelecionada, tam: tamanhoFixoM() }, formaAtiva), meuCor || "#0f4c9c", "");
+}
+/* medição ao vivo para todos (efêmera, não grava no banco) */
+function enviarMedida(fim){
+  if(!canal) return;
+  if(fim){ canal.send({ type: "broadcast", event: "medida_fim", payload: { uid: meuId } }); return; }
+  const agora = Date.now();
+  if(agora - ultimoEnvioMedidaMs < 50) return;
+  ultimoEnvioMedidaMs = agora;
+  const f = Object.assign({ forma: formaSelecionada, tam: tamanhoFixoM() }, formaAtiva);
+  canal.send({ type: "broadcast", event: "medida", payload: { uid: meuId, nome: meuNome, cor: meuCor, f } });
 }
 
 document.getElementById("btn_medir_toggle").addEventListener("click", () => {
@@ -1613,6 +1656,19 @@ document.getElementById("in_grid_px").addEventListener("input", (e) => {
   }, 500);
 });
 
+let timerMetros = null;
+document.getElementById("in_metros_casa").addEventListener("input", (e) => {
+  const val = parseFloat(String(e.target.value).replace(",", "."));
+  if(!cenaAtual || !(val > 0)) return;
+  cenaAtual.metros_casa = val;
+  desenhar();
+  clearTimeout(timerMetros);
+  timerMetros = setTimeout(async () => {
+    const { error } = await sb.from("cenas").update({ metros_casa: val }).eq("id", cenaAtual.id);
+    if(error){ console.error(error); alert("Não foi possível salvar os metros por casa (rode o SQL mesa_regua.sql): " + error.message); }
+  }, 500);
+});
+
 /* ===== Mestre: banco de mapas ===== */
 
 document.getElementById("btn_novo_mapa").addEventListener("click", () => {
@@ -1797,6 +1853,18 @@ function conectarPresenca(){
   /* ping no mapa (efêmero, não grava no banco) */
   canal.on("broadcast", { event: "ping" }, (msg) => {
     adicionarPing(msg.payload.x, msg.payload.y, msg.payload.cor);
+  });
+
+  /* medições dos outros (efêmero) */
+  canal.on("broadcast", { event: "medida" }, (msg) => {
+    const p = msg.payload || {}; if(!p.uid || p.uid === meuId) return;
+    medidasRemotas[p.uid] = { f: p.f, cor: p.cor, nome: p.nome, em: Date.now() };
+    desenhar();
+  });
+  canal.on("broadcast", { event: "medida_fim" }, (msg) => {
+    const p = msg.payload || {}; if(!p.uid) return;
+    delete medidasRemotas[p.uid];
+    desenhar();
   });
 
   /* cursor do mestre, só pros jogadores (efêmero) */
