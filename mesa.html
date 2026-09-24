@@ -546,6 +546,7 @@
           </div>
         </div>
         <input type="file" id="mt_img_arquivo" accept="image/png,image/webp,image/*" style="display:none;">
+        <div class="nota" id="mt_img_origem" style="margin-top:5px;"></div>
       </div>
       <label>Rotação (recorte)
         <div class="mt-rotacao">
@@ -1098,7 +1099,13 @@ function urlFotoFicha(t){
   const u = urlPublica("fichas/" + t.ficha_id + ".png");
   return u ? u + (u.indexOf("?") >= 0 ? "&" : "?") + "v=" + t.foto_v : null;
 }
-function urlRecorte(t){ return t.imagem_url ? urlPublica(t.imagem_url) : null; }
+/* recorte: a imagem própria do token vale mais; sem ela, usa a "Imagem do token" da ficha vinculada */
+function urlRecorteDaFicha(t){
+  if(!t.ficha_id || !(Number(t.recorte_v) > 0)) return null;
+  const u = urlPublica("fichas/" + t.ficha_id + "-recorte.png");
+  return u ? u + (u.indexOf("?") >= 0 ? "&" : "?") + "v=" + t.recorte_v : null;
+}
+function urlRecorte(t){ return t.imagem_url ? urlPublica(t.imagem_url) : urlRecorteDaFicha(t); }
 function estiloDaCena(){ return (cenaAtual && cenaAtual.estilo_token === "recorte") ? "recorte" : "moeda"; }
 
 /* o token da vez é o que tem o mesmo nome de quem está na vez da iniciativa */
@@ -1327,10 +1334,16 @@ async function criarToken(){
 /* ===== Menu do token ===== */
 let menuTokenAlvo = null;
 let menuImagemPendente;   // undefined = sem mudança; null = remover; string = caminho novo no bucket
-function mostrarPreviaRecorte(url){
+/* prévia: a imagem própria do token ou, sem ela, a da ficha vinculada (mais apagada) */
+function mostrarPreviaRecorte(url, urlFicha){
   const pv = document.getElementById("mt_previa");
-  pv.innerHTML = url ? '<img alt="" src="' + escapeHtml(url) + '">' : "";
+  const mostrar = url || urlFicha || null;
+  pv.innerHTML = mostrar ? '<img alt="" src="' + escapeHtml(mostrar) + '"' + (url ? '' : ' style="opacity:.75"') + '>' : "";
   document.getElementById("mt_img_remover").style.display = url ? "" : "none";
+  document.getElementById("mt_img_escolher").textContent = url ? "Trocar imagem" : (urlFicha ? "Usar outra imagem" : "Carregar imagem");
+  const origem = document.getElementById("mt_img_origem");
+  if(origem) origem.textContent = url ? "Imagem própria deste token."
+    : (urlFicha ? "Usando a imagem do token da ficha vinculada." : "Sem imagem: o token aparece como moeda. Carregue aqui ou na ficha (Imagem do token).");
 }
 /* confere os cantos: se forem opacos, a imagem provavelmente tem fundo */
 function temFundoOpaco(img){
@@ -1343,7 +1356,10 @@ function temFundoOpaco(img){
   }catch(e){ return false; }
 }
 document.getElementById("mt_img_escolher").addEventListener("click", () => document.getElementById("mt_img_arquivo").click());
-document.getElementById("mt_img_remover").addEventListener("click", () => { menuImagemPendente = null; mostrarPreviaRecorte(null); });
+document.getElementById("mt_img_remover").addEventListener("click", () => {
+  menuImagemPendente = null;
+  mostrarPreviaRecorte(null, menuTokenAlvo ? urlRecorteDaFicha(menuTokenAlvo) : null);
+});
 document.getElementById("mt_img_arquivo").addEventListener("change", async (e) => {
   const arq = e.target.files[0]; e.target.value = "";
   const t = menuTokenAlvo; if(!arq || !t) return;
@@ -1356,7 +1372,7 @@ document.getElementById("mt_img_arquivo").addEventListener("change", async (e) =
     if(error) throw error;
     menuImagemPendente = caminho;
     const url = urlPublica(caminho);
-    mostrarPreviaRecorte(url);
+    mostrarPreviaRecorte(url, urlRecorteDaFicha(t));
     const teste = new Image(); teste.crossOrigin = "anonymous";
     teste.onload = () => { if(temFundoOpaco(teste)) avisar("Essa imagem parece ter fundo (os cantos não são transparentes). No mapa, vai aparecer um quadrado em volta do personagem."); };
     teste.src = url;
@@ -1406,7 +1422,7 @@ async function abrirMenuToken(t, px, py){
   tamSel.value = String(t.tam || 1); if(!tamSel.value) tamSel.value = "1";
   document.getElementById("mt_barras").checked = t.mostrar_barras !== false;
   menuImagemPendente = undefined;
-  mostrarPreviaRecorte(t.imagem_url ? urlRecorte(t) : null);
+  mostrarPreviaRecorte(t.imagem_url ? urlRecorte(t) : null, urlRecorteDaFicha(t));
   const rot = ((Number(t.rotacao) || 0) % 360 + 360) % 360;
   document.getElementById("mt_rotacao").value = rot;
   document.getElementById("mt_rot_valor").textContent = rot + "°";
@@ -1456,7 +1472,7 @@ document.getElementById("mt_salvar").addEventListener("click", async () => {
     rotacao: Number(rotEl().value) || 0
   };
   if(menuImagemPendente !== undefined) payload.imagem_url = menuImagemPendente;
-  if(mudouFicha){ payload.foto_v = null; payload.vit = null; payload.vit_max = null; payload.chakra = null; payload.chakra_max = null; }
+  if(mudouFicha){ payload.foto_v = null; payload.recorte_v = null; payload.vit = null; payload.vit_max = null; payload.chakra = null; payload.chakra_max = null; }
   if(mestre){
     payload.tam = Number(document.getElementById("mt_tam").value) || 1;
     payload.dono_id = document.getElementById("mt_dono").value || null;
