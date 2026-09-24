@@ -61,6 +61,8 @@
   .msg.show{ display:block; }
   .msg.erro{ background:#fdecec; color:#a32020; }
   .msg.ok{ background:#e9f8ef; color:#0f7a3d; }
+  .link-esqueci{ display:block; margin-top:10px; background:none; border:none; padding:0; font-size:12.5px; color:var(--gray-text); cursor:pointer; text-decoration:underline; font-family:var(--font-body); }
+  .link-esqueci:hover{ color:var(--ink); }
   .rodape{ margin-top:16px; font-size:11.5px; color:var(--gray-text); text-align:center; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -86,10 +88,11 @@
       <label style="margin-top:0;">E-mail</label>
       <input type="email" id="in_email" required autocomplete="email">
 
-      <label>Senha</label>
+      <label id="lbl_senha">Senha</label>
       <input type="password" id="in_senha" required autocomplete="current-password" minlength="6">
 
       <button type="submit" class="btn" id="btn_enviar">Entrar</button>
+      <button type="button" class="link-esqueci" id="btn_esqueci">Esqueci minha senha</button>
     </form>
 
     <div class="msg" id="msg"></div>
@@ -98,7 +101,7 @@
 </div>
 
 <script>
-let modo = "entrar"; // "entrar" | "cadastrar"
+let modo = "entrar"; // "entrar" | "cadastrar" | "recuperar"
 const form   = document.getElementById("form_login");
 const inNome = document.getElementById("in_nome");
 const inEmail= document.getElementById("in_email");
@@ -110,12 +113,19 @@ const tabC   = document.getElementById("tab_cadastrar");
 
 function setModo(m){
   modo = m;
-  tabE.classList.toggle("active", m === "entrar");
+  tabE.classList.toggle("active", m === "entrar" || m === "recuperar");
   tabC.classList.toggle("active", m === "cadastrar");
   inNome.style.display = (m === "cadastrar") ? "" : "none";
-  btn.textContent = (m === "cadastrar") ? "Criar conta" : "Entrar";
+  const recuperar = (m === "recuperar");
+  document.getElementById("lbl_senha").style.display = recuperar ? "none" : "";
+  inSenha.style.display = recuperar ? "none" : "";
+  inSenha.required = !recuperar;
+  document.getElementById("btn_esqueci").textContent = recuperar ? "Voltar para entrar" : "Esqueci minha senha";
+  document.getElementById("btn_esqueci").style.display = (m === "cadastrar") ? "none" : "";
+  btn.textContent = (m === "cadastrar") ? "Criar conta" : (recuperar ? "Enviar link para redefinir" : "Entrar");
   esconderMsg();
 }
+document.getElementById("btn_esqueci").addEventListener("click", () => setModo(modo === "recuperar" ? "entrar" : "recuperar"));
 tabE.addEventListener("click", () => setModo("entrar"));
 tabC.addEventListener("click", () => setModo("cadastrar"));
 
@@ -139,6 +149,14 @@ form.addEventListener("submit", async (e) => {
   const senha = inSenha.value;
 
   try{
+    if(modo === "recuperar"){
+      if(!email){ mostrarMsg("Digite o e-mail da sua conta.", "erro"); return; }
+      const destino = new URL("redefinir.html", location.href).href;
+      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: destino });
+      if(error) throw error;
+      mostrarMsg("Se esse e-mail tiver conta, chegará um link para criar uma senha nova. Confira também o spam.", "ok");
+      return;
+    }
     if(modo === "cadastrar"){
       const nome = inNome.value.trim();
       const { data, error } = await sb.auth.signUp({
@@ -169,6 +187,7 @@ function traduzErro(m){
   if(m.indexOf("User already registered") >= 0) return "Já existe uma conta com esse e-mail — tente entrar.";
   if(m.indexOf("Password should be") >= 0) return "A senha precisa ter pelo menos 6 caracteres.";
   if(m.indexOf("Email not confirmed") >= 0) return "Confirme seu e-mail antes de entrar (verifique a caixa de entrada).";
+  if(m.indexOf("rate limit") >= 0 || m.indexOf("security purposes") >= 0) return "Muitos pedidos seguidos. Espere um minuto e tente de novo.";
   return m;
 }
 </script>

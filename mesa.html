@@ -2,299 +2,420 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mesa — Shinobi no Sho</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mesa · Shinobi no Sho</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  /* ============================================================
+     Mesa: tinta índigo (aizome) sobre o mapa, papel washi para ler,
+     e um único vermelho de selo (shu) para marcar de quem é a vez.
+     ============================================================ */
   :root{
-    --ink:#1a1a1a; --bar-bg:#1c1c1e; --bg:#ffffff; --page-bg:#eef0f3;
-    --gray-light:#f6f7f8; --gray-text:#8b8d92; --border:#e3e4e7; --border-strong:#d3d5d9;
-    --input-bg:#f5f6f7; --input-border:#e2e3e6;
-    --shadow: 0 1px 3px rgba(20,20,25,0.06), 0 8px 20px rgba(20,20,25,0.05);
-    --radius:14px; --font-display:'Barlow Condensed', Arial, sans-serif; --font-body:'Inter', Arial, sans-serif;
+    --aizome:#1d2738; --aizome-2:#2a3850; --aizome-3:#3a4a66; --vidro:rgba(29,39,56,0.92);
+    --washi:#f3ecdc; --washi-2:#e8dfca; --washi-borda:#d9ccb0;
+    --sumi:#24201c; --sumi-2:#5e554b;
+    --shu:#b3372b; --kinari:#d9b872; --nezumi:#9aa6b8; --claro:#eef1f6;
+    --ok:#2f7a4a; --erro:#a83226;
+    --raio-g:16px; --raio-m:10px; --raio-p:7px;
+    --sombra:0 10px 30px rgba(8,12,20,0.35), 0 2px 6px rgba(8,12,20,0.25);
+    --font-display:'Shippori Mincho B1', Georgia, serif; --font-body:'Inter', Arial, sans-serif;
+    /* compatibilidade com classes antigas */
+    --ink:var(--sumi); --bg:var(--washi); --gray-text:var(--sumi-2); --border:var(--washi-borda); --border-strong:#c9b995;
+    --gray-light:var(--washi-2); --input-bg:#fbf7ee; --input-border:var(--washi-borda); --bar-bg:var(--aizome); --shadow:var(--sombra);
   }
   *{ box-sizing:border-box; }
   html,body{ margin:0; height:100%; overflow:hidden; }
-  body{ font-family:var(--font-body); background:var(--page-bg); color:var(--ink); }
+  body{ font-family:var(--font-body); background:#141b27; color:var(--claro); -webkit-font-smoothing:antialiased; }
+  button{ font-family:var(--font-body); }
+  :focus-visible{ outline:2px solid var(--kinari); outline-offset:2px; }
+  body:not(.sou-mestre) .so-mestre{ display:none !important; }
 
-  .topbar{
-    background:var(--bar-bg); color:#fff; padding:14px 20px; display:flex; align-items:center;
-    justify-content:space-between; flex-wrap:wrap; gap:10px; position:relative; z-index:10;
-  }
-  .topbar .tt{ font-family:var(--font-display); font-size:19px; font-weight:800; text-transform:uppercase; letter-spacing:0.4px; }
-  .topbar .sub{ font-size:11.5px; opacity:0.7; font-weight:600; }
-  .sair{
-    background:transparent; border:1px solid rgba(255,255,255,0.35); color:#fff; border-radius:999px;
-    padding:7px 16px; font-size:12.5px; font-weight:700; cursor:pointer; font-family:var(--font-body);
-  }
-  .sair:hover{ background:rgba(255,255,255,0.12); }
-  .btn-mapa{
-    background:#0f4c9c; border:none; color:#fff; border-radius:999px;
-    padding:7px 16px; font-size:12.5px; font-weight:700; cursor:pointer; font-family:var(--font-body);
-  }
-  .btn-mapa:hover{ filter:brightness(1.1); }
-  .btn-mapa:disabled{ opacity:0.6; cursor:not-allowed; }
-  .btn-mapa.ativo{ background:#a32020; }
-  .grid-ajuste{ display:flex; align-items:center; gap:6px; color:#fff; font-size:11.5px; font-weight:700; }
-  .grid-ajuste input{
-    width:56px; padding:5px 6px; border-radius:6px; border:1px solid rgba(255,255,255,0.3);
-    background:rgba(255,255,255,0.12); color:#fff; font-size:12px; font-weight:700; font-family:var(--font-body);
-  }
-
-  .presenca{ display:flex; align-items:center; gap:6px; }
-  .avatar{
-    width:28px; height:28px; border-radius:50%; background:#0f4c9c; color:#fff; font-weight:700;
-    font-size:12px; display:flex; align-items:center; justify-content:center; border:2px solid var(--bar-bg);
-    margin-left:-8px; font-family:var(--font-body); position:relative;
-  }
-  .avatar:first-child{ margin-left:0; }
-  .avatar .tooltip{
-    display:none; position:absolute; top:36px; left:50%; transform:translateX(-50%); background:#000;
-    color:#fff; font-size:11px; padding:4px 8px; border-radius:6px; white-space:nowrap; font-weight:600;
-  }
-  .avatar:hover .tooltip{ display:block; }
-  .contador-online{ font-size:11.5px; color:#fff; opacity:0.75; font-weight:600; margin-left:8px; }
-
-  .palco{ position:relative; width:100%; height:calc(100% - 57px); overflow:hidden; touch-action:none; cursor:grab; }
+  /* ---------- palco: o mapa ocupa a tela inteira ---------- */
+  .palco{ position:fixed; inset:0; overflow:hidden; touch-action:none; cursor:grab; }
   .palco.arrastando{ cursor:grabbing; }
   canvas{ display:block; }
 
-  .estado-vazio{
-    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center;
-    color:var(--gray-text); font-size:13.5px; padding:20px; max-width:320px;
-  }
-  .estado-vazio .grande{ font-family:var(--font-display); font-size:20px; color:var(--ink); font-weight:700; margin-bottom:6px; text-transform:uppercase; }
-
-  .zoom-info{
-    position:absolute; bottom:14px; right:14px; background:rgba(28,28,30,0.85); color:#fff; font-size:11px;
-    font-weight:700; padding:6px 10px; border-radius:999px; pointer-events:none;
+  /* ---------- vidro índigo: base de toda a interface flutuante ---------- */
+  .vidro{
+    background:var(--vidro); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,0.08); box-shadow:var(--sombra); color:var(--claro);
   }
 
+  /* ---------- topo esquerdo: sala e cena ---------- */
+  .cena-chip{
+    position:fixed; top:14px; left:14px; z-index:12; border-radius:var(--raio-g); padding:9px 16px 10px 14px;
+    display:flex; align-items:center; gap:12px; max-width:min(420px, 40vw); cursor:default;
+  }
+  body.sou-mestre .cena-chip{ cursor:pointer; }
+  body.sou-mestre .cena-chip:hover{ background:rgba(42,56,80,0.95); }
+  .cena-chip .selo-sala{
+    width:34px; height:34px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    border:1.5px solid var(--kinari); color:var(--kinari); font-family:var(--font-display); font-weight:800; font-size:15px;
+  }
+  .cena-chip .textos{ min-width:0; }
+  .cena-chip .tt{ font-size:11.5px; color:var(--nezumi); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cena-chip .sub{ font-family:var(--font-display); font-size:17px; font-weight:800; color:var(--claro); line-height:1.15;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  /* ---------- topo direito: quem está online e sair ---------- */
+  .topo-dir{ position:fixed; top:14px; right:14px; z-index:12; display:flex; align-items:center; gap:10px; }
+  .presenca:empty{ display:none; }
+  .presenca{ display:flex; align-items:center; border-radius:999px; padding:5px 12px 5px 8px; gap:0; }
+  .avatar{
+    width:30px; height:30px; border-radius:50%; background:var(--aizome-3); color:#fff; font-weight:700;
+    font-size:11.5px; display:flex; align-items:center; justify-content:center; border:2px solid var(--aizome);
+    margin-left:-8px; position:relative; box-shadow:0 0 0 2px var(--cor-avatar, transparent) inset;
+  }
+  .avatar:first-child{ margin-left:0; }
+  .avatar .tooltip{
+    display:none; position:absolute; top:38px; left:50%; transform:translateX(-50%); background:var(--sumi);
+    color:#fff; font-size:11px; padding:4px 8px; border-radius:6px; white-space:nowrap; font-weight:600;
+  }
+  .avatar:hover .tooltip{ display:block; }
+  .contador-online{ font-size:11.5px; color:var(--nezumi); font-weight:600; margin-left:10px; white-space:nowrap; }
+  .sair{
+    border-radius:999px; padding:9px 16px; font-size:12.5px; font-weight:600; cursor:pointer; color:var(--claro);
+    display:flex; align-items:center; gap:7px;
+  }
+  .sair:hover{ background:rgba(42,56,80,0.95); }
+  .sair svg{ width:15px; height:15px; }
+
+  /* ---------- faixa de iniciativa (o elemento que chama atenção) ---------- */
+  .faixa-ini{
+    position:fixed; top:14px; left:50%; transform:translateX(-50%); z-index:13; display:none; align-items:stretch;
+    border-radius:var(--raio-g); padding:6px; gap:6px; max-width:min(760px, calc(100vw - 560px));
+  }
+  .faixa-ini.visivel{ display:flex; }
+  .faixa-ini .rodada{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 12px 0 8px;
+    border-right:1px solid rgba(255,255,255,0.1); cursor:pointer; flex-shrink:0;
+  }
+  .faixa-ini .rodada .n{ font-family:var(--font-display); font-size:22px; font-weight:800; line-height:1; color:var(--claro); }
+  .faixa-ini .rodada .l{ font-size:10px; color:var(--nezumi); font-weight:600; margin-top:2px; }
+  .faixa-ini .fila{ display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; }
+  .faixa-ini .fila::-webkit-scrollbar{ display:none; }
+  .ini-card{
+    display:flex; align-items:center; gap:8px; padding:6px 12px 6px 6px; border-radius:var(--raio-m);
+    background:rgba(255,255,255,0.05); white-space:nowrap; cursor:pointer; flex-shrink:0; border:1px solid transparent;
+  }
+  .ini-card:hover{ background:rgba(255,255,255,0.1); }
+  .ini-card .marca{
+    width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:var(--aizome-3); color:var(--claro); font-weight:700; font-size:11.5px; flex-shrink:0;
+  }
+  .ini-card .nome{ font-size:12.5px; font-weight:600; max-width:120px; overflow:hidden; text-overflow:ellipsis; }
+  .ini-card .valor{ font-size:11px; color:var(--nezumi); font-weight:700; }
+  .ini-card.atual{ background:var(--washi); border-color:var(--washi); color:var(--sumi); }
+  .ini-card.atual .marca{
+    background:var(--shu); color:#fff; font-family:var(--font-display); font-weight:800; font-size:14px;
+    box-shadow:0 0 0 2px var(--washi), 0 0 0 3.5px var(--shu);
+  }
+  .ini-card.atual .valor{ color:var(--sumi-2); }
+  .faixa-ini .proxima{
+    flex-shrink:0; border:none; border-radius:var(--raio-m); background:var(--shu); color:#fff; font-weight:700;
+    font-size:12px; padding:0 14px; cursor:pointer; display:flex; align-items:center; gap:6px;
+  }
+  .faixa-ini .proxima:hover{ filter:brightness(1.08); }
+  .faixa-ini .proxima svg{ width:14px; height:14px; }
+
+  /* ---------- doca de ferramentas (esquerda) ---------- */
   .icon-bar{
-    position:absolute; top:0; left:0; bottom:0; width:52px; background:var(--bar-bg);
-    display:flex; flex-direction:column; align-items:center; padding-top:14px; gap:8px; z-index:8;
+    position:fixed; left:14px; top:50%; transform:translateY(-50%); z-index:11; border-radius:var(--raio-g);
+    display:flex; flex-direction:column; align-items:center; padding:8px; gap:4px;
   }
+  .icon-bar > *{ flex-shrink:0; }
+  .icon-bar .divisor{ width:26px; height:1px; background:rgba(255,255,255,0.12); margin:5px 0; }
   .icon-bar button{
-    width:38px; height:38px; border-radius:10px; background:transparent; border:none; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; color:#fff; opacity:0.65;
+    width:42px; height:42px; border-radius:var(--raio-m); background:transparent; border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; color:var(--nezumi); position:relative;
   }
   .icon-bar button svg{ width:20px; height:20px; }
-  .icon-bar button:hover{ opacity:0.9; background:rgba(255,255,255,0.08); }
-  .icon-bar button.ativo{ opacity:1; background:rgba(255,255,255,0.16); }
+  .icon-bar button:hover{ color:var(--claro); background:rgba(255,255,255,0.07); }
+  .icon-bar button.ativo{ color:var(--sumi); background:var(--washi); }
+  .icon-bar button.ativo::before{
+    content:""; position:absolute; left:-8px; top:10px; bottom:10px; width:3px; border-radius:2px; background:var(--kinari);
+  }
   .icon-bar .swatch{
-    width:20px; height:20px; border-radius:50%; border:2px solid rgba(255,255,255,0.6);
-    padding:0; opacity:1; background:#f1c40f;
+    width:20px; height:20px; border-radius:50%; border:2px solid rgba(255,255,255,0.7); padding:0; background:#f1c40f;
+    margin:2px 0 4px;
   }
-  .icon-bar .swatch:hover{ opacity:1; border-color:#fff; }
-  .submenu-formas{ display:flex; flex-direction:column; gap:4px; }
-  .submenu-formas .forma-btn{ width:32px; height:32px; border-radius:8px; }
-  .submenu-formas .forma-btn svg{ width:16px; height:16px; }
-  .submenu-formas .forma-btn.selecionada{ opacity:1; background:rgba(255,255,255,0.22); }
-  .submenu-formas .tam-fixo{ width:36px; margin-top:4px; display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .icon-bar .swatch:hover{ border-color:#fff; }
+  /* dica ao passar o mouse */
+  .icon-bar button[data-dica]:hover::after{
+    content:attr(data-dica); position:absolute; left:52px; top:50%; transform:translateY(-50%); white-space:nowrap;
+    background:var(--sumi); color:#fff; font-size:11.5px; font-weight:600; padding:5px 9px; border-radius:6px; pointer-events:none;
+    box-shadow:0 4px 12px rgba(0,0,0,0.3);
+  }
+  /* formas da régua: saem para o lado da doca */
+  .submenu-formas{
+    position:fixed; left:76px; z-index:11; border-radius:var(--raio-m); padding:6px; display:flex; align-items:center; gap:4px;
+  }
+  .submenu-formas .forma-btn{
+    width:36px; height:36px; border-radius:var(--raio-p); border:none; background:transparent; color:var(--nezumi);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .submenu-formas .forma-btn:hover{ color:var(--claro); background:rgba(255,255,255,0.07); }
+  .submenu-formas .forma-btn svg{ width:18px; height:18px; }
+  .submenu-formas .forma-btn.selecionada{ color:var(--sumi); background:var(--washi); }
+  .submenu-formas .tam-fixo{ display:flex; align-items:center; gap:5px; margin-left:6px; padding-left:8px; border-left:1px solid rgba(255,255,255,0.12); }
   .submenu-formas .tam-fixo input{
-    width:36px; padding:4px 2px; border-radius:6px; border:1px solid rgba(255,255,255,0.3); text-align:center;
-    background:rgba(255,255,255,0.12); color:#fff; font-size:11px; font-weight:700; font-family:var(--font-body);
+    width:52px; padding:7px 6px; border-radius:var(--raio-p); border:1px solid rgba(255,255,255,0.18); text-align:center;
+    background:rgba(255,255,255,0.08); color:#fff; font-size:12.5px; font-weight:600; font-family:var(--font-body);
   }
-  .submenu-formas .tam-fixo span{ color:rgba(255,255,255,0.7); font-size:9px; font-weight:700; text-transform:uppercase; }
+  .submenu-formas .tam-fixo span{ color:var(--nezumi); font-size:11.5px; font-weight:600; }
 
+  /* ---------- gavetas (papel washi) ---------- */
   .painel-dados{
-    position:absolute; top:0; left:52px; bottom:0; width:300px; max-width:calc(100vw - 52px);
-    background:var(--bg); border-right:1px solid var(--border); box-shadow:var(--shadow);
-    display:none; flex-direction:column; overflow:hidden; z-index:7;
+    position:fixed; top:78px; bottom:14px; width:340px; max-width:calc(100vw - 28px); z-index:14;
+    background:var(--washi); color:var(--sumi); border-radius:var(--raio-g); box-shadow:var(--sombra);
+    display:none; flex-direction:column; overflow:hidden; border:1px solid var(--washi-borda);
   }
   .painel-dados.aberto{ display:flex; }
+  #painel_dados{ right:14px; }
+  #painel_iniciativa, #painel_mapas{ left:78px; width:320px; }
   .painel-dados .cab{
-    background:var(--bar-bg); color:#fff; padding:10px 12px; display:flex; align-items:center; justify-content:space-between;
-    font-family:var(--font-display); text-transform:uppercase; font-weight:700; font-size:13px; letter-spacing:0.3px;
+    padding:14px 16px 10px; display:flex; align-items:center; justify-content:space-between;
+    font-family:var(--font-display); font-weight:800; font-size:19px; color:var(--sumi);
+    border-bottom:1px solid var(--washi-borda);
   }
-  .painel-dados .cab button{ background:transparent; border:none; color:#fff; font-size:16px; cursor:pointer; line-height:1; }
-  .painel-dados .form-rolagem{ padding:10px 12px; border-bottom:1px solid var(--border); display:flex; gap:6px; }
+  .painel-dados .cab button{
+    background:transparent; border:none; color:var(--sumi-2); font-size:15px; cursor:pointer; line-height:1;
+    width:30px; height:30px; border-radius:50%;
+  }
+  .painel-dados .cab button:hover{ background:var(--washi-2); color:var(--sumi); }
+  .painel-dados .form-rolagem{ padding:10px 14px; border-bottom:1px solid var(--washi-borda); display:flex; gap:6px; }
+  .painel-dados .form-rolagem:last-child{ border-bottom:none; border-top:1px solid var(--washi-borda); }
   .painel-dados .form-rolagem input{
-    flex:1; padding:8px 10px; font-size:13px; font-family:var(--font-body);
-    background:var(--input-bg); border:1px solid var(--input-border); border-radius:8px; color:var(--ink);
+    flex:1; min-width:0; padding:9px 11px; font-size:13px; font-family:var(--font-body);
+    background:var(--input-bg); border:1px solid var(--washi-borda); border-radius:var(--raio-p); color:var(--sumi);
   }
   .painel-dados .form-rolagem button{
-    background:#0f4c9c; border:none; color:#fff; border-radius:8px; padding:8px 14px; font-weight:700;
-    font-size:13px; cursor:pointer; font-family:var(--font-body);
+    background:var(--aizome); border:none; color:#fff; border-radius:var(--raio-p); padding:9px 14px; font-weight:600;
+    font-size:13px; cursor:pointer;
   }
-  .atalhos{ padding:8px 12px; border-bottom:1px solid var(--border); display:flex; gap:6px; flex-wrap:wrap; }
+  .painel-dados .form-rolagem button:hover{ background:var(--aizome-2); }
+  .painel-dados .form-rolagem button.perigo{ background:transparent; color:var(--erro); border:1px solid #dcb3ab; }
+  .painel-dados .secao-titulo{ font-size:12px; font-weight:700; color:var(--sumi-2); padding:12px 16px 4px; }
+  .escala-cena{ display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:4px 14px 12px; border-bottom:1px solid var(--washi-borda); }
+  .escala-cena label{ display:flex; flex-direction:column; gap:4px; font-size:11.5px; color:var(--sumi-2); font-weight:600; }
+  .escala-cena input{
+    padding:8px 10px; font-size:13px; border-radius:var(--raio-p); border:1px solid var(--washi-borda);
+    background:var(--input-bg); color:var(--sumi); font-family:var(--font-body); width:100%;
+  }
+  .atalhos{ padding:10px 14px; border-bottom:1px solid var(--washi-borda); display:flex; gap:6px; flex-wrap:wrap; }
   .atalhos button{
-    background:var(--gray-light); border:1px solid var(--border-strong); border-radius:999px; padding:5px 11px;
-    font-size:12px; font-weight:700; cursor:pointer; font-family:var(--font-body); color:var(--ink);
+    background:#fff; border:1px solid var(--washi-borda); border-radius:var(--raio-p); padding:6px 12px;
+    font-size:12.5px; font-weight:700; cursor:pointer; color:var(--sumi);
   }
-  .atalhos button:hover{ filter:brightness(0.97); }
-  .log-rolagens{ flex:1; overflow-y:auto; padding:8px 12px; display:flex; flex-direction:column; gap:8px; }
-  .log-item{ font-size:12.5px; line-height:1.4; }
+  .atalhos button:hover{ border-color:var(--sumi-2); }
+  .log-rolagens{ flex:1; overflow-y:auto; padding:12px 14px; display:flex; flex-direction:column; gap:8px; }
+  .log-item{ font-size:13px; line-height:1.45; }
   .log-item .quem{ font-weight:700; }
-  .log-item .formula{ color:var(--gray-text); }
-  .log-item .total{ font-weight:800; color:#0f4c9c; }
+  .log-item .total{ font-weight:800; }
+  .log-item.mensagem{ background:#fff; border-radius:var(--raio-m); padding:8px 11px; border:1px solid var(--washi-borda); }
   .dados-visual{ display:inline-flex; align-items:center; gap:4px; margin:3px 6px 3px 0; vertical-align:middle; }
   .dado-cubo{
-    display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px; padding:0 3px;
-    border-radius:5px; background:#eef4fc; border:1.5px solid #0f4c9c; color:#0f4c9c; font-size:11px; font-weight:800;
+    display:inline-flex; align-items:center; justify-content:center; min-width:22px; height:22px; padding:0 3px;
+    border-radius:5px; background:var(--aizome); color:#fff; font-size:11.5px; font-weight:800;
   }
-  .modificador{ font-size:11.5px; color:var(--gray-text); font-weight:700; }
-  .log-item.mensagem .quem{ color:#1c1c1e; }
-  .log-item.mensagem .texto{ color:var(--ink); }
-  .log-vazio{ color:var(--gray-text); font-size:12.5px; text-align:center; padding:14px 0; }
+  .modificador{ font-size:11.5px; color:var(--sumi-2); font-weight:700; }
+  .log-vazio{ color:var(--sumi-2); font-size:13px; text-align:center; padding:18px 8px; line-height:1.5; }
+  .carta-rolagem{ background:#fff; border:1px solid var(--washi-borda); border-radius:var(--raio-m); padding:9px 11px; }
+  .cr-cab{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:4px; }
+  .cr-titulo{ font-family:var(--font-display); font-weight:800; font-size:14px; color:var(--sumi); }
+  .cr-quem{ font-size:11px; color:var(--sumi-2); font-weight:600; white-space:nowrap; }
+  .cr-linha{ display:flex; align-items:center; gap:6px; font-size:13px; padding:2px 0; flex-wrap:wrap; }
+  .cr-linha .total{ font-weight:800; font-size:15px; }
+  .cr-etapa{ font-weight:600; color:var(--sumi-2); min-width:44px; font-size:11.5px; }
+  .cr-desc{ font-size:11.5px; color:var(--sumi); opacity:0.8; margin:0 0 4px 50px; }
+  .cr-badge{ font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; }
+  .cr-badge.cr-fail{ background:#f7ddd8; color:var(--erro); }
+  .cr-badge.cr-crit{ background:#f6e7bf; color:#7a5a00; }
+  .cr-badge.cr-ok, .cr-badge.cr-g3, .cr-badge.cr-g4{ background:#dcefe1; color:var(--ok); }
+  .cr-badge.cr-g1, .cr-badge.cr-g2, .cr-badge.cr-ini{ background:#e1e7f1; color:var(--aizome); }
+  .cr-badge.cr-default{ background:var(--washi-2); color:var(--sumi); }
 
-  .carta-rolagem{
-    border:1px solid var(--border); border-left:3px solid #0f4c9c; border-radius:8px;
-    padding:8px 10px; background:#fbfbfc;
-  }
-  .cr-cab{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:3px; }
-  .cr-titulo{
-    font-family:var(--font-display); font-weight:800; font-size:13px; text-transform:uppercase;
-    color:var(--ink); letter-spacing:0.2px;
-  }
-  .cr-quem{ font-size:10.5px; color:var(--gray-text); font-weight:700; white-space:nowrap; }
-  .cr-linha{ display:flex; align-items:center; gap:6px; font-size:12.5px; padding:2px 0; flex-wrap:wrap; }
-  .cr-etapa{ font-weight:700; color:var(--gray-text); min-width:44px; font-size:11.5px; }
-  .cr-desc{ font-size:11.5px; color:var(--ink); opacity:0.8; margin:0 0 4px 50px; }
-  .cr-badge{
-    font-size:10px; font-weight:800; text-transform:uppercase; padding:2px 8px; border-radius:999px; letter-spacing:0.2px;
-  }
-  .cr-badge.cr-fail{ background:#fdecec; color:#a32020; }
-  .cr-badge.cr-crit{ background:#fff3cd; color:#8a6d00; }
-  .cr-badge.cr-ok, .cr-badge.cr-g3, .cr-badge.cr-g4{ background:#e9f8ef; color:#0f7a3d; }
-  .cr-badge.cr-g1, .cr-badge.cr-g2, .cr-badge.cr-ini{ background:#eef4fc; color:#0f4c9c; }
-  .cr-badge.cr-default{ background:var(--gray-light); color:var(--ink); }
-
-  .item-iniciativa{ display:flex; align-items:center; gap:8px; padding:8px 4px; border-bottom:1px solid var(--border); font-size:13px; }
-  .item-iniciativa:last-child{ border-bottom:none; }
-  .rodada-info{ padding:8px 12px; border-bottom:1px solid var(--border); font-size:12px; font-weight:700; color:var(--ink);
-    display:flex; align-items:center; justify-content:space-between; background:var(--gray-light); }
-  .rodada-info .vez{ color:var(--gray-text); font-weight:600; max-width:60%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .item-iniciativa.atual{ background:#fff6d8; border-radius:8px; }
-  .item-iniciativa .pos{ width:18px; color:var(--gray-text); font-weight:700; font-size:11px; flex-shrink:0; }
+  .rodada-info{ padding:10px 16px; border-bottom:1px solid var(--washi-borda); font-size:13px; font-weight:700; color:var(--sumi);
+    display:flex; align-items:center; justify-content:space-between; }
+  .rodada-info .vez{ color:var(--sumi-2); font-weight:600; max-width:60%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .item-iniciativa{ display:flex; align-items:center; gap:10px; padding:9px 8px; border-radius:var(--raio-p); font-size:13.5px; }
+  .item-iniciativa.atual{ background:#fff; box-shadow:inset 3px 0 0 var(--shu); }
+  .item-iniciativa .pos{ width:20px; color:var(--sumi-2); font-weight:600; font-size:11.5px; flex-shrink:0; }
   .item-iniciativa .nome{ flex:1; font-weight:600; }
-  .item-iniciativa .valor{ font-weight:800; color:#0f4c9c; min-width:24px; text-align:right; }
-  .item-iniciativa .remover-iniciativa{
-    background:transparent; border:none; color:#a32020; cursor:pointer; font-size:13px; padding:2px 4px;
-  }
+  .item-iniciativa .valor{ font-weight:800; min-width:24px; text-align:right; }
+  .item-iniciativa .remover-iniciativa{ background:transparent; border:none; color:var(--erro); cursor:pointer; font-size:13px; padding:2px 4px; }
 
-  .item-mapa{ display:flex; align-items:center; gap:8px; padding:9px 4px; border-bottom:1px solid var(--border); font-size:13px; }
-  .item-mapa:last-child{ border-bottom:none; }
-  .item-mapa.ativo{ background:#e9f2fe; border-radius:8px; }
+  .item-mapa{ display:flex; align-items:center; gap:8px; padding:10px 8px; border-radius:var(--raio-p); font-size:13.5px; }
+  .item-mapa.ativo{ background:#fff; box-shadow:inset 3px 0 0 var(--kinari); }
   .item-mapa .nome-mapa{ flex:1; font-weight:600; }
   .item-mapa .ativar-mapa{
-    font-size:11px; font-weight:700; border-radius:999px; padding:5px 11px; cursor:pointer;
-    border:1px solid var(--border-strong); background:var(--gray-light); color:var(--ink); font-family:var(--font-body);
+    font-size:12px; font-weight:600; border-radius:var(--raio-p); padding:5px 11px; cursor:pointer;
+    border:1px solid var(--washi-borda); background:#fff; color:var(--sumi);
   }
-  .item-mapa .tag-ativo{ font-size:10.5px; font-weight:800; color:#0f4c9c; text-transform:uppercase; }
-  .item-mapa .apagar-mapa{ background:transparent; border:none; color:#a32020; cursor:pointer; font-size:14px; padding:2px 4px; }
-  /* ---- menu do token ---- */
+  .item-mapa .tag-ativo{ font-size:11.5px; font-weight:700; color:var(--sumi-2); }
+  .item-mapa .apagar-mapa{ background:transparent; border:none; color:var(--erro); cursor:pointer; font-size:14px; padding:2px 4px; }
+
+  /* ---------- zoom (canto inferior direito) ---------- */
+  .zoom-cluster{ position:fixed; right:14px; bottom:14px; z-index:11; border-radius:999px; display:flex; align-items:center; padding:4px; gap:2px; }
+  .zoom-cluster button{
+    width:34px; height:34px; border-radius:50%; border:none; background:transparent; color:var(--nezumi); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:600;
+  }
+  .zoom-cluster button:hover{ color:var(--claro); background:rgba(255,255,255,0.08); }
+  .zoom-cluster button svg{ width:16px; height:16px; }
+  .zoom-info{ min-width:48px; text-align:center; font-size:12px; font-weight:600; color:var(--claro); }
+
+  /* ---------- estado vazio ---------- */
+  .estado-vazio{
+    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; z-index:5;
+    background:var(--washi); color:var(--sumi-2); border-radius:var(--raio-g); padding:26px 30px; max-width:340px;
+    box-shadow:var(--sombra); font-size:13.5px; line-height:1.5;
+  }
+  .estado-vazio .grande{ font-family:var(--font-display); font-size:22px; color:var(--sumi); font-weight:800; margin-bottom:6px; }
+
+  /* ---------- avisos (substituem os alertas) ---------- */
+  .toasts{ position:fixed; bottom:18px; left:50%; transform:translateX(-50%); z-index:40; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none; }
+  .toast{
+    background:var(--sumi); color:#fff; padding:10px 16px; border-radius:var(--raio-m); font-size:13px; font-weight:500;
+    box-shadow:var(--sombra); max-width:min(520px, 90vw); border-left:3px solid var(--kinari);
+    animation:toastEntra .18s ease-out; pointer-events:auto;
+  }
+  .toast.erro{ border-left-color:var(--shu); }
+  @keyframes toastEntra{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: reduce){ .toast{ animation:none; } }
+
+  /* ---------- menu do token ---------- */
   .menu-token{
-    position:absolute; z-index:30; width:260px; background:var(--bg); border:1px solid var(--border);
-    border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.18); overflow:hidden; display:none; font-size:12.5px;
+    position:absolute; z-index:30; width:270px; background:var(--washi); color:var(--sumi); border:1px solid var(--washi-borda);
+    border-radius:var(--raio-g); box-shadow:var(--sombra); overflow:hidden; display:none; font-size:12.5px;
   }
   .menu-token.aberto{ display:block; }
   .menu-token .cab{
-    background:var(--bar-bg); color:#fff; padding:9px 12px; display:flex; align-items:center; justify-content:space-between;
-    font-family:var(--font-display); text-transform:uppercase; font-weight:700; font-size:13px; letter-spacing:0.3px;
+    padding:12px 14px 8px; display:flex; align-items:center; justify-content:space-between;
+    font-family:var(--font-display); font-weight:800; font-size:17px; border-bottom:1px solid var(--washi-borda);
   }
-  .menu-token .cab button{ background:transparent; border:none; color:#fff; font-size:15px; cursor:pointer; }
-  .menu-token .corpo{ padding:10px 12px; display:flex; flex-direction:column; gap:8px; }
-  .menu-token label{ display:flex; flex-direction:column; gap:3px; font-size:10.5px; font-weight:700; text-transform:uppercase; color:var(--gray-text); }
-  .menu-token label.linha{ flex-direction:row; align-items:center; gap:6px; text-transform:none; font-size:12px; color:var(--ink); font-weight:600; }
+  .menu-token .cab button{ background:transparent; border:none; color:var(--sumi-2); font-size:14px; cursor:pointer; width:28px; height:28px; border-radius:50%; }
+  .menu-token .cab button:hover{ background:var(--washi-2); }
+  .menu-token .corpo{ padding:10px 14px; display:flex; flex-direction:column; gap:9px; }
+  .menu-token label{ display:flex; flex-direction:column; gap:4px; font-size:11.5px; font-weight:600; color:var(--sumi-2); }
+  .menu-token label.linha{ flex-direction:row; align-items:center; gap:7px; font-size:12.5px; color:var(--sumi); font-weight:500; }
   .menu-token input[type=text], .menu-token select{
-    padding:7px 9px; font-size:12.5px; font-family:var(--font-body); background:var(--input-bg);
-    border:1px solid var(--input-border); border-radius:8px; color:var(--ink); text-transform:none; font-weight:500;
+    padding:8px 10px; font-size:13px; font-family:var(--font-body); background:#fff;
+    border:1px solid var(--washi-borda); border-radius:var(--raio-p); color:var(--sumi);
   }
   .menu-token .duas{ display:flex; gap:8px; }
   .menu-token .duas > label{ flex:1; }
-  .menu-token input[type=color]{ width:100%; height:32px; border:1px solid var(--input-border); border-radius:8px; padding:2px; background:var(--input-bg); cursor:pointer; }
-  .menu-token .acoes{ display:flex; gap:6px; padding:0 12px 12px 12px; flex-wrap:wrap; }
+  .menu-token input[type=color]{ width:100%; height:35px; border:1px solid var(--washi-borda); border-radius:var(--raio-p); padding:2px; background:#fff; cursor:pointer; }
+  .menu-token .acoes{ display:flex; gap:6px; padding:0 14px 14px; flex-wrap:wrap; }
   .menu-token .acoes button{
-    flex:1; padding:8px 10px; border:none; border-radius:999px; font-weight:700; font-size:12px; cursor:pointer;
-    font-family:var(--font-body); background:var(--gray-light); color:var(--ink); border:1px solid var(--border-strong);
+    flex:1; padding:9px 10px; border-radius:var(--raio-p); font-weight:600; font-size:12.5px; cursor:pointer;
+    background:#fff; color:var(--sumi); border:1px solid var(--washi-borda);
   }
-  .menu-token .acoes button.primaria{ background:var(--bar-bg); color:#fff; border-color:var(--bar-bg); }
-  .menu-token .acoes button.perigo{ background:#fdecec; color:#a32020; border-color:#f3c4c4; }
-  .menu-token .nota{ font-size:11px; color:var(--gray-text); line-height:1.4; }
+  .menu-token .acoes button.primaria{ background:var(--aizome); color:#fff; border-color:var(--aizome); }
+  .menu-token .acoes button.perigo{ color:var(--erro); border-color:#dcb3ab; }
+  .menu-token .nota{ font-size:11.5px; color:var(--sumi-2); line-height:1.45; }
   .menu-token .so-mestre{ display:none; }
   .menu-token.mestre .so-mestre{ display:flex; }
+
+  /* ---------- telas pequenas ---------- */
+  @media (max-width: 900px){
+    .faixa-ini{ top:auto; bottom:124px; max-width:calc(100vw - 28px); left:14px; transform:none; }
+    .zoom-cluster{ bottom:72px; }
+    .cena-chip{ max-width:calc(100vw - 150px); }
+    .contador-online{ display:none; }
+    .sair span{ display:none; }
+    .icon-bar{ top:auto; bottom:14px; transform:none; flex-direction:row; left:14px; right:14px; max-width:none; overflow-x:auto; }
+    .icon-bar .divisor{ width:1px; height:26px; margin:0 5px; }
+    .icon-bar button.ativo::before{ display:none; }
+    .icon-bar button[data-dica]:hover::after{ display:none; }
+    .submenu-formas{ left:14px; right:14px; bottom:72px; overflow-x:auto; }
+    .painel-dados, #painel_iniciativa, #painel_mapas{ z-index:20; }
+    .painel-dados, #painel_iniciativa, #painel_mapas{ left:14px; right:14px; width:auto; top:70px; bottom:72px; }
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 </head>
 <body>
 
-<div class="topbar">
-  <div>
-    <div class="tt" id="nome_sala">Carregando…</div>
-    <div class="sub" id="sub_sala">&nbsp;</div>
-  </div>
-  <div style="display:flex; align-items:center; gap:16px;">
-    <div class="presenca" id="area_presenca"></div>
-    <button class="btn-mapa" id="btn_add_token" style="display:none;">+ Token</button>
-    <div class="grid-ajuste" id="grid_ajuste" style="display:none;">
-      <label for="in_grid_px">Grid</label>
-      <input type="number" id="in_grid_px" min="10" max="500" step="1" title="Tamanho da casa em pixels">
-      <label for="in_metros_casa" title="Quantos metros vale uma casa">m/casa</label>
-      <input type="number" id="in_metros_casa" min="0.5" max="20" step="0.5" style="width:48px;">
-    </div>
-    <button class="btn-mapa" id="btn_fog_revelar" style="display:none;">Revelar</button>
-    <button class="btn-mapa" id="btn_fog_esconder" style="display:none;">Esconder</button>
-    <input type="file" id="input_mapa" accept="image/*" style="display:none;">
-    <button class="sair" id="btn_sair">Sair</button>
-  </div>
-</div>
-
 <div class="palco" id="palco">
   <canvas id="mapa"></canvas>
   <div class="estado-vazio" id="estado_vazio" style="display:none;">
-    <div class="grande">Sem mapa ainda</div>
+    <div class="grande">A mesa está vazia</div>
     <div id="estado_vazio_texto">Aguardando o mestre subir um mapa.</div>
   </div>
-  <div class="zoom-info" id="zoom_info" style="display:none;"></div>
 
-  <div class="icon-bar">
-    <button type="button" class="btn-painel" id="btn_dados_toggle" title="Chat e dados">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="4" y="4" width="16" height="16" rx="3"></rect>
-        <circle cx="8.5" cy="8.5" r="1"></circle>
-        <circle cx="15.5" cy="15.5" r="1"></circle>
-        <circle cx="12" cy="12" r="1"></circle>
-      </svg>
+  <!-- sala e cena -->
+  <div class="cena-chip vidro" id="cena_chip" title="Cenas e mapas">
+    <div class="selo-sala" id="selo_sala">忍</div>
+    <div class="textos">
+      <div class="tt" id="nome_sala">Carregando…</div>
+      <div class="sub" id="sub_sala">&nbsp;</div>
+    </div>
+  </div>
+
+  <!-- faixa de iniciativa -->
+  <div class="faixa-ini vidro" id="faixa_ini" aria-label="Ordem de iniciativa">
+    <div class="rodada" id="faixa_rodada" title="Abrir iniciativa"><span class="n" id="faixa_rodada_n">1</span><span class="l">rodada</span></div>
+    <div class="fila" id="faixa_fila"></div>
+    <button type="button" class="proxima so-mestre" id="faixa_proxima" title="Passar a vez">
+      Próxima
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
     </button>
-    <button type="button" class="btn-painel" id="btn_iniciativa_toggle" title="Iniciativa">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="4" y1="6" x2="20" y2="6"></line>
-        <line x1="4" y1="12" x2="20" y2="12"></line>
-        <line x1="4" y1="18" x2="14" y2="18"></line>
-      </svg>
+  </div>
+
+  <!-- online e sair -->
+  <div class="topo-dir">
+    <div class="presenca vidro" id="area_presenca"></div>
+    <button class="sair vidro" id="btn_sair" title="Voltar para as salas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+      <span>Sair</span>
     </button>
-    <button type="button" class="btn-painel" id="btn_mapas_toggle" title="Mapas" style="display:none;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9 4 L3 6 L3 20 L9 18 L15 20 L21 18 L21 4 L15 6 L9 4 Z"></path>
-        <line x1="9" y1="4" x2="9" y2="18"></line>
-        <line x1="15" y1="6" x2="15" y2="20"></line>
-      </svg>
+  </div>
+
+  <!-- doca de ferramentas -->
+  <div class="icon-bar vidro" id="doca">
+    <button type="button" id="btn_navegar" class="ativo" data-dica="Mover mapa e tokens (V)" aria-label="Mover">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"></path><path d="M14 10V4a2 2 0 0 0-4 0v6"></path><path d="M10 10.5V6a2 2 0 0 0-4 0v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path></svg>
     </button>
-    <button type="button" id="btn_ping_toggle" title="Ping no mapa">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"></circle>
-        <line x1="12" y1="2" x2="12" y2="6"></line>
-        <line x1="12" y1="18" x2="12" y2="22"></line>
-        <line x1="2" y1="12" x2="6" y2="12"></line>
-        <line x1="18" y1="12" x2="22" y2="12"></line>
-      </svg>
+    <button type="button" id="btn_ping_toggle" data-dica="Ping no mapa (P ou segure espaço)" aria-label="Ping">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><circle cx="12" cy="12" r="8" stroke-dasharray="3 3"></circle></svg>
     </button>
-    <button type="button" id="btn_cor_ping" class="swatch" title="Cor do seu ping"></button>
+    <button type="button" id="btn_cor_ping" class="swatch" data-dica="Sua cor" aria-label="Sua cor"></button>
     <input type="color" id="input_cor_ping" style="display:none;" value="#f1c40f">
-    <button type="button" id="btn_medir_toggle" title="Medir / Área">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="9" width="18" height="6" rx="1" transform="rotate(-45 12 12)"></rect>
-        <line x1="8" y1="8" x2="10" y2="10" transform="rotate(-45 12 12)"></line>
-        <line x1="12" y1="8" x2="14" y2="10" transform="rotate(-45 12 12)"></line>
-        <line x1="16" y1="8" x2="18" y2="10" transform="rotate(-45 12 12)"></line>
-      </svg>
+    <button type="button" id="btn_medir_toggle" data-dica="Medir área (M)" aria-label="Medir">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"></path><path d="m14.5 12.5 2-2"></path><path d="m11.5 9.5 2-2"></path><path d="m8.5 6.5 2-2"></path><path d="m17.5 15.5 2-2"></path></svg>
     </button>
-    <div class="submenu-formas" id="submenu_formas" style="display:none;">
-      <button type="button" class="forma-btn selecionada" data-forma="regua" title="Régua (distância)">
+    <div class="divisor so-mestre"></div>
+    <button type="button" id="btn_add_token" class="so-mestre" data-dica="Novo token (T)" aria-label="Novo token">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+    </button>
+    <button type="button" id="btn_fog_revelar" class="so-mestre" data-dica="Revelar névoa (R)" aria-label="Revelar névoa">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    </button>
+    <button type="button" id="btn_fog_esconder" class="so-mestre" data-dica="Esconder com névoa (E)" aria-label="Esconder">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19"></path><path d="M6.61 6.61A13.53 13.53 0 0 0 2 11s3.5 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path><line x1="2" y1="2" x2="22" y2="22"></line></svg>
+    </button>
+    <button type="button" id="btn_cursor_toggle" class="so-mestre" data-dica="Mostrar meu cursor aos jogadores" aria-label="Cursor do mestre">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51z"></path></svg>
+    </button>
+    <button type="button" class="btn-painel so-mestre" id="btn_mapas_toggle" data-dica="Cenas e mapas" aria-label="Cenas e mapas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 L3 6 L3 20 L9 18 L15 20 L21 18 L21 4 L15 6 L9 4 Z"></path><line x1="9" y1="4" x2="9" y2="18"></line><line x1="15" y1="6" x2="15" y2="20"></line></svg>
+    </button>
+    <div class="divisor"></div>
+    <button type="button" class="btn-painel" id="btn_iniciativa_toggle" data-dica="Iniciativa (I)" aria-label="Iniciativa">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"></line><line x1="9" y1="12" x2="20" y2="12"></line><line x1="9" y1="18" x2="16" y2="18"></line><circle cx="4.5" cy="6" r="1.5"></circle><circle cx="4.5" cy="12" r="1.5"></circle><circle cx="4.5" cy="18" r="1.5"></circle></svg>
+    </button>
+    <button type="button" class="btn-painel" id="btn_dados_toggle" data-dica="Chat e dados (C)" aria-label="Chat e dados">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"></rect><circle cx="9" cy="9" r="1.1" fill="currentColor"></circle><circle cx="15" cy="15" r="1.1" fill="currentColor"></circle><circle cx="15" cy="9" r="1.1" fill="currentColor"></circle><circle cx="9" cy="15" r="1.1" fill="currentColor"></circle></svg>
+    </button>
+  </div>
+
+  <!-- formas da régua -->
+  <div class="submenu-formas vidro" id="submenu_formas" style="display:none;">
+<button type="button" class="forma-btn selecionada" data-forma="regua" title="Régua (distância)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 3"><line x1="4" y1="20" x2="20" y2="4"></line></svg>
       </button>
       <button type="button" class="forma-btn" data-forma="linha" title="Linha (1m de largura)">
@@ -311,15 +432,20 @@
       </button>
       <label class="tam-fixo" title="Tamanho fixo em metros (o tamanho do poder). Vazio: o arrasto define o tamanho.">
         <input type="number" id="in_tam_fixo" min="0" step="0.5" placeholder="—">
-        <span>m</span>
+        <span>metros</span>
       </label>
     </div>
-    <button type="button" id="btn_cursor_toggle" title="Mostrar meu cursor pros jogadores" style="display:none;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51z"></path>
-      </svg>
+
+  <!-- zoom -->
+  <div class="zoom-cluster vidro">
+    <button type="button" id="btn_zoom_menos" aria-label="Afastar" title="Afastar (−)">−</button>
+    <div class="zoom-info" id="zoom_info">100%</div>
+    <button type="button" id="btn_zoom_mais" aria-label="Aproximar" title="Aproximar (+)">+</button>
+    <button type="button" id="btn_zoom_ajustar" aria-label="Enquadrar o mapa" title="Enquadrar o mapa (0)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
     </button>
   </div>
+
   <div class="menu-token" id="menu_token">
     <div class="cab"><span id="mt_titulo">Token</span><button type="button" id="mt_fechar">✕</button></div>
     <div class="corpo">
@@ -349,58 +475,49 @@
   </div>
 
   <div class="painel-dados" id="painel_dados">
-    <div class="cab">
-      <span>Mesa</span>
-      <button type="button" id="btn_fechar_dados">✕</button>
-    </div>
+    <div class="cab"><span>Chat e dados</span><button type="button" id="btn_fechar_dados" aria-label="Fechar">✕</button></div>
     <div class="atalhos">
-      <button type="button" data-f="2d8" title="Teste ou grau de dano: 2d8">2d8</button>
-      <button type="button" data-f="1d8" title="Iniciativa: 1d8">1d8</button>
-      <button type="button" data-f="3d8" title="3d8">3d8</button>
-      <button type="button" data-f="1d6" title="1d6">d6</button>
+      <button type="button" data-f="2d8" title="Teste ou grau de dano">2d8</button>
+      <button type="button" data-f="1d8" title="Iniciativa">1d8</button>
+      <button type="button" data-f="3d8">3d8</button>
+      <button type="button" data-f="1d6">d6</button>
     </div>
-    <div class="log-rolagens" id="log_rolagens">
-      <div class="log-vazio">Nenhuma atividade ainda.</div>
-    </div>
+    <div class="log-rolagens" id="log_rolagens"><div class="log-vazio">Nada rolado ainda. Use os atalhos acima ou escreva /r 2d8.</div></div>
     <div class="form-rolagem">
-      <input type="text" id="in_mensagem" placeholder="Mensagem… ou /r 1d20" maxlength="500">
+      <input type="text" id="in_mensagem" placeholder="Mensagem, ou /r 2d8" maxlength="500">
       <button type="button" id="btn_enviar_msg">Enviar</button>
     </div>
   </div>
 
   <div class="painel-dados" id="painel_iniciativa">
-    <div class="cab">
-      <span>Iniciativa</span>
-      <button type="button" id="btn_fechar_iniciativa">✕</button>
-    </div>
+    <div class="cab"><span>Iniciativa</span><button type="button" id="btn_fechar_iniciativa" aria-label="Fechar">✕</button></div>
     <div class="rodada-info" id="rodada_info"><span id="rodada_num">Rodada 1</span><span class="vez" id="rodada_vez"></span></div>
-    <div class="log-rolagens" id="lista_iniciativa">
-      <div class="log-vazio">Ninguém na lista ainda.</div>
-    </div>
-    <div class="form-rolagem" id="form_add_iniciativa" style="display:none;">
+    <div class="log-rolagens" id="lista_iniciativa"><div class="log-vazio">Ninguém na ordem ainda. Quem rolar iniciativa pela ficha entra aqui.</div></div>
+    <div class="form-rolagem so-mestre" id="form_add_iniciativa">
       <input type="text" id="in_nome_iniciativa" placeholder="Nome" style="flex:2;">
-      <input type="number" id="in_valor_iniciativa" placeholder="Valor" style="flex:1; min-width:0;">
-      <button type="button" id="btn_add_iniciativa">+</button>
+      <input type="number" id="in_valor_iniciativa" placeholder="Valor" style="flex:1;">
+      <button type="button" id="btn_add_iniciativa" aria-label="Adicionar">+</button>
     </div>
-    <div class="form-rolagem" id="controles_iniciativa" style="display:none;">
-      <button type="button" id="btn_iniciativa_avancar" style="flex:1;">Avançar vez</button>
-      <button type="button" id="btn_iniciativa_limpar" style="flex:1; background:#a32020;">Limpar</button>
+    <div class="form-rolagem so-mestre" id="controles_iniciativa">
+      <button type="button" id="btn_iniciativa_avancar" style="flex:1;">Passar a vez</button>
+      <button type="button" id="btn_iniciativa_limpar" class="perigo" style="flex:1;">Encerrar combate</button>
     </div>
   </div>
 
   <div class="painel-dados" id="painel_mapas">
-    <div class="cab">
-      <span>Mapas</span>
-      <button type="button" id="btn_fechar_mapas">✕</button>
+    <div class="cab"><span>Cenas e mapas</span><button type="button" id="btn_fechar_mapas" aria-label="Fechar">✕</button></div>
+    <div class="secao-titulo">Escala da cena ativa</div>
+    <div class="escala-cena" id="grid_ajuste">
+      <label for="in_grid_px">Tamanho da casa (px)<input type="number" id="in_grid_px" min="10" max="500" step="1"></label>
+      <label for="in_metros_casa">Metros por casa<input type="number" id="in_metros_casa" min="0.5" max="20" step="0.5"></label>
     </div>
-    <div class="form-rolagem">
-      <button type="button" id="btn_novo_mapa" style="flex:1;">+ Novo mapa</button>
-    </div>
-    <div class="log-rolagens" id="lista_mapas">
-      <div class="log-vazio">Nenhum mapa salvo ainda.</div>
-    </div>
+    <div class="form-rolagem"><button type="button" id="btn_novo_mapa" style="flex:1;">Subir mapa novo</button></div>
+    <div class="log-rolagens" id="lista_mapas"><div class="log-vazio">Nenhum mapa ainda. Suba uma imagem para criar a primeira cena.</div></div>
+    <input type="file" id="input_mapa" accept="image/*" style="display:none;">
   </div>
 </div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script>
 const params = new URLSearchParams(location.search);
@@ -440,6 +557,18 @@ function metrosPorCasa(){ const v = cenaAtual && Number(cenaAtual.metros_casa); 
 function pxPorMetro(){ return ((cenaAtual && cenaAtual.grid_px) || 70) / metrosPorCasa(); }
 function fmtM(v){ return (Math.round(v * 10) / 10).toString().replace(".", ",") + " m"; }
 
+/* avisos discretos no rodapé (substituem os alertas do navegador) */
+function avisar(msg, tipo){
+  const box = document.getElementById("toasts"); if(!box){ console.warn(msg); return; }
+  const t = document.createElement("div");
+  t.className = "toast" + ((tipo === "ok") ? "" : (/não foi possível|erro|falta/i.test(msg) || tipo === "erro" ? " erro" : ""));
+  t.textContent = msg;
+  box.appendChild(t);
+  setTimeout(() => { t.style.transition = "opacity .25s"; t.style.opacity = "0"; setTimeout(() => t.remove(), 260); }, /não foi possível|erro/i.test(msg) ? 6500 : 3500);
+}
+/* partes da interface por cima do mapa: cliques nelas não mexem no mapa */
+const SELETOR_UI = "button, input, select, textarea, label, .painel-dados, .icon-bar, .menu-token, .cena-chip, .faixa-ini, .topo-dir, .zoom-cluster, .submenu-formas, .estado-vazio, .toasts";
+
 function souMestreDaSala(){
   return !!salaAtual && salaAtual.mestre_id === meuId;
 }
@@ -478,14 +607,7 @@ async function iniciar(){
   salaAtual = sala;
   document.getElementById("nome_sala").textContent = sala.nome;
   if(sala.mestre_id === meuId){
-    document.getElementById("btn_add_token").style.display = "inline-block";
-    document.getElementById("grid_ajuste").style.display = "flex";
-    document.getElementById("btn_mapas_toggle").style.display = "inline-flex";
-    document.getElementById("btn_fog_revelar").style.display = "inline-block";
-    document.getElementById("btn_fog_esconder").style.display = "inline-block";
-    document.getElementById("btn_cursor_toggle").style.display = "inline-flex";
-    document.getElementById("form_add_iniciativa").style.display = "flex";
-    document.getElementById("controles_iniciativa").style.display = "flex";
+    document.body.classList.add("sou-mestre");
   }
 
   if(sala.cena_ativa){
@@ -596,7 +718,7 @@ function prepararCanvas(){
     return { d: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
   };
   palco.addEventListener("pointerdown", (e) => {
-    if(e.pointerType !== "touch") return;
+    if(e.pointerType !== "touch" || e.target.closest(SELETOR_UI)) return;
     toques.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if(toques.size === 2){
       /* segundo dedo: cancela o que o primeiro começou */
@@ -623,7 +745,7 @@ function prepararCanvas(){
   }, true);
 
   palco.addEventListener("pointerdown", (e) => {
-    if(e.target.closest("button, input, select, .painel-dados, .icon-bar, .menu-token")) return;
+    if(e.target.closest(SELETOR_UI)) return;
     if(pinca) return;   // pinça em andamento
 
     const rect = palco.getBoundingClientRect();
@@ -732,6 +854,7 @@ function prepararCanvas(){
 
   /* botão direito sobre um token: menu (mestre ou dono do token) */
   palco.addEventListener("contextmenu", (e) => {
+    if(e.target.closest(SELETOR_UI)) return;
     const rect = palco.getBoundingClientRect();
     const alvo = encontrarTokenEm(e.clientX - rect.left, e.clientY - rect.top);
     if(!alvo) return;
@@ -740,12 +863,14 @@ function prepararCanvas(){
   });
   /* duplo clique num token vinculado abre a ficha (se você tiver acesso a ela) */
   palco.addEventListener("dblclick", (e) => {
+    if(e.target.closest(SELETOR_UI)) return;
     const rect = palco.getBoundingClientRect();
     const alvo = encontrarTokenEm(e.clientX - rect.left, e.clientY - rect.top);
     if(alvo && alvo.ficha_id && podeArrastarToken(alvo)) window.open("ficha.html?id=" + alvo.ficha_id, "_blank");
   });
 
   palco.addEventListener("wheel", (e) => {
+    if(e.target.closest(SELETOR_UI)) return;      // rolar a lista do chat não dá zoom no mapa
     e.preventDefault();
     const fator = e.deltaY < 0 ? 1.1 : 0.9;
     zoomEm(e.clientX, e.clientY, fator);
@@ -792,8 +917,6 @@ function zoomEm(clientX, clientY, fator){
 
 function mostrarZoomInfo(){
   const el = document.getElementById("zoom_info");
-  if(!mapaImg){ el.style.display = "none"; return; }
-  el.style.display = "block";
   el.textContent = Math.round(cam.escala * 100) + "%";
 }
 
@@ -806,7 +929,7 @@ function centralizarMapa(){
 
 function desenhar(){
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#cfd2d8";
+  ctx.fillStyle = "#1a2231";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   if(mapaImg){
     ctx.drawImage(mapaImg, cam.x, cam.y, mapaImg.width * cam.escala, mapaImg.height * cam.escala);
@@ -855,8 +978,11 @@ function desenharTokens(){
 
     if(t.id === daVez){
       ctx.save();
-      ctx.beginPath(); ctx.arc(sx, sy, raio + 6, 0, Math.PI * 2);
-      ctx.lineWidth = 4; ctx.strokeStyle = "#f1c40f"; ctx.shadowColor = "rgba(241,196,15,0.9)"; ctx.shadowBlur = 14; ctx.stroke();
+      /* a vez: anel vermelho de selo (shu) com um fio claro por dentro */
+      ctx.beginPath(); ctx.arc(sx, sy, raio + 7, 0, Math.PI * 2);
+      ctx.lineWidth = 4; ctx.strokeStyle = "#b3372b"; ctx.shadowColor = "rgba(179,55,43,0.85)"; ctx.shadowBlur = 16; ctx.stroke();
+      ctx.shadowBlur = 0; ctx.beginPath(); ctx.arc(sx, sy, raio + 3.5, 0, Math.PI * 2);
+      ctx.lineWidth = 1.5; ctx.strokeStyle = "#f3ecdc"; ctx.stroke();
       ctx.restore();
     }
 
@@ -870,15 +996,18 @@ function desenharTokens(){
 
     desenharBarrasToken(t, sx, sy, raio);
 
-    ctx.font = "600 11px Inter, Arial, sans-serif";
-    ctx.textAlign = "center";
+    /* nome numa etiqueta índigo, legível sobre qualquer mapa */
     const texto = t.nome || "";
-    const ty = sy + raio + 13;
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = "rgba(255,255,255,0.9)";
-    ctx.strokeText(texto, sx, ty);
-    ctx.fillStyle = "#1a1a1a";
-    ctx.fillText(texto, sx, ty);
+    if(texto){
+      ctx.font = "600 11px Inter, Arial, sans-serif";
+      ctx.textAlign = "center";
+      const lw = ctx.measureText(texto).width + 12, ty = sy + raio + 5;
+      ctx.fillStyle = "rgba(29,39,56,0.88)";
+      if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(sx - lw / 2, ty, lw, 17, 8); ctx.fill(); }
+      else ctx.fillRect(sx - lw / 2, ty, lw, 17);
+      ctx.fillStyle = "#eef1f6";
+      ctx.fillText(texto, sx, ty + 12);
+    }
   });
 }
 
@@ -910,9 +1039,9 @@ async function carregarMapa(){
   const vazio = document.getElementById("estado_vazio");
   if(!cenaAtual || !cenaAtual.mapa_url){
     vazio.style.display = "block";
-    document.getElementById("estado_vazio_texto").textContent = cenaAtual
-      ? "Esta cena ainda não tem um mapa."
-      : "Aguardando o mestre criar uma cena e subir um mapa.";
+    document.getElementById("estado_vazio_texto").textContent = souMestreDaSala()
+      ? "Abra Cenas e mapas, na barra à esquerda, e suba a imagem do mapa."
+      : (cenaAtual ? "Esta cena ainda não tem um mapa." : "Aguardando o mestre abrir uma cena.");
     mapaImg = null;
     desenhar();
     mostrarZoomInfo();
@@ -973,7 +1102,7 @@ function enviarMovimentoToken(t){
 
 async function salvarPosicaoToken(t){
   const { error } = await sb.from("tokens").update({ x: t.x, y: t.y }).eq("id", t.id);
-  if(error) alert("Não foi possível salvar a posição do token: " + error.message);
+  if(error) avisar("Não foi possível salvar a posição do token: " + error.message);
 }
 
 async function carregarTokens(){
@@ -986,7 +1115,7 @@ async function carregarTokens(){
 document.getElementById("btn_add_token").addEventListener("click", criarToken);
 
 async function criarToken(){
-  if(!cenaAtual){ alert("Suba um mapa antes de adicionar tokens (crie a cena primeiro)."); return; }
+  if(!cenaAtual){ avisar("Suba um mapa antes de adicionar tokens (crie a cena primeiro)."); return; }
 
   const nome = prompt("Nome do token:", "Novo token");
   if(nome == null) return;
@@ -1017,7 +1146,7 @@ async function criarToken(){
   const { error } = await sb.from("tokens").insert({
     cena_id: cenaAtual.id, dono_id: donoId, nome: nome.trim() || "Token", x, y, cor
   });
-  if(error) alert("Não foi possível criar o token: " + error.message);
+  if(error) avisar("Não foi possível criar o token: " + error.message);
 }
 
 /* ===== Menu do token ===== */
@@ -1100,7 +1229,7 @@ document.getElementById("mt_salvar").addEventListener("click", async () => {
     payload.mostrar_barras = document.getElementById("mt_barras").checked;
   }
   const { error } = await sb.from("tokens").update(payload).eq("id", t.id);
-  if(error){ alert("Não foi possível salvar o token: " + error.message); return; }
+  if(error){ avisar("Não foi possível salvar o token: " + error.message); return; }
   Object.assign(t, payload);
   if(payload.tam){
     const g = cenaAtual ? (cenaAtual.grid_px || 70) : 70;
@@ -1121,7 +1250,7 @@ document.getElementById("mt_apagar").addEventListener("click", async () => {
   const t = menuTokenAlvo; if(!t || !souMestreDaSala()) return;
   if(!confirm('Apagar o token "' + (t.nome || "Token") + '"?')) return;
   const { error } = await sb.from("tokens").delete().eq("id", t.id);
-  if(error){ alert("Não foi possível apagar o token: " + error.message); return; }
+  if(error){ avisar("Não foi possível apagar o token: " + error.message); return; }
   tokensAtuais = tokensAtuais.filter(x => x.id !== t.id);
   fecharMenuToken();
   desenhar();
@@ -1143,7 +1272,7 @@ async function salvarFog(){
   if(!cenaAtual) return;
   const lista = Array.from(fogRevelado).map(chave => chave.split(",").map(Number));
   const { error } = await sb.from("fog").upsert({ cena_id: cenaAtual.id, revelado: lista }, { onConflict: "cena_id" });
-  if(error) alert("Não foi possível salvar a névoa: " + error.message);
+  if(error) avisar("Não foi possível salvar a névoa: " + error.message);
 }
 
 function aplicarSelecaoFog(){
@@ -1468,16 +1597,32 @@ async function salvarIniciativa(){
     _rodadaSemColuna = true; delete linha.rodada;          // rode mesa_rodadas.sql para gravar a rodada
     ({ error } = await sb.from("iniciativa").upsert(linha, { onConflict: "sala_id" }));
   }
-  if(error) alert("Não foi possível salvar a iniciativa: " + error.message);
+  if(error) avisar("Não foi possível salvar a iniciativa: " + error.message);
 }
 
+function renderizarFaixaIniciativa(){
+  const faixa = document.getElementById("faixa_ini"); if(!faixa) return;
+  faixa.classList.toggle("visivel", iniciativaOrdem.length > 0);
+  document.getElementById("faixa_rodada_n").textContent = iniciativaRodada;
+  const fila = document.getElementById("faixa_fila");
+  fila.innerHTML = iniciativaOrdem.map((item, i) => {
+    const atual = i === iniciativaAtual;
+    return '<div class="ini-card' + (atual ? " atual" : "") + '" data-idx="' + i + '" title="' + escapeHtml(item.nome) + ': ' + item.valor + '">' +
+      '<span class="marca">' + escapeHtml(atual ? "番" : iniciais(item.nome)) + '</span>' +
+      '<span class="nome">' + escapeHtml(item.nome) + '</span>' +
+      '<span class="valor">' + item.valor + '</span></div>';
+  }).join("");
+  const atualEl = fila.querySelector(".ini-card.atual");
+  if(atualEl && atualEl.scrollIntoView) atualEl.scrollIntoView({ block:"nearest", inline:"center" });
+}
 function renderizarIniciativa(){
+  renderizarFaixaIniciativa();
   document.getElementById("rodada_num").textContent = "Rodada " + iniciativaRodada;
   const daVez = iniciativaOrdem[iniciativaAtual];
   document.getElementById("rodada_vez").textContent = daVez ? "Vez de " + daVez.nome : "";
   desenhar();   // destaca o token da vez
   const area = document.getElementById("lista_iniciativa");
-  if(!iniciativaOrdem.length){ area.innerHTML = '<div class="log-vazio">Ninguém na lista ainda.</div>'; return; }
+  if(!iniciativaOrdem.length){ area.innerHTML = '<div class="log-vazio">Ninguém na ordem ainda. Quem rolar iniciativa pela ficha entra aqui.</div>'; return; }
   area.innerHTML = iniciativaOrdem.map((item, i) => {
     const ehAtual = i === iniciativaAtual;
     return '<div class="item-iniciativa' + (ehAtual ? " atual" : "") + '" data-idx="' + i + '">' +
@@ -1537,7 +1682,7 @@ document.getElementById("btn_iniciativa_avancar").addEventListener("click", asyn
 });
 
 document.getElementById("btn_iniciativa_limpar").addEventListener("click", async () => {
-  if(!confirm("Limpar toda a lista de iniciativa?")) return;
+  if(!confirm("Encerrar o combate e limpar a ordem de iniciativa?")) return;
   iniciativaOrdem = [];
   iniciativaAtual = 0;
   iniciativaRodada = 1;
@@ -1667,7 +1812,7 @@ function cartaRolagemHtml(ev, nome){
 
 function renderizarFeed(){
   const area = document.getElementById("log_rolagens");
-  if(!feedEventos.length){ area.innerHTML = '<div class="log-vazio">Nenhuma atividade ainda.</div>'; return; }
+  if(!feedEventos.length){ area.innerHTML = '<div class="log-vazio">Nada rolado ainda. Use os atalhos acima ou escreva /r 2d8.</div>'; return; }
   area.innerHTML = feedEventos.map(ev => {
     const nome = nomesCache[ev.user_id] || "Jogador";
     if(ev.tipo === "rolagem") return cartaRolagemHtml(ev, nome);
@@ -1681,7 +1826,7 @@ async function rolarFormula(formula){
   const f = (formula || "").trim();
   if(!f) return;
   const { error } = await sb.rpc("rolar_dados", { p_sala: salaId, p_formula: f });
-  if(error) alert("Não foi possível rolar: " + error.message);
+  if(error) avisar("Não foi possível rolar: " + error.message);
 }
 
 async function enviarMensagem(texto){
@@ -1695,9 +1840,12 @@ async function enviarMensagem(texto){
   }
 
   const { error } = await sb.from("mensagens").insert({ sala_id: salaId, user_id: meuId, texto: t });
-  if(error) alert("Não foi possível enviar a mensagem: " + error.message);
+  if(error) avisar("Não foi possível enviar a mensagem: " + error.message);
 }
 
+function abrirPainel(painelId, btnId){
+  if(!document.getElementById(painelId).classList.contains("aberto")) togglePainel(painelId, btnId);
+}
 function togglePainel(painelId, btnId){
   const painel = document.getElementById(painelId);
   const abrindo = !painel.classList.contains("aberto");
@@ -1745,6 +1893,85 @@ document.querySelectorAll(".atalhos button").forEach(btn => {
   btn.addEventListener("click", () => rolarFormula(btn.dataset.f));
 });
 
+/* ===== Interface: doca, faixa, cena, zoom e atalhos de teclado ===== */
+function atualizarDoca(){
+  const livre = !modoPing && !modoMedir && !modoFog;
+  document.getElementById("btn_navegar").classList.toggle("ativo", livre);
+}
+function modoNavegar(){
+  if(modoPing){ modoPing = false; document.getElementById("btn_ping_toggle").classList.remove("ativo"); }
+  if(modoMedir){ modoMedir = false; document.getElementById("btn_medir_toggle").classList.remove("ativo"); document.getElementById("submenu_formas").style.display = "none"; }
+  if(modoFog) setModoFog(modoFog);
+  atualizarDoca();
+}
+document.getElementById("btn_navegar").addEventListener("click", modoNavegar);
+["btn_ping_toggle", "btn_medir_toggle", "btn_fog_revelar", "btn_fog_esconder"].forEach(id => {
+  document.getElementById(id).addEventListener("click", () => setTimeout(atualizarDoca, 0));
+});
+/* ferramentas que se excluem: ligar uma desliga as outras */
+document.getElementById("btn_ping_toggle").addEventListener("click", () => {
+  setTimeout(() => {
+    if(modoPing){
+      if(modoMedir){ modoMedir = false; document.getElementById("btn_medir_toggle").classList.remove("ativo"); document.getElementById("submenu_formas").style.display = "none"; }
+      if(modoFog) setModoFog(modoFog);
+    }
+    atualizarDoca();
+  }, 0);
+});
+document.getElementById("btn_medir_toggle").addEventListener("click", () => {
+  setTimeout(() => {
+    if(modoMedir){
+      if(modoPing){ modoPing = false; document.getElementById("btn_ping_toggle").classList.remove("ativo"); }
+      if(modoFog) setModoFog(modoFog);
+      const r = document.getElementById("btn_medir_toggle").getBoundingClientRect();
+      const sub = document.getElementById("submenu_formas");
+      if(window.innerWidth > 900){ sub.style.top = (r.top + r.height / 2 - 24) + "px"; sub.style.bottom = ""; }
+      else sub.style.top = "";
+    }
+    atualizarDoca();
+  }, 0);
+});
+["btn_fog_revelar", "btn_fog_esconder"].forEach(id => document.getElementById(id).addEventListener("click", () => {
+  setTimeout(() => {
+    if(modoFog){
+      if(modoPing){ modoPing = false; document.getElementById("btn_ping_toggle").classList.remove("ativo"); }
+      if(modoMedir){ modoMedir = false; document.getElementById("btn_medir_toggle").classList.remove("ativo"); document.getElementById("submenu_formas").style.display = "none"; }
+    }
+    atualizarDoca();
+  }, 0);
+}));
+document.getElementById("cena_chip").addEventListener("click", () => {
+  if(!souMestreDaSala()) return;
+  togglePainel("painel_mapas", "btn_mapas_toggle"); carregarListaMapas();
+});
+document.getElementById("faixa_rodada").addEventListener("click", () => abrirPainel("painel_iniciativa", "btn_iniciativa_toggle"));
+document.getElementById("faixa_fila").addEventListener("click", () => abrirPainel("painel_iniciativa", "btn_iniciativa_toggle"));
+document.getElementById("faixa_proxima").addEventListener("click", () => document.getElementById("btn_iniciativa_avancar").click());
+function zoomCentro(f){ const r = palco.getBoundingClientRect(); zoomEm(r.left + r.width / 2, r.top + r.height / 2, f); }
+document.getElementById("btn_zoom_mais").addEventListener("click", () => zoomCentro(1.2));
+document.getElementById("btn_zoom_menos").addEventListener("click", () => zoomCentro(1 / 1.2));
+document.getElementById("btn_zoom_ajustar").addEventListener("click", () => { centralizarMapa(); desenhar(); mostrarZoomInfo(); });
+document.addEventListener("keydown", (e) => {
+  const alvo = e.target;
+  if(alvo && (alvo.tagName === "INPUT" || alvo.tagName === "TEXTAREA" || alvo.tagName === "SELECT" || alvo.isContentEditable)) return;
+  if(e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  const clicar = id => { const b = document.getElementById(id); if(b && b.offsetParent !== null) b.click(); };
+  if(k === "v" || k === "escape") modoNavegar();
+  else if(k === "p") clicar("btn_ping_toggle");
+  else if(k === "m") clicar("btn_medir_toggle");
+  else if(k === "t") clicar("btn_add_token");
+  else if(k === "r") clicar("btn_fog_revelar");
+  else if(k === "e") clicar("btn_fog_esconder");
+  else if(k === "i") clicar("btn_iniciativa_toggle");
+  else if(k === "c") clicar("btn_dados_toggle");
+  else if(k === "+" || k === "=") zoomCentro(1.2);
+  else if(k === "-") zoomCentro(1 / 1.2);
+  else if(k === "0") document.getElementById("btn_zoom_ajustar").click();
+  else return;
+  e.preventDefault();
+});
+
 /* ===== Mestre: ajustar tamanho do grid ===== */
 
 let timerGrid = null;
@@ -1769,7 +1996,7 @@ document.getElementById("in_metros_casa").addEventListener("input", (e) => {
   clearTimeout(timerMetros);
   timerMetros = setTimeout(async () => {
     const { error } = await sb.from("cenas").update({ metros_casa: val }).eq("id", cenaAtual.id);
-    if(error){ console.error(error); alert("Não foi possível salvar os metros por casa (rode o SQL mesa_regua.sql): " + error.message); }
+    if(error){ console.error(error); avisar("Não foi possível salvar os metros por casa (rode o SQL mesa_regua.sql): " + error.message); }
   }, 500);
 });
 
@@ -1810,10 +2037,10 @@ document.getElementById("input_mapa").addEventListener("change", async (e) => {
     await trocarCena(novaCena);
     carregarListaMapas();
   }catch(err){
-    alert("Não foi possível subir o mapa: " + err.message);
+    avisar("Não foi possível subir o mapa: " + err.message);
   }finally{
     btn.disabled = false;
-    btn.textContent = "+ Novo mapa";
+    btn.textContent = "Subir mapa novo";
   }
 });
 
@@ -1821,7 +2048,7 @@ async function carregarListaMapas(){
   const area = document.getElementById("lista_mapas");
   const { data: cenas, error } = await sb.from("cenas").select("id, nome").eq("sala_id", salaId).order("criado_em", { ascending:true });
   if(error){ area.innerHTML = '<div class="log-vazio">Erro ao carregar: ' + escapeHtml(error.message) + '</div>'; return; }
-  if(!cenas || !cenas.length){ area.innerHTML = '<div class="log-vazio">Nenhum mapa salvo ainda.</div>'; return; }
+  if(!cenas || !cenas.length){ area.innerHTML = '<div class="log-vazio">Nenhum mapa ainda. Suba uma imagem para criar a primeira cena.</div>'; return; }
 
   area.innerHTML = cenas.map(c => {
     const ehAtivo = cenaAtual && c.id === cenaAtual.id;
@@ -1844,7 +2071,7 @@ async function carregarListaMapas(){
 
 async function ativarMapa(cenaId){
   const { error } = await sb.from("salas").update({ cena_ativa: cenaId }).eq("id", salaId);
-  if(error) alert("Não foi possível ativar esse mapa: " + error.message);
+  if(error) avisar("Não foi possível ativar esse mapa: " + error.message);
 }
 
 async function apagarMapa(cenaId){
@@ -1853,16 +2080,16 @@ async function apagarMapa(cenaId){
   /* se for a cena ativa, solta a sala antes (todos voltam para "sem mapa") */
   if(salaAtual && salaAtual.cena_ativa === cenaId){
     const { error: errSala } = await sb.from("salas").update({ cena_ativa: null }).eq("id", salaId);
-    if(errSala){ alert("Não foi possível desativar o mapa antes de apagar: " + errSala.message); return; }
+    if(errSala){ avisar("Não foi possível desativar o mapa antes de apagar: " + errSala.message); return; }
   }
   const { error } = await sb.from("cenas").delete().eq("id", cenaId);
-  if(error){ alert("Não foi possível apagar: " + error.message); return; }
+  if(error){ avisar("Não foi possível apagar: " + error.message); return; }
   /* a imagem fica no bucket até ser removida explicitamente */
   if(cena && cena.mapa_url){
     const { data: removidos, error: errImg } = await sb.storage.from("mapas").remove([cena.mapa_url]);
     if(errImg || !removidos || !removidos.length){
       console.warn("Imagem do mapa não removida do armazenamento:", errImg || "sem permissão de exclusão no bucket");
-      alert("O mapa foi apagado, mas a imagem continuou no armazenamento (falta permissão de exclusão no bucket \"mapas\").");
+      avisar("O mapa foi apagado, mas a imagem continuou no armazenamento (falta permissão de exclusão no bucket \"mapas\").");
     }
   }
   carregarListaMapas();
@@ -1994,7 +2221,7 @@ function conectarPresenca(){
 
   canal.subscribe(async (status) => {
     if(status === "SUBSCRIBED"){
-      await canal.track({ nome: meuNome, entrou_em: new Date().toISOString() });
+      await canal.track({ nome: meuNome, cor: meuCor, entrou_em: new Date().toISOString() });
     }
   });
 }
@@ -2009,10 +2236,11 @@ function renderizarPresenca(estado){
     vistos.add(k);
     const info = estado[k][0] || {};
     const nome = info.nome || "Jogador";
-    html += '<div class="avatar">' + escapeHtml(iniciais(nome)) +
+    const cor = /^#[0-9a-f]{6}$/i.test(info.cor || "") ? info.cor : "";
+    html += '<div class="avatar"' + (cor ? ' style="background:' + cor + '"' : '') + '>' + escapeHtml(iniciais(nome)) +
       '<span class="tooltip">' + escapeHtml(nome) + '</span></div>';
   });
-  html += '<span class="contador-online">' + chaves.length + ' online</span>';
+  html += '<span class="contador-online">' + chaves.length + (chaves.length === 1 ? ' pessoa' : ' pessoas') + ' na mesa</span>';
   area.innerHTML = html;
 }
 

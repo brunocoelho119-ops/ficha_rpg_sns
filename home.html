@@ -70,6 +70,8 @@
   }
   .card .acoes button.primaria{ background:#0f4c9c; color:#fff; border-color:#0f4c9c; }
   .card .acoes button.apagar{ color:#a32020; }
+  .card .meta .sala-tag{ display:inline-block; margin-top:3px; padding:2px 8px; border-radius:999px; background:var(--gray-light, #f6f7f8); color:var(--ink, #1a1a1a); font-weight:600; }
+  .card .meta .sala-tag.sem{ color:var(--gray-text, #8b8d92); }
   .card .acoes button:hover{ filter:brightness(0.97); }
   .vazio{ padding:40px 20px; text-align:center; color:var(--gray-text); font-size:13.5px; }
   .carregando{ padding:40px 20px; text-align:center; color:var(--gray-text); font-size:13.5px; }
@@ -133,6 +135,7 @@
 
 <script>
 let meuId = null, meuRole = "player";
+let nomesSalas = {};   // id da sala -> nome (para mostrar em qual sala cada ficha está)
 
 function escapeHtml(s){
   return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -172,6 +175,7 @@ async function carregarSalas(){
   area.innerHTML = '<div class="carregando">Carregando salas…</div>';
 
   const { data: todasSalas, error } = await sb.from("salas").select("*").order("criado_em", { ascending:false });
+  nomesSalas = {}; (todasSalas || []).forEach(s => { nomesSalas[s.id] = s.nome; });
   if(error){ area.innerHTML = '<div class="vazio">Erro ao carregar salas: ' + escapeHtml(error.message) + '</div>'; return; }
 
   const { data: minhasMembresias } = await sb.from("sala_membros").select("sala_id").eq("user_id", meuId);
@@ -210,7 +214,9 @@ function cardSalaHtml(s, souDono){
     '<div class="meta">Criada em ' + formatarData(s.criado_em) + '</div>' +
     '<div class="acoes">' +
       '<button type="button" class="primaria entrar">Entrar</button>' +
-      (souDono ? '<button type="button" class="jogadores">Jogadores</button>' : '') +
+      (souDono ? '<button type="button" class="jogadores">Jogadores</button>' +
+                 '<button type="button" class="renomear">Renomear</button>' +
+                 '<button type="button" class="apagar apagar-sala">Apagar</button>' : '') +
     '</div>' +
   '</div>';
 }
@@ -222,6 +228,30 @@ function ligarCliquesSalas(){
     card.querySelector(".entrar").addEventListener("click", (e) => {
       e.stopPropagation();
       location.href = "mesa.html?sala=" + id;
+    });
+    const btnRen = card.querySelector(".renomear");
+    if(btnRen) btnRen.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const novo = prompt("Novo nome da sala:", nome);
+      if(novo == null || !novo.trim() || novo.trim() === nome) return;
+      const { error } = await sb.from("salas").update({ nome: novo.trim() }).eq("id", id);
+      if(error){ alert("Não foi possível renomear a sala: " + error.message); return; }
+      carregarSalas(); carregarFichas();
+    });
+    const btnApagarSala = card.querySelector(".apagar-sala");
+    if(btnApagarSala) btnApagarSala.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const conf = prompt('Apagar a sala "' + nome + '" apaga também os mapas, tokens, névoa, iniciativa, rolagens e o chat dela. As fichas continuam existindo.\n\nPara confirmar, digite o nome da sala:');
+      if(conf == null) return;
+      if(conf.trim() !== nome.trim()){ alert("O nome digitado não confere. Nada foi apagado."); return; }
+      /* imagens dos mapas ficam no armazenamento: apaga a pasta da sala antes */
+      try{
+        const { data: arqs } = await sb.storage.from("mapas").list(id, { limit: 1000 });
+        if(arqs && arqs.length) await sb.storage.from("mapas").remove(arqs.map(a => id + "/" + a.name));
+      }catch(err){ console.warn(err); }
+      const { error } = await sb.from("salas").delete().eq("id", id);
+      if(error){ alert("Não foi possível apagar a sala: " + error.message); return; }
+      carregarSalas(); carregarFichas();
     });
     const btnJogadores = card.querySelector(".jogadores");
     if(btnJogadores){
@@ -304,7 +334,7 @@ async function carregarFichas(){
   area.innerHTML = '<div class="carregando">Carregando suas fichas…</div>';
 
   /* RLS já garante: Player só recebe as próprias; Mestre recebe todas */
-  const { data: fichas, error } = await sb.from("fichas").select("id, user_id, nome, atualizado_em").order("atualizado_em", { ascending:false });
+  const { data: fichas, error } = await sb.from("fichas").select("id, user_id, nome, atualizado_em, sala_id").order("atualizado_em", { ascending:false });
   if(error){ area.innerHTML = '<div class="vazio">Erro ao carregar: ' + escapeHtml(error.message) + '</div>'; return; }
 
   if(!fichas || fichas.length === 0){
@@ -342,12 +372,15 @@ async function carregarFichas(){
 }
 
 function cardHtml(f){
-  return '<div class="card" data-id="' + f.id + '">' +
+  const minha = f.user_id === meuId;
+  const sala = f.sala_id ? (nomesSalas[f.sala_id] || "Sala sem acesso") : null;
+  return '<div class="card" data-id="' + f.id + '" data-nome="' + escapeHtml(f.nome || "Ficha sem nome") + '">' +
     '<div class="nome">' + escapeHtml(f.nome || "Ficha sem nome") + '</div>' +
-    '<div class="meta">Atualizada em ' + formatarData(f.atualizado_em) + '</div>' +
+    '<div class="meta">Atualizada em ' + formatarData(f.atualizado_em) + '<br>' +
+      (sala ? '<span class="sala-tag">Sala: ' + escapeHtml(sala) + '</span>' : '<span class="sala-tag sem">Sem sala vinculada</span>') + '</div>' +
     '<div class="acoes">' +
       '<button type="button" class="abrir">Abrir</button>' +
-      '<button type="button" class="apagar">Apagar</button>' +
+      (minha ? '<button type="button" class="apagar">Apagar</button>' : '') +   /* o mestre não apaga fichas dos jogadores */
     '</div>' +
   '</div>';
 }
@@ -357,9 +390,10 @@ function ligarCliques(){
     const id = card.dataset.id;
     card.querySelector(".abrir").addEventListener("click", (e) => { e.stopPropagation(); abrirFicha(id); });
     card.addEventListener("click", () => abrirFicha(id));
-    card.querySelector(".apagar").addEventListener("click", async (e) => {
+    const btnApagar = card.querySelector(".apagar");
+    if(btnApagar) btnApagar.addEventListener("click", async (e) => {
       e.stopPropagation();
-      if(!confirm("Apagar esta ficha? Essa ação não pode ser desfeita.")) return;
+      if(!confirm('Apagar a ficha "' + (card.dataset.nome || "") + '"? Essa ação não pode ser desfeita.')) return;
       const { error } = await sb.from("fichas").delete().eq("id", id);
       if(error){ alert("Não foi possível apagar: " + error.message); return; }
       carregarFichas();

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nova senha · Shinobi no Sho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1a1a; --bar-bg:#1c1c1e; --bg:#ffffff; --page-bg:#eef0f3;
+    --gray-light:#f6f7f8; --gray-text:#8b8d92; --border:#e3e4e7; --border-strong:#d3d5d9;
+    --input-bg:#f5f6f7; --input-border:#e2e3e6;
+    --shadow: 0 1px 3px rgba(20,20,25,0.06), 0 8px 20px rgba(20,20,25,0.05);
+    --radius:14px; --font-display:'Barlow Condensed', Arial, sans-serif; --font-body:'Inter', Arial, sans-serif;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; margin:0; }
+  body{
+    font-family:var(--font-body); background:var(--page-bg); color:var(--ink);
+    display:flex; align-items:center; justify-content:center; padding:18px;
+  }
+  /* imagem de fundo sutil (Konoha) — baixa opacidade, atrás de todo o conteúdo */
+  body::before{
+    content:""; position:fixed; top:0; right:0; bottom:0; left:0; z-index:-1; pointer-events:none;
+    background:url('konoha-bg.jpg') center center / cover no-repeat;
+    opacity:0.14;
+  }
+  .card{
+    width:100%; max-width:400px; background:var(--bg); border-radius:var(--radius);
+    box-shadow:var(--shadow); overflow:hidden;
+  }
+  .head{
+    background:var(--bar-bg); color:#fff; padding:22px 24px 18px;
+    font-family:var(--font-display); text-transform:uppercase; letter-spacing:0.5px;
+  }
+  .head .t1{ font-size:13px; opacity:0.75; font-weight:600; }
+  .head .t2{ font-size:24px; font-weight:800; }
+  .body{ padding:22px 24px 24px; }
+  .tabs{ display:flex; gap:6px; margin-bottom:18px; }
+  .tab{
+    flex:1; padding:9px 10px; text-align:center; border:1px solid var(--border); border-radius:8px;
+    background:var(--input-bg); font-weight:700; font-size:13px; cursor:pointer; font-family:var(--font-body);
+  }
+  .tab.active{ background:var(--bar-bg); color:#fff; border-color:var(--bar-bg); }
+  label{ display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--gray-text); margin:12px 0 6px; }
+  input[type=text], input[type=email], input[type=password]{
+    width:100%; padding:11px 12px; font-size:14px; font-family:var(--font-body);
+    background:var(--input-bg); border:1px solid var(--input-border); border-radius:8px; color:var(--ink);
+  }
+  input:focus{ outline:2px solid var(--bar-bg); outline-offset:-1px; }
+  .btn{
+    width:100%; margin-top:18px; padding:12px; border:none; border-radius:999px;
+    background:var(--bar-bg); color:#fff; font-weight:700; font-size:14px; cursor:pointer;
+    font-family:var(--font-body);
+  }
+  .btn:disabled{ opacity:0.5; cursor:not-allowed; }
+  .btn:hover:not(:disabled){ filter:brightness(1.1); }
+  .msg{ margin-top:14px; font-size:12.5px; line-height:1.5; padding:10px 12px; border-radius:8px; display:none; }
+  .msg.show{ display:block; }
+  .msg.erro{ background:#fdecec; color:#a32020; }
+  .msg.ok{ background:#e9f8ef; color:#0f7a3d; }
+  .link-esqueci{ display:block; margin-top:10px; background:none; border:none; padding:0; font-size:12.5px; color:var(--gray-text); cursor:pointer; text-decoration:underline; font-family:var(--font-body); }
+  .link-esqueci:hover{ color:var(--ink); }
+  .rodape{ margin-top:16px; font-size:11.5px; color:var(--gray-text); text-align:center; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+</head>
+<body>
+<div class="card">
+  <div class="head"><div class="t1">Shinobi no Sho</div><div class="t2">Nova senha</div></div>
+  <div class="body">
+    <form id="form_nova">
+      <label style="margin-top:0;">Senha nova</label>
+      <input type="password" id="in_senha1" required minlength="6" autocomplete="new-password">
+      <label>Repita a senha</label>
+      <input type="password" id="in_senha2" required minlength="6" autocomplete="new-password">
+      <button type="submit" class="btn" id="btn_salvar" disabled>Aguardando o link…</button>
+    </form>
+    <div class="msg" id="msg"></div>
+    <div class="rodape">Abra esta página pelo link que chegou no seu e-mail.</div>
+  </div>
+</div>
+<script>
+const btn = document.getElementById("btn_salvar"), msg = document.getElementById("msg");
+function mostrarMsg(t, tipo){ msg.textContent = t; msg.className = "msg show " + tipo; }
+function liberar(){ btn.disabled = false; btn.textContent = "Salvar senha nova"; }
+/* o link do e-mail abre esta página já com a sessão de recuperação */
+sb.auth.onAuthStateChange((evento, sessao) => { if(evento === "PASSWORD_RECOVERY" || sessao) liberar(); });
+sb.auth.getSession().then(({ data }) => {
+  if(data.session) liberar();
+  else setTimeout(() => { if(btn.disabled) mostrarMsg("Link inválido ou expirado. Peça outro em \"Esqueci minha senha\" na tela de entrada.", "erro"); }, 2500);
+});
+document.getElementById("form_nova").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const a = document.getElementById("in_senha1").value, b = document.getElementById("in_senha2").value;
+  if(a !== b){ mostrarMsg("As duas senhas não são iguais.", "erro"); return; }
+  if(a.length < 6){ mostrarMsg("A senha precisa ter pelo menos 6 caracteres.", "erro"); return; }
+  btn.disabled = true;
+  const { error } = await sb.auth.updateUser({ password: a });
+  if(error){ mostrarMsg("Não foi possível salvar: " + error.message, "erro"); btn.disabled = false; return; }
+  mostrarMsg("Senha alterada. Entrando…", "ok");
+  setTimeout(() => { location.href = "home.html"; }, 1200);
+});
+</script>
+</body>
+</html>
