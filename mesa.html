@@ -257,6 +257,39 @@
   .item-mapa .tag-ativo{ font-size:11.5px; font-weight:700; color:var(--sumi-2); }
   .item-mapa .apagar-mapa{ background:transparent; border:none; color:var(--erro); cursor:pointer; font-size:14px; padding:2px 4px; }
 
+  /* ---------- modo particular do mestre ---------- */
+  .tag-particular{
+    display:none; margin-left:4px; font-family:var(--font-body); font-size:11px; font-weight:700; color:var(--sumi);
+    background:var(--kinari); padding:3px 8px; border-radius:999px; white-space:nowrap; flex-shrink:0;
+  }
+  body.em-particular .tag-particular{ display:inline-block; }
+  body.em-particular .cena-chip{ box-shadow:var(--sombra), 0 0 0 2px var(--kinari); }
+  .aviso-particular{
+    position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:16; display:none; align-items:center; gap:12px;
+    background:var(--washi); color:var(--sumi); border-radius:var(--raio-g); padding:10px 10px 10px 16px; box-shadow:var(--sombra);
+    border:1px solid var(--washi-borda); max-width:calc(100vw - 420px); font-size:13px; line-height:1.4;
+  }
+  body.em-particular .aviso-particular{ display:flex; }
+  @media (min-width: 901px){ body.em-particular .painel-dados{ bottom:96px; } }
+  .aviso-particular b{ font-weight:700; }
+  .aviso-particular .acoes{ display:flex; gap:6px; flex-shrink:0; }
+  .aviso-particular button{
+    border-radius:var(--raio-p); padding:8px 12px; font-size:12.5px; font-weight:600; cursor:pointer;
+    border:1px solid var(--washi-borda); background:#fff; color:var(--sumi); white-space:nowrap;
+  }
+  .aviso-particular button.primaria{ background:var(--aizome); color:#fff; border-color:var(--aizome); }
+  .item-mapa{ flex-wrap:wrap; }
+  .item-mapa .tags{ display:flex; gap:4px; width:100%; }
+  .item-mapa .tag{ font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px; background:var(--washi-2); color:var(--sumi-2); }
+  .item-mapa .tag.jogadores{ background:#e1e7f1; color:var(--aizome); }
+  .item-mapa .tag.voce{ background:#f1e3bd; color:#6b5210; }
+  .item-mapa .abrir-mapa{
+    font-size:12px; font-weight:600; border-radius:var(--raio-p); padding:5px 11px; cursor:pointer;
+    border:1px solid var(--washi-borda); background:#fff; color:var(--sumi);
+  }
+  .item-mapa .ativar-mapa{ background:var(--aizome) !important; color:#fff !important; border-color:var(--aizome) !important; }
+  @media (max-width: 900px){ .aviso-particular{ bottom:124px; max-width:calc(100vw - 28px); flex-wrap:wrap; } }
+
   /* ---------- zoom (canto inferior direito) ---------- */
   .zoom-cluster{ position:fixed; right:14px; bottom:14px; z-index:11; border-radius:999px; display:flex; align-items:center; padding:4px; gap:2px; }
   .zoom-cluster button{
@@ -353,6 +386,16 @@
     <div class="textos">
       <div class="tt" id="nome_sala">Carregando…</div>
       <div class="sub" id="sub_sala">&nbsp;</div>
+    </div>
+    <span class="tag-particular" id="tag_particular">Só você vê</span>
+  </div>
+
+  <!-- mestre editando outra cena em particular -->
+  <div class="aviso-particular" id="aviso_particular" role="status">
+    <div id="aviso_particular_txt">Editando em particular.</div>
+    <div class="acoes">
+      <button type="button" class="primaria" id="btn_mostrar_jogadores">Mostrar aos jogadores</button>
+      <button type="button" id="btn_voltar_jogadores">Voltar à cena deles</button>
     </div>
   </div>
 
@@ -506,7 +549,7 @@
 
   <div class="painel-dados" id="painel_mapas">
     <div class="cab"><span>Cenas e mapas</span><button type="button" id="btn_fechar_mapas" aria-label="Fechar">✕</button></div>
-    <div class="secao-titulo">Escala da cena ativa</div>
+    <div class="secao-titulo">Escala da cena aberta</div>
     <div class="escala-cena" id="grid_ajuste">
       <label for="in_grid_px">Tamanho da casa (px)<input type="number" id="in_grid_px" min="10" max="500" step="1"></label>
       <label for="in_metros_casa">Metros por casa<input type="number" id="in_metros_casa" min="0.5" max="20" step="0.5"></label>
@@ -527,6 +570,10 @@ let meuId = null, meuNome = "";
 let salaAtual = null, cenaAtual = null;
 let canal = null;        // canal da sala: presença, broadcast, sala/cenas/iniciativa/rolagens/chat
 let canalCena = null;    // canal da cena ativa: tokens e névoa (recriado a cada troca de cena)
+/* Modo particular: o mestre pode abrir outra cena só para ele, enquanto os jogadores
+   continuam na cena ativa da sala (salas.cena_ativa). null = acompanha os jogadores. */
+let cenaParticular = null;
+const CHAVE_PARTICULAR = () => "mesa_particular_" + salaId;
 
 let mapaImg = null;
 let cam = { x: 0, y: 0, escala: 1 }; // x,y = deslocamento em pixels de tela; escala = zoom
@@ -610,15 +657,25 @@ async function iniciar(){
     document.body.classList.add("sou-mestre");
   }
 
-  if(sala.cena_ativa){
-    const { data: cena } = await sb.from("cenas").select("*").eq("id", sala.cena_ativa).single();
+  let idInicial = sala.cena_ativa;
+  if(sala.mestre_id === meuId){
+    let salva = null; try{ salva = sessionStorage.getItem(CHAVE_PARTICULAR()); }catch(e){}
+    if(salva && salva !== sala.cena_ativa){ cenaParticular = salva; idInicial = salva; }
+  }
+  if(idInicial){
+    const { data: cena } = await sb.from("cenas").select("*").eq("id", idInicial).single();
     cenaAtual = cena || null;
+    if(!cenaAtual && cenaParticular){           // a cena particular sumiu: volta para a dos jogadores
+      cenaParticular = null; try{ sessionStorage.removeItem(CHAVE_PARTICULAR()); }catch(e){}
+      if(sala.cena_ativa){ const { data: c2 } = await sb.from("cenas").select("*").eq("id", sala.cena_ativa).single(); cenaAtual = c2 || null; }
+    }
   }
   if(cenaAtual) await carregarTokens();
   await carregarFog();
   await carregarIniciativa();
   await carregarFeed();
   atualizarSub();
+  atualizarAvisoParticular();
   prepararCanvas();
   carregarMapa();
 
@@ -1097,7 +1154,7 @@ function enviarMovimentoToken(t){
   const agora = Date.now();
   if(agora - ultimoEnvioMoveMs < 40) return; /* limita a ~25 envios/seg */
   ultimoEnvioMoveMs = agora;
-  if(canal) canal.send({ type: "broadcast", event: "mover_token", payload: { id: t.id, x: t.x, y: t.y } });
+  if(canal) canal.send({ type: "broadcast", event: "mover_token", payload: { id: t.id, x: t.x, y: t.y, cena: cenaAtual && cenaAtual.id } });
 }
 
 async function salvarPosicaoToken(t){
@@ -1377,7 +1434,7 @@ document.getElementById("btn_fog_esconder").addEventListener("click", () => setM
 
 function dispararPing(mapX, mapY){
   adicionarPing(mapX, mapY, meuCor);
-  if(canal) canal.send({ type: "broadcast", event: "ping", payload: { x: mapX, y: mapY, cor: meuCor } });
+  if(canal) canal.send({ type: "broadcast", event: "ping", payload: { x: mapX, y: mapY, cor: meuCor, cena: cenaAtual && cenaAtual.id } });
 }
 
 function adicionarPing(mapX, mapY, cor){
@@ -1432,7 +1489,7 @@ function enviarCursorMestre(mapX, mapY){
   const agora = Date.now();
   if(agora - ultimoEnvioCursorMs < 60) return;
   ultimoEnvioCursorMs = agora;
-  if(canal) canal.send({ type: "broadcast", event: "cursor_mestre", payload: { x: mapX, y: mapY } });
+  if(canal) canal.send({ type: "broadcast", event: "cursor_mestre", payload: { x: mapX, y: mapY, cena: cenaAtual && cenaAtual.id } });
 }
 
 function desenharCursorMestre(){
@@ -1537,7 +1594,7 @@ function enviarMedida(fim){
   if(agora - ultimoEnvioMedidaMs < 50) return;
   ultimoEnvioMedidaMs = agora;
   const f = Object.assign({ forma: formaSelecionada, tam: tamanhoFixoM() }, formaAtiva);
-  canal.send({ type: "broadcast", event: "medida", payload: { uid: meuId, nome: meuNome, cor: meuCor, f } });
+  canal.send({ type: "broadcast", event: "medida", payload: { uid: meuId, nome: meuNome, cor: meuCor, f, cena: cenaAtual && cenaAtual.id } });
 }
 
 document.getElementById("btn_medir_toggle").addEventListener("click", () => {
@@ -2030,11 +2087,20 @@ document.getElementById("input_mapa").addEventListener("change", async (e) => {
       .select("*").single();
     if(errCena) throw errCena;
 
-    const { error: errSala } = await sb.from("salas").update({ cena_ativa: novaCena.id }).eq("id", salaId);
-    if(errSala) throw errSala;
-
-    salaAtual.cena_ativa = novaCena.id;
-    await trocarCena(novaCena);
+    if(!salaAtual.cena_ativa){
+      /* primeira cena da sala: já vai para todos */
+      const { error: errSala } = await sb.from("salas").update({ cena_ativa: novaCena.id }).eq("id", salaId);
+      if(errSala) throw errSala;
+      salaAtual.cena_ativa = novaCena.id;
+      definirParticular(null);
+      await trocarCena(novaCena);
+    } else {
+      /* os jogadores continuam onde estão; o mestre prepara o mapa novo em particular */
+      definirParticular(novaCena.id);
+      await trocarCena(novaCena);
+      avisar("Mapa novo aberto só para você. Quando estiver pronto, use Mostrar aos jogadores.", "ok");
+    }
+    atualizarAvisoParticular();
     carregarListaMapas();
   }catch(err){
     avisar("Não foi possível subir o mapa: " + err.message);
@@ -2050,29 +2116,84 @@ async function carregarListaMapas(){
   if(error){ area.innerHTML = '<div class="log-vazio">Erro ao carregar: ' + escapeHtml(error.message) + '</div>'; return; }
   if(!cenas || !cenas.length){ area.innerHTML = '<div class="log-vazio">Nenhum mapa ainda. Suba uma imagem para criar a primeira cena.</div>'; return; }
 
+  const idJog = salaAtual && salaAtual.cena_ativa;
   area.innerHTML = cenas.map(c => {
-    const ehAtivo = cenaAtual && c.id === cenaAtual.id;
-    return '<div class="item-mapa' + (ehAtivo ? " ativo" : "") + '" data-id="' + c.id + '">' +
+    const dosJogadores = c.id === idJog;
+    const aberta = cenaAtual && c.id === cenaAtual.id;
+    return '<div class="item-mapa' + (aberta ? " ativo" : "") + '" data-id="' + c.id + '">' +
       '<span class="nome-mapa">' + escapeHtml(c.nome) + '</span>' +
-      (ehAtivo
-        ? '<span class="tag-ativo">Ativo</span>'
-        : '<button type="button" class="ativar-mapa" data-id="' + c.id + '">Ativar</button>') +
+      (aberta ? '' : '<button type="button" class="abrir-mapa" data-id="' + c.id + '" title="Abrir só para você, sem os jogadores verem">Editar</button>') +
+      (dosJogadores ? '' : '<button type="button" class="ativar-mapa" data-id="' + c.id + '" title="Levar os jogadores para este mapa">Mostrar</button>') +
       '<button type="button" class="apagar-mapa" data-id="' + c.id + '" title="Apagar mapa">✕</button>' +
+      ((dosJogadores || aberta) ? '<div class="tags">' +
+        (dosJogadores ? '<span class="tag jogadores">Jogadores aqui</span>' : '') +
+        (aberta ? '<span class="tag voce">' + (dosJogadores ? 'Você está aqui' : 'Você está editando') + '</span>' : '') + '</div>' : '') +
     '</div>';
   }).join("");
 
   area.querySelectorAll(".ativar-mapa").forEach(btn => {
     btn.addEventListener("click", () => ativarMapa(btn.dataset.id));
   });
+  area.querySelectorAll(".abrir-mapa").forEach(btn => {
+    btn.addEventListener("click", () => abrirEmParticular(btn.dataset.id));
+  });
   area.querySelectorAll(".apagar-mapa").forEach(btn => {
     btn.addEventListener("click", () => apagarMapa(btn.dataset.id));
   });
 }
 
+/* mostrar aos jogadores: vira a cena ativa da sala (todos vão para ela, inclusive o mestre) */
 async function ativarMapa(cenaId){
   const { error } = await sb.from("salas").update({ cena_ativa: cenaId }).eq("id", salaId);
-  if(error) avisar("Não foi possível ativar esse mapa: " + error.message);
+  if(error){ avisar("Não foi possível mostrar esse mapa: " + error.message); return; }
+  if(salaAtual) salaAtual.cena_ativa = cenaId;
+  definirParticular(null);
+  if(!cenaAtual || cenaAtual.id !== cenaId){
+    const { data: cena } = await sb.from("cenas").select("*").eq("id", cenaId).single();
+    await trocarCena(cena);
+  }
+  atualizarAvisoParticular();
+  avisar("Os jogadores agora veem " + ((cenaAtual && cenaAtual.nome) || "este mapa") + ".", "ok");
+  if(document.getElementById("painel_mapas").classList.contains("aberto")) carregarListaMapas();
 }
+function definirParticular(id){
+  cenaParticular = id || null;
+  try{ if(cenaParticular) sessionStorage.setItem(CHAVE_PARTICULAR(), cenaParticular); else sessionStorage.removeItem(CHAVE_PARTICULAR()); }catch(e){}
+}
+/* abrir uma cena só para o mestre; se for a dos jogadores, apenas volta a acompanhá-los */
+async function abrirEmParticular(cenaId){
+  if(!souMestreDaSala()) return;
+  if(salaAtual && cenaId === salaAtual.cena_ativa){ await voltarParaJogadores(); return; }
+  const { data: cena, error } = await sb.from("cenas").select("*").eq("id", cenaId).single();
+  if(error || !cena){ avisar("Não foi possível abrir esse mapa: " + ((error && error.message) || "não encontrado")); return; }
+  definirParticular(cenaId);
+  await trocarCena(cena);
+  atualizarAvisoParticular();
+  if(document.getElementById("painel_mapas").classList.contains("aberto")) carregarListaMapas();
+}
+async function voltarParaJogadores(){
+  definirParticular(null);
+  let cena = null;
+  if(salaAtual && salaAtual.cena_ativa){ const { data } = await sb.from("cenas").select("*").eq("id", salaAtual.cena_ativa).single(); cena = data || null; }
+  await trocarCena(cena);
+  atualizarAvisoParticular();
+  if(document.getElementById("painel_mapas").classList.contains("aberto")) carregarListaMapas();
+}
+async function atualizarAvisoParticular(){
+  const emPart = !!cenaParticular && souMestreDaSala();
+  document.body.classList.toggle("em-particular", emPart);
+  if(!emPart) return;
+  let nomeJog = "nenhuma cena";
+  if(salaAtual && salaAtual.cena_ativa){
+    const { data } = await sb.from("cenas").select("nome").eq("id", salaAtual.cena_ativa).single();
+    if(data && data.nome) nomeJog = data.nome;
+  }
+  const aqui = (cenaAtual && cenaAtual.nome) || "este mapa";
+  document.getElementById("aviso_particular_txt").innerHTML =
+    "Editando <b>" + escapeHtml(aqui) + "</b> só para você. Os jogadores continuam em <b>" + escapeHtml(nomeJog) + "</b>.";
+}
+document.getElementById("btn_mostrar_jogadores").addEventListener("click", () => { if(cenaAtual) ativarMapa(cenaAtual.id); });
+document.getElementById("btn_voltar_jogadores").addEventListener("click", voltarParaJogadores);
 
 async function apagarMapa(cenaId){
   if(!confirm("Apagar este mapa? Os tokens e a névoa dele também serão apagados.")) return;
@@ -2084,6 +2205,7 @@ async function apagarMapa(cenaId){
   }
   const { error } = await sb.from("cenas").delete().eq("id", cenaId);
   if(error){ avisar("Não foi possível apagar: " + error.message); return; }
+  if(cenaParticular === cenaId) await voltarParaJogadores();
   /* a imagem fica no bucket até ser removida explicitamente */
   if(cena && cena.mapa_url){
     const { data: removidos, error: errImg } = await sb.storage.from("mapas").remove([cena.mapa_url]);
@@ -2112,6 +2234,12 @@ function conectarPresenca(){
     { event: "UPDATE", schema: "public", table: "salas", filter: "id=eq." + salaId },
     async (payload) => {
       salaAtual = payload.new;
+      if(cenaParticular){
+        if(salaAtual.cena_ativa === cenaParticular) definirParticular(null);   // a cena em edição foi mostrada
+        atualizarAvisoParticular();
+        if(document.getElementById("painel_mapas").classList.contains("aberto")) carregarListaMapas();
+        return;
+      }
       if(salaAtual.cena_ativa){
         if(salaAtual.cena_ativa !== (cenaAtual && cenaAtual.id)){
           const { data: cena } = await sb.from("cenas").select("*").eq("id", salaAtual.cena_ativa).single();
@@ -2183,13 +2311,16 @@ function conectarPresenca(){
   );
 
   /* ping no mapa (efêmero, não grava no banco) */
+  const outraCena = (p) => !!(p && p.cena) && (!cenaAtual || p.cena !== cenaAtual.id);
   canal.on("broadcast", { event: "ping" }, (msg) => {
+    if(outraCena(msg.payload)) return;
     adicionarPing(msg.payload.x, msg.payload.y, msg.payload.cor);
   });
 
   /* medições dos outros (efêmero) */
   canal.on("broadcast", { event: "medida" }, (msg) => {
     const p = msg.payload || {}; if(!p.uid || p.uid === meuId) return;
+    if(outraCena(p)){ delete medidasRemotas[p.uid]; return; }
     medidasRemotas[p.uid] = { f: p.f, cor: p.cor, nome: p.nome, em: Date.now() };
     desenhar();
   });
@@ -2201,6 +2332,7 @@ function conectarPresenca(){
 
   /* cursor do mestre, só pros jogadores (efêmero) */
   canal.on("broadcast", { event: "cursor_mestre" }, (msg) => {
+    if(outraCena(msg.payload)){ if(cursorMestre){ cursorMestre = null; desenhar(); } return; }
     cursorMestre = { x: msg.payload.x, y: msg.payload.y };
     desenhar();
   });
@@ -2211,6 +2343,7 @@ function conectarPresenca(){
 
   /* movimento ao vivo (efêmero, não grava no banco) */
   canal.on("broadcast", { event: "mover_token" }, (msg) => {
+    if(outraCena(msg.payload)) return;
     const t = tokensAtuais.find(tk => tk.id === msg.payload.id);
     if(t){
       t.x = msg.payload.x;
