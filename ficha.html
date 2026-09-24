@@ -1362,8 +1362,29 @@ function salvarNaNuvem(){
       const { error } = await sb.from("fichas").update({ dados, atualizado_em: new Date().toISOString() }).eq("id", FICHA_ID);
       if(st) st.textContent = error ? "Erro ao salvar" : "Salvo";
       if(error) console.error(error);
+      else enviarStatusParaTokens();
     }catch(e){ console.error(e); if(st) st.textContent = "Erro ao salvar"; }
   }, 1200);
+}
+
+/* Vida e Chakra vão para os tokens da mesa vinculados a esta ficha (barras sobre o token).
+   Só envia quando muda. Sem a função no banco, falha em silêncio. */
+let _statusEnviado = "", _statusAvisou = false;
+async function enviarStatusParaTokens(forcar){
+  if(!NUVEM_ATIVA || typeof sb === "undefined" || !FICHA_ID || !(_souDono || _souMestre)) return;
+  const n = v => { const x = parseFloat(String(v == null ? "" : v).replace(",", ".")); return isNaN(x) ? null : Math.round(x); };
+  const vitMax = n((document.getElementById("st_vida_total") || {}).textContent);
+  const chaMax = n((document.getElementById("st_chakra_total") || {}).textContent);
+  const vitEl = document.getElementById("in_vit_atual"), chaEl = document.getElementById("in_chakra_atual");
+  const vit = (vitEl && vitEl.value.trim() !== "") ? n(vitEl.value) : vitMax;
+  const cha = (chaEl && chaEl.value.trim() !== "") ? n(chaEl.value) : chaMax;
+  const assinatura = [vit, vitMax, cha, chaMax].join("|");
+  if(!forcar && assinatura === _statusEnviado) return;
+  try{
+    const { error } = await sb.rpc("atualizar_status_ficha", { p_ficha: FICHA_ID, p_vit: vit, p_vit_max: vitMax, p_chakra: cha, p_chakra_max: chaMax });
+    if(error){ if(!_statusAvisou){ console.warn("Status para tokens indisponível:", error.message); _statusAvisou = true; } return; }
+    _statusEnviado = assinatura;
+  }catch(e){}
 }
 
 /* ===================================================================
@@ -5725,6 +5746,7 @@ montarControlesMestre();
     await carregarCompendio();   // banco compartilhado (cai no embutido se a tabela não existir)
   }
   iniciarFicha();
+  setTimeout(() => enviarStatusParaTokens(true), 1500);   // barras da mesa já com o valor atual ao abrir
 })();
 
 </script>

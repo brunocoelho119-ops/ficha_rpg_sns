@@ -176,6 +176,37 @@
   }
   .item-mapa .tag-ativo{ font-size:10.5px; font-weight:800; color:#0f4c9c; text-transform:uppercase; }
   .item-mapa .apagar-mapa{ background:transparent; border:none; color:#a32020; cursor:pointer; font-size:14px; padding:2px 4px; }
+  /* ---- menu do token ---- */
+  .menu-token{
+    position:absolute; z-index:30; width:260px; background:var(--bg); border:1px solid var(--border);
+    border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.18); overflow:hidden; display:none; font-size:12.5px;
+  }
+  .menu-token.aberto{ display:block; }
+  .menu-token .cab{
+    background:var(--bar-bg); color:#fff; padding:9px 12px; display:flex; align-items:center; justify-content:space-between;
+    font-family:var(--font-display); text-transform:uppercase; font-weight:700; font-size:13px; letter-spacing:0.3px;
+  }
+  .menu-token .cab button{ background:transparent; border:none; color:#fff; font-size:15px; cursor:pointer; }
+  .menu-token .corpo{ padding:10px 12px; display:flex; flex-direction:column; gap:8px; }
+  .menu-token label{ display:flex; flex-direction:column; gap:3px; font-size:10.5px; font-weight:700; text-transform:uppercase; color:var(--gray-text); }
+  .menu-token label.linha{ flex-direction:row; align-items:center; gap:6px; text-transform:none; font-size:12px; color:var(--ink); font-weight:600; }
+  .menu-token input[type=text], .menu-token select{
+    padding:7px 9px; font-size:12.5px; font-family:var(--font-body); background:var(--input-bg);
+    border:1px solid var(--input-border); border-radius:8px; color:var(--ink); text-transform:none; font-weight:500;
+  }
+  .menu-token .duas{ display:flex; gap:8px; }
+  .menu-token .duas > label{ flex:1; }
+  .menu-token input[type=color]{ width:100%; height:32px; border:1px solid var(--input-border); border-radius:8px; padding:2px; background:var(--input-bg); cursor:pointer; }
+  .menu-token .acoes{ display:flex; gap:6px; padding:0 12px 12px 12px; flex-wrap:wrap; }
+  .menu-token .acoes button{
+    flex:1; padding:8px 10px; border:none; border-radius:999px; font-weight:700; font-size:12px; cursor:pointer;
+    font-family:var(--font-body); background:var(--gray-light); color:var(--ink); border:1px solid var(--border-strong);
+  }
+  .menu-token .acoes button.primaria{ background:var(--bar-bg); color:#fff; border-color:var(--bar-bg); }
+  .menu-token .acoes button.perigo{ background:#fdecec; color:#a32020; border-color:#f3c4c4; }
+  .menu-token .nota{ font-size:11px; color:var(--gray-text); line-height:1.4; }
+  .menu-token .so-mestre{ display:none; }
+  .menu-token.mestre .so-mestre{ display:flex; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
@@ -271,6 +302,34 @@
       </svg>
     </button>
   </div>
+  <div class="menu-token" id="menu_token">
+    <div class="cab"><span id="mt_titulo">Token</span><button type="button" id="mt_fechar">✕</button></div>
+    <div class="corpo">
+      <label>Nome<input type="text" id="mt_nome" maxlength="40"></label>
+      <div class="duas">
+        <label>Cor<input type="color" id="mt_cor"></label>
+        <label class="so-mestre" style="flex-direction:column;">Tamanho
+          <select id="mt_tam">
+            <option value="0.5">Miúdo (½ casa)</option>
+            <option value="1">1 casa</option>
+            <option value="2">2 × 2</option>
+            <option value="3">3 × 3</option>
+            <option value="4">4 × 4</option>
+          </select>
+        </label>
+      </div>
+      <label class="so-mestre" style="flex-direction:column;">Jogador dono<select id="mt_dono"></select></label>
+      <label>Ficha vinculada<select id="mt_ficha"></select></label>
+      <label class="linha so-mestre"><input type="checkbox" id="mt_barras"> Jogadores veem as barras de Vida e Chakra</label>
+      <div class="nota" id="mt_nota"></div>
+    </div>
+    <div class="acoes">
+      <button type="button" class="primaria" id="mt_salvar">Salvar</button>
+      <button type="button" id="mt_abrir_ficha">Abrir ficha</button>
+      <button type="button" class="perigo" id="mt_apagar">Apagar</button>
+    </div>
+  </div>
+
   <div class="painel-dados" id="painel_dados">
     <div class="cab">
       <span>Mesa</span>
@@ -333,7 +392,8 @@ const salaId = params.get("sala");
 
 let meuId = null, meuNome = "";
 let salaAtual = null, cenaAtual = null;
-let canal = null;
+let canal = null;        // canal da sala: presença, broadcast, sala/cenas/iniciativa/rolagens/chat
+let canalCena = null;    // canal da cena ativa: tokens e névoa (recriado a cada troca de cena)
 
 let mapaImg = null;
 let cam = { x: 0, y: 0, escala: 1 }; // x,y = deslocamento em pixels de tela; escala = zoom
@@ -418,6 +478,74 @@ async function iniciar(){
   carregarMapa();
 
   conectarPresenca();
+  assinarCena();
+}
+
+/* troca a cena exibida (ou limpa, com null) e refaz tudo que depende dela */
+async function trocarCena(cena){
+  cenaAtual = cena || null;
+  if(!cenaAtual){ tokensAtuais = []; fogRevelado = new Set(); }
+  await carregarTokens();
+  await carregarFog();
+  atualizarSub();
+  carregarMapa();
+  assinarCena();
+}
+
+/* Os filtros do Realtime são fixados ao assinar o canal. Por isso tokens e névoa
+   ficam num canal próprio da cena, recriado a cada troca; ao conectar, recarrega
+   tudo para não perder o que mudou entre a leitura e a assinatura. */
+async function assinarCena(){
+  if(canalCena){ try{ await sb.removeChannel(canalCena); }catch(e){} canalCena = null; }
+  if(!cenaAtual) return;
+  const idCena = cenaAtual.id;
+  const ehDaCena = () => cenaAtual && cenaAtual.id === idCena;
+  const ch = sb.channel("cena:" + idCena);
+
+  ch.on("postgres_changes",
+    { event: "INSERT", schema: "public", table: "tokens", filter: "cena_id=eq." + idCena },
+    (payload) => {
+      if(!ehDaCena()) return;
+      if(!tokensAtuais.some(t => t.id === payload.new.id)) tokensAtuais.push(payload.new);
+      desenhar();
+    });
+  ch.on("postgres_changes",
+    { event: "UPDATE", schema: "public", table: "tokens", filter: "cena_id=eq." + idCena },
+    (payload) => {
+      if(!ehDaCena()) return;
+      const t = tokensAtuais.find(tk => tk.id === payload.new.id);
+      if(t) Object.assign(t, payload.new); else tokensAtuais.push(payload.new);
+      desenhar();
+    });
+  /* exclusões não aceitam filtro no Realtime: chega o id e conferimos se é desta cena */
+  ch.on("postgres_changes",
+    { event: "DELETE", schema: "public", table: "tokens" },
+    (payload) => {
+      if(!ehDaCena()) return;
+      const id = payload.old && payload.old.id;
+      if(!id) return;
+      const antes = tokensAtuais.length;
+      tokensAtuais = tokensAtuais.filter(t => t.id !== id);
+      if(menuTokenAlvo && menuTokenAlvo.id === id) fecharMenuToken();
+      if(tokensAtuais.length !== antes) desenhar();
+    });
+  ch.on("postgres_changes",
+    { event: "*", schema: "public", table: "fog", filter: "cena_id=eq." + idCena },
+    (payload) => {
+      if(!ehDaCena()) return;
+      if(payload.new && Array.isArray(payload.new.revelado)){
+        fogRevelado = new Set(payload.new.revelado.map(par => par[0] + "," + par[1]));
+        desenhar();
+      }
+    });
+  ch.subscribe(async (status) => {
+    if(status === "SUBSCRIBED" && ehDaCena()){
+      await carregarTokens();
+      await carregarFog();
+      desenhar();
+    }
+  });
+  canalCena = ch;
 }
 
 function atualizarSub(){
@@ -525,8 +653,8 @@ function prepararCanvas(){
     }
     if(tokenArrastando){
       const gridPx = cenaAtual.grid_px || 70;
-      tokenArrastando.x = Math.round((tokenArrastando.x - gridPx / 2) / gridPx) * gridPx + gridPx / 2;
-      tokenArrastando.y = Math.round((tokenArrastando.y - gridPx / 2) / gridPx) * gridPx + gridPx / 2;
+      tokenArrastando.x = encaixarNoGrid(tokenArrastando.x, tokenArrastando.tam, gridPx);
+      tokenArrastando.y = encaixarNoGrid(tokenArrastando.y, tokenArrastando.tam, gridPx);
       desenhar();
       salvarPosicaoToken(tokenArrastando);
       tokenArrastando = null;
@@ -538,6 +666,21 @@ function prepararCanvas(){
   palco.addEventListener("pointerup", soltar);
   palco.addEventListener("pointercancel", soltar);
   palco.addEventListener("pointerleave", soltar);
+
+  /* botão direito sobre um token: menu (mestre ou dono do token) */
+  palco.addEventListener("contextmenu", (e) => {
+    const rect = palco.getBoundingClientRect();
+    const alvo = encontrarTokenEm(e.clientX - rect.left, e.clientY - rect.top);
+    if(!alvo) return;
+    e.preventDefault();
+    if(podeArrastarToken(alvo)) abrirMenuToken(alvo, e.clientX - rect.left, e.clientY - rect.top);
+  });
+  /* duplo clique num token vinculado abre a ficha (se você tiver acesso a ela) */
+  palco.addEventListener("dblclick", (e) => {
+    const rect = palco.getBoundingClientRect();
+    const alvo = encontrarTokenEm(e.clientX - rect.left, e.clientY - rect.top);
+    if(alvo && alvo.ficha_id && podeArrastarToken(alvo)) window.open("ficha.html?id=" + alvo.ficha_id, "_blank");
+  });
 
   palco.addEventListener("wheel", (e) => {
     e.preventDefault();
@@ -558,6 +701,13 @@ document.addEventListener("keydown", (e) => {
 document.addEventListener("keyup", (e) => {
   if(e.code === "Space") espacoPressionado = false;
 });
+
+/* tokens de tamanho ímpar (e miúdos) centralizam na casa; pares, no cruzamento das linhas */
+function encaixarNoGrid(v, tam, gridPx){
+  const n = Math.round(Number(tam) || 1);
+  if(n >= 2 && n % 2 === 0) return Math.round(v / gridPx) * gridPx;
+  return Math.round((v - gridPx / 2) / gridPx) * gridPx + gridPx / 2;
+}
 
 function redimensionar(){
   canvas.width = palco.clientWidth;
@@ -639,6 +789,8 @@ function desenharTokens(){
     ctx.strokeStyle = "#fff";
     ctx.stroke();
 
+    desenharBarrasToken(t, sx, sy, raio);
+
     ctx.font = "600 11px Inter, Arial, sans-serif";
     ctx.textAlign = "center";
     const texto = t.nome || "";
@@ -649,6 +801,30 @@ function desenharTokens(){
     ctx.fillStyle = "#1a1a1a";
     ctx.fillText(texto, sx, ty);
   });
+}
+
+/* barras acima do token vinculado a uma ficha (Vida em vermelho, Chakra em azul) */
+function barrasVisiveis(t){
+  if(!t || !(Number(t.vit_max) > 0 || Number(t.chakra_max) > 0)) return false;
+  return souMestreDaSala() || t.dono_id === meuId || t.mostrar_barras !== false;
+}
+function desenharBarrasToken(t, sx, sy, raio){
+  if(!barrasVisiveis(t)) return;
+  /* dentro da parte de baixo do token: fica na mesma casa, sem ser coberto pela névoa ao lado */
+  const larg = Math.max(22, raio * 1.6), alt = Math.max(3, Math.min(7, raio * 0.17));
+  const x = sx - larg / 2;
+  let y = sy + raio * 0.28;
+  const barra = (atual, max, cor) => {
+    if(!(Number(max) > 0)) return;
+    const frac = Math.max(0, Math.min(1, Number(atual) / Number(max)));
+    ctx.fillStyle = "rgba(20,20,25,0.75)";
+    ctx.fillRect(x - 1, y - 1, larg + 2, alt + 2);
+    ctx.fillStyle = cor;
+    ctx.fillRect(x, y, larg * frac, alt);
+    y += alt + 2;
+  };
+  barra(t.vit, t.vit_max, Number(t.vit) <= 0 ? "#7f1d1d" : "#d63031");
+  barra(t.chakra, t.chakra_max, "#2e86de");
 }
 
 async function carregarMapa(){
@@ -764,6 +940,113 @@ async function criarToken(){
   });
   if(error) alert("Não foi possível criar o token: " + error.message);
 }
+
+/* ===== Menu do token ===== */
+let menuTokenAlvo = null;
+async function listaMembrosSala(){
+  const { data: membros } = await sb.from("sala_membros").select("user_id").eq("sala_id", salaId);
+  const ids = (membros || []).map(m => m.user_id);
+  if(!ids.length) return [];
+  const { data: perfisMembros } = await sb.from("perfis").select("id, nome").in("id", ids);
+  return perfisMembros || [];
+}
+/* mestre recebe todas as fichas (RLS); jogador, só as próprias */
+async function listaFichasVisiveis(){
+  const { data, error } = await sb.from("fichas").select("id, nome, user_id").order("nome", { ascending:true });
+  return error ? [] : (data || []);
+}
+function fecharMenuToken(){
+  menuTokenAlvo = null;
+  document.getElementById("menu_token").classList.remove("aberto");
+}
+async function abrirMenuToken(t, px, py){
+  const menu = document.getElementById("menu_token");
+  const mestre = souMestreDaSala();
+  menuTokenAlvo = t;
+  menu.classList.toggle("mestre", mestre);
+  document.getElementById("mt_titulo").textContent = t.nome || "Token";
+  document.getElementById("mt_nome").value = t.nome || "";
+  document.getElementById("mt_cor").value = /^#[0-9a-f]{6}$/i.test(t.cor || "") ? t.cor : "#555555";
+  const tamSel = document.getElementById("mt_tam");
+  tamSel.value = String(t.tam || 1); if(!tamSel.value) tamSel.value = "1";
+  document.getElementById("mt_barras").checked = t.mostrar_barras !== false;
+  document.getElementById("mt_apagar").style.display = mestre ? "" : "none";
+  document.getElementById("mt_abrir_ficha").style.display = t.ficha_id ? "" : "none";
+  const nota = document.getElementById("mt_nota");
+  nota.textContent = t.ficha_id && !(Number(t.vit_max) > 0)
+    ? "As barras aparecem depois que a ficha vinculada for aberta e salva uma vez."
+    : "Duplo clique no token abre a ficha vinculada.";
+
+  const selDono = document.getElementById("mt_dono"), selFicha = document.getElementById("mt_ficha");
+  selDono.innerHTML = '<option value="">— ninguém —</option>';
+  selFicha.innerHTML = '<option value="">Carregando…</option>';
+  /* posiciona perto do clique, sem sair do palco */
+  menu.classList.add("aberto");
+  const w = menu.offsetWidth || 260, h = menu.offsetHeight || 380;
+  menu.style.left = Math.max(60, Math.min(px + 12, palco.clientWidth - w - 10)) + "px";
+  menu.style.top = Math.max(10, Math.min(py - 20, palco.clientHeight - h - 10)) + "px";
+
+  const [membros, fichas] = await Promise.all([ mestre ? listaMembrosSala() : Promise.resolve([]), listaFichasVisiveis() ]);
+  if(menuTokenAlvo !== t) return;
+  membros.forEach(p => { selDono.insertAdjacentHTML("beforeend", '<option value="' + p.id + '">' + escapeHtml(p.nome) + '</option>'); });
+  selDono.value = t.dono_id || "";
+  const nomes = {}; membros.forEach(p => { nomes[p.id] = p.nome; });
+  selFicha.innerHTML = '<option value="">— nenhuma —</option>' + fichas.map(f =>
+    '<option value="' + f.id + '">' + escapeHtml(f.nome || "Ficha sem nome") +
+    (mestre && f.user_id !== meuId && nomes[f.user_id] ? " (" + escapeHtml(nomes[f.user_id]) + ")" : "") + '</option>').join("");
+  if(t.ficha_id && !fichas.some(f => f.id === t.ficha_id))
+    selFicha.insertAdjacentHTML("beforeend", '<option value="' + t.ficha_id + '">(ficha de outro jogador)</option>');
+  selFicha.value = t.ficha_id || "";
+}
+document.getElementById("mt_fechar").addEventListener("click", fecharMenuToken);
+document.addEventListener("keydown", (e) => { if(e.key === "Escape") fecharMenuToken(); });
+document.addEventListener("pointerdown", (e) => {
+  const menu = document.getElementById("menu_token");
+  if(menu.classList.contains("aberto") && !e.target.closest("#menu_token")) fecharMenuToken();
+});
+document.getElementById("mt_salvar").addEventListener("click", async () => {
+  const t = menuTokenAlvo; if(!t) return;
+  const mestre = souMestreDaSala();
+  const fichaId = document.getElementById("mt_ficha").value || null;
+  const mudouFicha = fichaId !== (t.ficha_id || null);
+  const payload = {
+    nome: document.getElementById("mt_nome").value.trim() || "Token",
+    cor: document.getElementById("mt_cor").value,
+    ficha_id: fichaId
+  };
+  if(mudouFicha){ payload.vit = null; payload.vit_max = null; payload.chakra = null; payload.chakra_max = null; }
+  if(mestre){
+    payload.tam = Number(document.getElementById("mt_tam").value) || 1;
+    payload.dono_id = document.getElementById("mt_dono").value || null;
+    payload.mostrar_barras = document.getElementById("mt_barras").checked;
+  }
+  const { error } = await sb.from("tokens").update(payload).eq("id", t.id);
+  if(error){ alert("Não foi possível salvar o token: " + error.message); return; }
+  Object.assign(t, payload);
+  if(payload.tam){
+    const g = cenaAtual ? (cenaAtual.grid_px || 70) : 70;
+    const nx = encaixarNoGrid(t.x, t.tam, g), ny = encaixarNoGrid(t.y, t.tam, g);
+    if(nx !== t.x || ny !== t.y){ t.x = nx; t.y = ny; salvarPosicaoToken(t); }
+  }
+  /* vinculou agora: pede à ficha o status atual (a função do banco copia os valores, se já houver) */
+  if(fichaId && mudouFicha){
+    try{ await sb.rpc("puxar_status_ficha_token", { p_token: t.id }); }catch(e){}
+  }
+  fecharMenuToken();
+  desenhar();
+});
+document.getElementById("mt_abrir_ficha").addEventListener("click", () => {
+  const t = menuTokenAlvo; if(t && t.ficha_id) window.open("ficha.html?id=" + t.ficha_id, "_blank");
+});
+document.getElementById("mt_apagar").addEventListener("click", async () => {
+  const t = menuTokenAlvo; if(!t || !souMestreDaSala()) return;
+  if(!confirm('Apagar o token "' + (t.nome || "Token") + '"?')) return;
+  const { error } = await sb.from("tokens").delete().eq("id", t.id);
+  if(error){ alert("Não foi possível apagar o token: " + error.message); return; }
+  tokensAtuais = tokensAtuais.filter(x => x.id !== t.id);
+  fecharMenuToken();
+  desenhar();
+});
 
 /* ===== Névoa de guerra ===== */
 
@@ -1103,6 +1386,7 @@ document.getElementById("btn_add_iniciativa").addEventListener("click", async ()
 
 async function removerIniciativa(idx){
   iniciativaOrdem.splice(idx, 1);
+  if(idx < iniciativaAtual) iniciativaAtual--;              // quem saiu estava antes da vez: a vez recua junto
   if(iniciativaAtual >= iniciativaOrdem.length) iniciativaAtual = 0;
   renderizarIniciativa();
   await salvarIniciativa();
@@ -1362,12 +1646,8 @@ document.getElementById("input_mapa").addEventListener("change", async (e) => {
     const { error: errSala } = await sb.from("salas").update({ cena_ativa: novaCena.id }).eq("id", salaId);
     if(errSala) throw errSala;
 
-    cenaAtual = novaCena;
     salaAtual.cena_ativa = novaCena.id;
-    await carregarTokens();
-    await carregarFog();
-    atualizarSub();
-    carregarMapa();
+    await trocarCena(novaCena);
     carregarListaMapas();
   }catch(err){
     alert("Não foi possível subir o mapa: " + err.message);
@@ -1409,8 +1689,22 @@ async function ativarMapa(cenaId){
 
 async function apagarMapa(cenaId){
   if(!confirm("Apagar este mapa? Os tokens e a névoa dele também serão apagados.")) return;
+  const { data: cena } = await sb.from("cenas").select("mapa_url").eq("id", cenaId).single();
+  /* se for a cena ativa, solta a sala antes (todos voltam para "sem mapa") */
+  if(salaAtual && salaAtual.cena_ativa === cenaId){
+    const { error: errSala } = await sb.from("salas").update({ cena_ativa: null }).eq("id", salaId);
+    if(errSala){ alert("Não foi possível desativar o mapa antes de apagar: " + errSala.message); return; }
+  }
   const { error } = await sb.from("cenas").delete().eq("id", cenaId);
   if(error){ alert("Não foi possível apagar: " + error.message); return; }
+  /* a imagem fica no bucket até ser removida explicitamente */
+  if(cena && cena.mapa_url){
+    const { data: removidos, error: errImg } = await sb.storage.from("mapas").remove([cena.mapa_url]);
+    if(errImg || !removidos || !removidos.length){
+      console.warn("Imagem do mapa não removida do armazenamento:", errImg || "sem permissão de exclusão no bucket");
+      alert("O mapa foi apagado, mas a imagem continuou no armazenamento (falta permissão de exclusão no bucket \"mapas\").");
+    }
+  }
   carregarListaMapas();
 }
 
@@ -1434,18 +1728,10 @@ function conectarPresenca(){
       if(salaAtual.cena_ativa){
         if(salaAtual.cena_ativa !== (cenaAtual && cenaAtual.id)){
           const { data: cena } = await sb.from("cenas").select("*").eq("id", salaAtual.cena_ativa).single();
-          cenaAtual = cena || null;
-          await carregarTokens();
-          await carregarFog();
-          atualizarSub();
-          carregarMapa();
+          await trocarCena(cena);
         }
       } else if(cenaAtual){
-        cenaAtual = null;
-        tokensAtuais = [];
-        fogRevelado = new Set();
-        atualizarSub();
-        carregarMapa();
+        await trocarCena(null);
       }
       if(document.getElementById("painel_mapas").classList.contains("aberto")) carregarListaMapas();
     }
@@ -1533,39 +1819,6 @@ function conectarPresenca(){
     }
   });
 
-  /* novos tokens criados na cena atual */
-  if(cenaAtual){
-    canal.on("postgres_changes",
-      { event: "INSERT", schema: "public", table: "tokens", filter: "cena_id=eq." + cenaAtual.id },
-      (payload) => {
-        tokensAtuais.push(payload.new);
-        desenhar();
-      }
-    );
-
-    /* posição final gravada (snap ao grid), sincroniza pra quem entrou depois */
-    canal.on("postgres_changes",
-      { event: "UPDATE", schema: "public", table: "tokens", filter: "cena_id=eq." + cenaAtual.id },
-      (payload) => {
-        const t = tokensAtuais.find(tk => tk.id === payload.new.id);
-        if(t) Object.assign(t, payload.new);
-        else tokensAtuais.push(payload.new);
-        desenhar();
-      }
-    );
-
-    /* névoa revelada/escondida pelo mestre */
-    canal.on("postgres_changes",
-      { event: "*", schema: "public", table: "fog", filter: "cena_id=eq." + cenaAtual.id },
-      (payload) => {
-        if(payload.new && Array.isArray(payload.new.revelado)){
-          fogRevelado = new Set(payload.new.revelado.map(par => par[0] + "," + par[1]));
-          desenhar();
-        }
-      }
-    );
-  }
-
   canal.subscribe(async (status) => {
     if(status === "SUBSCRIBED"){
       await canal.track({ nome: meuNome, entrou_em: new Date().toISOString() });
@@ -1592,6 +1845,7 @@ function renderizarPresenca(estado){
 
 document.getElementById("btn_sair").addEventListener("click", async () => {
   if(canal) await sb.removeChannel(canal);
+  if(canalCena) await sb.removeChannel(canalCena);
   location.href = "home.html";
 });
 
