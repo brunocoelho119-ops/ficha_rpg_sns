@@ -1362,7 +1362,7 @@ function salvarNaNuvem(){
       const { error } = await sb.from("fichas").update({ dados, atualizado_em: new Date().toISOString() }).eq("id", FICHA_ID);
       if(st) st.textContent = error ? "Erro ao salvar" : "Salvo";
       if(error) console.error(error);
-      else enviarStatusParaTokens();
+      else { enviarStatusParaTokens(); enviarFotoParaTokens(); }
     }catch(e){ console.error(e); if(st) st.textContent = "Erro ao salvar"; }
   }, 1200);
 }
@@ -1385,6 +1385,31 @@ async function enviarStatusParaTokens(forcar){
     if(error){ if(!_statusAvisou){ console.warn("Status para tokens indisponível:", error.message); _statusAvisou = true; } return; }
     _statusEnviado = assinatura;
   }catch(e){}
+}
+
+/* Foto da ficha para os tokens "moeda" da mesa: vai para o bucket público "tokens"
+   (fichas/<id>.png), reduzida para 256px, só quando a foto muda. */
+async function enviarFotoParaTokens(forcar){
+  if(!NUVEM_ATIVA || typeof sb === "undefined" || !FICHA_ID || !(_souDono || _souMestre)) return;
+  let foto = ""; try{ foto = localStorage.getItem(FOTO_KEY) || ""; }catch(e){}
+  if(!foto || foto.indexOf("data:image") !== 0) return;
+  const assinatura = foto.length + ":" + foto.slice(-64);
+  const chave = "sns_foto_enviada_" + FICHA_ID;
+  let jaFoi = ""; try{ jaFoi = localStorage.getItem(chave) || ""; }catch(e){}
+  if(!forcar && jaFoi === assinatura) return;
+  try{
+    const img = await new Promise((ok, erro) => { const i = new Image(); i.onload = () => ok(i); i.onerror = erro; i.src = foto; });
+    const L = 256, c = document.createElement("canvas"); c.width = L; c.height = L;
+    const x = c.getContext("2d");
+    const k = Math.max(L / img.width, L / img.height);          // cobre o quadrado, centralizado
+    x.drawImage(img, (L - img.width * k) / 2, (L - img.height * k) / 2, img.width * k, img.height * k);
+    const blob = await new Promise(ok => c.toBlob(ok, "image/png"));
+    const { error: errUp } = await sb.storage.from("tokens").upload("fichas/" + FICHA_ID + ".png", blob, { upsert: true, contentType: "image/png", cacheControl: "60" });
+    if(errUp) throw errUp;
+    const { error } = await sb.rpc("atualizar_foto_ficha", { p_ficha: FICHA_ID, p_versao: Date.now() });
+    if(error) throw error;
+    try{ localStorage.setItem(chave, assinatura); }catch(e){}
+  }catch(e){ console.warn("Foto para os tokens indisponível:", e.message || e); }
 }
 
 /* ===================================================================
@@ -5746,7 +5771,7 @@ montarControlesMestre();
     await carregarCompendio();   // banco compartilhado (cai no embutido se a tabela não existir)
   }
   iniciarFicha();
-  setTimeout(() => enviarStatusParaTokens(true), 1500);   // barras da mesa já com o valor atual ao abrir
+  setTimeout(() => { enviarStatusParaTokens(true); enviarFotoParaTokens(); }, 1500);   // barras e foto da mesa em dia ao abrir
 })();
 
 </script>
