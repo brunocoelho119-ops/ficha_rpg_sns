@@ -164,6 +164,9 @@
 
   .item-iniciativa{ display:flex; align-items:center; gap:8px; padding:8px 4px; border-bottom:1px solid var(--border); font-size:13px; }
   .item-iniciativa:last-child{ border-bottom:none; }
+  .rodada-info{ padding:8px 12px; border-bottom:1px solid var(--border); font-size:12px; font-weight:700; color:var(--ink);
+    display:flex; align-items:center; justify-content:space-between; background:var(--gray-light); }
+  .rodada-info .vez{ color:var(--gray-text); font-weight:600; max-width:60%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .item-iniciativa.atual{ background:#fff6d8; border-radius:8px; }
   .item-iniciativa .pos{ width:18px; color:var(--gray-text); font-weight:700; font-size:11px; flex-shrink:0; }
   .item-iniciativa .nome{ flex:1; font-weight:600; }
@@ -351,13 +354,10 @@
       <button type="button" id="btn_fechar_dados">✕</button>
     </div>
     <div class="atalhos">
-      <button type="button" data-f="1d4">d4</button>
-      <button type="button" data-f="1d6">d6</button>
-      <button type="button" data-f="1d8">d8</button>
-      <button type="button" data-f="1d10">d10</button>
-      <button type="button" data-f="1d12">d12</button>
-      <button type="button" data-f="1d20">d20</button>
-      <button type="button" data-f="1d100">d100</button>
+      <button type="button" data-f="2d8" title="Teste ou grau de dano: 2d8">2d8</button>
+      <button type="button" data-f="1d8" title="Iniciativa: 1d8">1d8</button>
+      <button type="button" data-f="3d8" title="3d8">3d8</button>
+      <button type="button" data-f="1d6" title="1d6">d6</button>
     </div>
     <div class="log-rolagens" id="log_rolagens">
       <div class="log-vazio">Nenhuma atividade ainda.</div>
@@ -373,6 +373,7 @@
       <span>Iniciativa</span>
       <button type="button" id="btn_fechar_iniciativa">✕</button>
     </div>
+    <div class="rodada-info" id="rodada_info"><span id="rodada_num">Rodada 1</span><span class="vez" id="rodada_vez"></span></div>
     <div class="log-rolagens" id="lista_iniciativa">
       <div class="log-vazio">Ninguém na lista ainda.</div>
     </div>
@@ -427,6 +428,8 @@ let meuCor = "#f1c40f";
 let compartilharCursor = false;
 let iniciativaOrdem = [];
 let iniciativaAtual = 0;
+let iniciativaRodada = 1;
+let _rodadaSemColuna = false;   // banco sem a coluna "rodada": guarda só na tela
 let modoMedir = false;
 let formaSelecionada = "regua"; // "regua" | "linha" | "cone" | "circulo" | "onda"
 let formaAtiva = null;
@@ -585,9 +588,43 @@ function prepararCanvas(){
   let arrastandoMapa = false;
   let tokenArrastando = null;
   let ultimoX = 0, ultimoY = 0;
+  /* toque: dois dedos dão zoom (pinça) e movem o mapa */
+  const toques = new Map();
+  let pinca = null;
+  const distMeio = () => {
+    const [a, b] = Array.from(toques.values());
+    return { d: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+  };
+  palco.addEventListener("pointerdown", (e) => {
+    if(e.pointerType !== "touch") return;
+    toques.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if(toques.size === 2){
+      /* segundo dedo: cancela o que o primeiro começou */
+      arrastandoMapa = false; palco.classList.remove("arrastando");
+      if(tokenArrastando){ tokenArrastando = null; carregarTokens(); }
+      formaAtiva = null; selecaoFog = null;
+      pinca = distMeio();
+      desenhar();
+    }
+  }, true);
+  const soltarToque = (e) => { if(e.pointerType !== "touch") return; toques.delete(e.pointerId); if(toques.size < 2) pinca = null; };
+  palco.addEventListener("pointerup", soltarToque, true);
+  palco.addEventListener("pointercancel", soltarToque, true);
+  palco.addEventListener("pointermove", (e) => {
+    if(e.pointerType !== "touch" || !toques.has(e.pointerId)) return;
+    toques.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if(!pinca || toques.size < 2) return;
+    const agora = distMeio();
+    cam.x += agora.mx - pinca.mx; cam.y += agora.my - pinca.my;
+    if(pinca.d > 0 && agora.d > 0) zoomEm(agora.mx, agora.my, agora.d / pinca.d);
+    else desenhar();
+    pinca = agora;
+    e.stopImmediatePropagation();
+  }, true);
 
   palco.addEventListener("pointerdown", (e) => {
-    if(e.target.closest("button, input, .painel-dados, .icon-bar")) return;
+    if(e.target.closest("button, input, select, .painel-dados, .icon-bar, .menu-token")) return;
+    if(pinca) return;   // pinça em andamento
 
     const rect = palco.getBoundingClientRect();
 
@@ -800,12 +837,28 @@ function desenharGrid(){
   ctx.stroke();
 }
 
+/* o token da vez é o que tem o mesmo nome de quem está na vez da iniciativa */
+function nomeNorm(s){ return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase(); }
+function tokenDaVezId(){
+  const item = iniciativaOrdem[iniciativaAtual]; if(!item) return null;
+  const k = nomeNorm(item.nome); if(!k) return null;
+  const t = tokensAtuais.find(tk => nomeNorm(tk.nome) === k) || tokensAtuais.find(tk => { const n = nomeNorm(tk.nome); return n && (k.indexOf(n) === 0 || n.indexOf(k) === 0); });
+  return t ? t.id : null;
+}
 function desenharTokens(){
   const gridPx = cenaAtual ? (cenaAtual.grid_px || 70) : 70;
+  const daVez = tokenDaVezId();
   tokensAtuais.forEach(t => {
     const sx = cam.x + t.x * cam.escala;
     const sy = cam.y + t.y * cam.escala;
     const raio = (gridPx / 2) * 0.8 * cam.escala * (t.tam || 1);
+
+    if(t.id === daVez){
+      ctx.save();
+      ctx.beginPath(); ctx.arc(sx, sy, raio + 6, 0, Math.PI * 2);
+      ctx.lineWidth = 4; ctx.strokeStyle = "#f1c40f"; ctx.shadowColor = "rgba(241,196,15,0.9)"; ctx.shadowBlur = 14; ctx.stroke();
+      ctx.restore();
+    }
 
     ctx.beginPath();
     ctx.arc(sx, sy, raio, 0, Math.PI * 2);
@@ -1083,6 +1136,7 @@ async function carregarFog(){
   if(data && Array.isArray(data.revelado)){
     data.revelado.forEach(par => fogRevelado.add(par[0] + "," + par[1]));
   }
+  fogCache = null;
 }
 
 async function salvarFog(){
@@ -1093,6 +1147,7 @@ async function salvarFog(){
 }
 
 function aplicarSelecaoFog(){
+  fogCache = null;
   if(!selecaoFog || !cenaAtual) return;
   const gridPx = cenaAtual.grid_px || 70;
   const cellScreen = gridPx * cam.escala;
@@ -1118,26 +1173,54 @@ function aplicarSelecaoFog(){
   salvarFog();
 }
 
+/* A névoa vira uma imagem pequena (1 pixel por casa) só da região com casas reveladas,
+   refeita apenas quando a névoa muda. Fora dela, tudo é escuro: 4 retângulos. */
+let fogCache = null, fogCacheSet = null;
+function montarFogCache(){
+  /* refeito só quando a névoa muda: um Set novo (carga/tempo real) ou fogCache zerado (edição local) */
+  if(fogCache && fogCacheSet === fogRevelado) return fogCache;
+  fogCacheSet = fogRevelado;
+  if(!fogRevelado.size){ fogCache = { vazio:true }; return fogCache; }
+  let gx0 = Infinity, gy0 = Infinity, gx1 = -Infinity, gy1 = -Infinity;
+  const cel = [];
+  fogRevelado.forEach(k => { const [x, y] = k.split(",").map(Number); cel.push([x, y]);
+    if(x < gx0) gx0 = x; if(y < gy0) gy0 = y; if(x > gx1) gx1 = x; if(y > gy1) gy1 = y; });
+  gx0--; gy0--; gx1++; gy1++;
+  const w = gx1 - gx0 + 1, h = gy1 - gy0 + 1;
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const cx = c.getContext("2d");
+  const img = cx.createImageData(w, h);
+  for(let i = 3; i < img.data.length; i += 4) img.data[i] = 255;       // tudo escuro
+  cel.forEach(([x, y]) => { img.data[((y - gy0) * w + (x - gx0)) * 4 + 3] = 0; });   // revela
+  cx.putImageData(img, 0, 0);
+  fogCache = { canvas: c, gx0, gy0, w, h };
+  return fogCache;
+}
 function desenharFog(){
   const gridPx = cenaAtual.grid_px || 70;
   const cellScreen = gridPx * cam.escala;
-  if(cellScreen < 2) return;
+  if(cellScreen <= 0) return;
   const souMestre = !!salaAtual && salaAtual.mestre_id === meuId;
-
-  const gxIni = Math.floor(-cam.x / cellScreen) - 1;
-  const gxFim = Math.ceil((canvas.width - cam.x) / cellScreen) + 1;
-  const gyIni = Math.floor(-cam.y / cellScreen) - 1;
-  const gyFim = Math.ceil((canvas.height - cam.y) / cellScreen) + 1;
-
-  ctx.fillStyle = souMestre ? "rgba(0,0,0,0.45)" : "#000";
-  for(let gx = gxIni; gx <= gxFim; gx++){
-    for(let gy = gyIni; gy <= gyFim; gy++){
-      if(fogRevelado.has(gx + "," + gy)) continue;
-      const sx = cam.x + gx * cellScreen;
-      const sy = cam.y + gy * cellScreen;
-      ctx.fillRect(sx, sy, cellScreen + 1, cellScreen + 1);
-    }
+  const W = canvas.width, H = canvas.height;
+  const fc = montarFogCache();
+  ctx.save();
+  ctx.globalAlpha = souMestre ? 0.45 : 1;
+  ctx.fillStyle = "#000";
+  if(fc.vazio){ ctx.fillRect(0, 0, W, H); ctx.restore(); return; }
+  const rx = cam.x + fc.gx0 * cellScreen, ry = cam.y + fc.gy0 * cellScreen;
+  const rw = fc.w * cellScreen, rh = fc.h * cellScreen;
+  /* fora da região: escuro */
+  if(ry > 0) ctx.fillRect(0, 0, W, Math.min(H, ry));
+  if(ry + rh < H) ctx.fillRect(0, Math.max(0, ry + rh), W, H - Math.max(0, ry + rh));
+  const top = Math.max(0, ry), bot = Math.min(H, ry + rh);
+  if(bot > top){
+    if(rx > 0) ctx.fillRect(0, top, Math.min(W, rx), bot - top);
+    if(rx + rw < W) ctx.fillRect(Math.max(0, rx + rw), top, W - Math.max(0, rx + rw), bot - top);
   }
+  /* dentro: a imagem ampliada, sem suavizar */
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(fc.canvas, rx, ry, rw, rh);
+  ctx.restore();
 }
 
 function desenharSelecaoFog(){
@@ -1373,16 +1456,26 @@ async function carregarIniciativa(){
   const { data } = await sb.from("iniciativa").select("*").eq("sala_id", salaId).single();
   iniciativaOrdem = (data && Array.isArray(data.ordem)) ? data.ordem : [];
   iniciativaAtual = (data && typeof data.atual === "number") ? data.atual : 0;
+  iniciativaRodada = (data && Number(data.rodada) > 0) ? Number(data.rodada) : 1;
   renderizarIniciativa();
 }
 
 async function salvarIniciativa(){
-  const { error } = await sb.from("iniciativa")
-    .upsert({ sala_id: salaId, ordem: iniciativaOrdem, atual: iniciativaAtual }, { onConflict: "sala_id" });
+  const linha = { sala_id: salaId, ordem: iniciativaOrdem, atual: iniciativaAtual };
+  if(!_rodadaSemColuna) linha.rodada = iniciativaRodada;
+  let { error } = await sb.from("iniciativa").upsert(linha, { onConflict: "sala_id" });
+  if(error && /rodada/i.test(error.message || "")){
+    _rodadaSemColuna = true; delete linha.rodada;          // rode mesa_rodadas.sql para gravar a rodada
+    ({ error } = await sb.from("iniciativa").upsert(linha, { onConflict: "sala_id" }));
+  }
   if(error) alert("Não foi possível salvar a iniciativa: " + error.message);
 }
 
 function renderizarIniciativa(){
+  document.getElementById("rodada_num").textContent = "Rodada " + iniciativaRodada;
+  const daVez = iniciativaOrdem[iniciativaAtual];
+  document.getElementById("rodada_vez").textContent = daVez ? "Vez de " + daVez.nome : "";
+  desenhar();   // destaca o token da vez
   const area = document.getElementById("lista_iniciativa");
   if(!iniciativaOrdem.length){ area.innerHTML = '<div class="log-vazio">Ninguém na lista ainda.</div>'; return; }
   area.innerHTML = iniciativaOrdem.map((item, i) => {
@@ -1438,6 +1531,7 @@ async function removerIniciativa(idx){
 document.getElementById("btn_iniciativa_avancar").addEventListener("click", async () => {
   if(!iniciativaOrdem.length) return;
   iniciativaAtual = (iniciativaAtual + 1) % iniciativaOrdem.length;
+  if(iniciativaAtual === 0) iniciativaRodada++;        // deu a volta: nova rodada
   renderizarIniciativa();
   await salvarIniciativa();
 });
@@ -1446,6 +1540,7 @@ document.getElementById("btn_iniciativa_limpar").addEventListener("click", async
   if(!confirm("Limpar toda a lista de iniciativa?")) return;
   iniciativaOrdem = [];
   iniciativaAtual = 0;
+  iniciativaRodada = 1;
   renderizarIniciativa();
   await salvarIniciativa();
 });
@@ -1538,14 +1633,23 @@ function empilharRolagem(row){
   });
 }
 
+/* 2d8 puro no chat ganha o grau do Shinobi no Sho (Básico p.18/257): 2-3 falha, 4-8 grau 1, 9-11 grau 2, 12-14 grau 3, 15-16 grau 4 */
+function badgeGrau2d8(p){
+  if(p.badge || !/^\s*2d8\s*$/i.test(String(p.formula || "")) || p.dados.length !== 2) return null;
+  const soma = p.dados[0] + p.dados[1];
+  if(soma <= 3) return { texto: "Falha automática", classe: "fail" };
+  const g = soma <= 8 ? 1 : soma <= 11 ? 2 : soma <= 14 ? 3 : 4;
+  return { texto: "Grau " + g + (soma >= 15 ? " · sucesso garantido" : ""), classe: "g" + g };
+}
 function cartaRolagemHtml(ev, nome){
   const titulo = ev.arma || (ev.partes[0] && ev.partes[0].formula) || "Rolagem";
   const linhasHtml = ev.partes.map(p => {
     const rotulo = p.etapa ? (ROTULO_ETAPA[p.etapa] || p.etapa) : p.formula;
     const dadosHtml = p.dados.map(d => '<span class="dado-cubo">' + d + '</span>').join("");
     const modHtml = p.modificador ? '<span class="modificador">' + (p.modificador > 0 ? "+" : "") + p.modificador + '</span>' : "";
-    const badgeHtml = (p.badge && p.badge.texto)
-      ? '<span class="cr-badge cr-' + (p.badge.classe || "default") + '">' + escapeHtml(p.badge.texto) + '</span>' : "";
+    const _bd = p.badge || badgeGrau2d8(p);
+    const badgeHtml = (_bd && _bd.texto)
+      ? '<span class="cr-badge cr-' + (_bd.classe || "default") + '">' + escapeHtml(_bd.texto) + '</span>' : "";
     const descHtml = p.linhas ? p.linhas.map(l => '<div class="cr-desc">' + l + '</div>').join("") : "";
     return '<div class="cr-linha">' +
       '<span class="cr-etapa">' + escapeHtml(rotulo) + '</span>' +
@@ -1824,6 +1928,7 @@ function conectarPresenca(){
       if(payload.new){
         iniciativaOrdem = Array.isArray(payload.new.ordem) ? payload.new.ordem : [];
         iniciativaAtual = typeof payload.new.atual === "number" ? payload.new.atual : 0;
+        if(Number(payload.new.rodada) > 0) iniciativaRodada = Number(payload.new.rodada);
       } else {
         iniciativaOrdem = [];
         iniciativaAtual = 0;
