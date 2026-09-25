@@ -1409,6 +1409,8 @@ async function enviarStatusParaTokens(forcar){
 async function enviarFotoParaTokens(forcar){
   if(!NUVEM_ATIVA || typeof sb === "undefined" || !FICHA_ID || !(_souDono || _souMestre)) return;
   let foto = ""; try{ foto = localStorage.getItem(FOTO_KEY) || ""; }catch(e){}
+  /* sem foto própria salva, usa o retrato que está na tela (inclusive o padrão) */
+  if(!foto || foto.indexOf("data:image") !== 0){ const el = document.getElementById("foto_img"); foto = (el && el.src) || ""; }
   if(!foto || foto.indexOf("data:image") !== 0) return;
   const assinatura = foto.length + ":" + foto.slice(-64);
   const chave = "sns_foto_enviada_" + FICHA_ID;
@@ -1426,7 +1428,15 @@ async function enviarFotoParaTokens(forcar){
     const { error } = await sb.rpc("atualizar_foto_ficha", { p_ficha: FICHA_ID, p_versao: Date.now() });
     if(error) throw error;
     try{ localStorage.setItem(chave, assinatura); }catch(e){}
-  }catch(e){ console.warn("Foto para os tokens indisponível:", e.message || e); }
+    notaMesa("Retrato enviado para os tokens da mesa.");
+  }catch(e){
+    console.warn("Foto para os tokens indisponível:", e.message || e);
+    notaMesa("Não foi possível enviar o retrato para a mesa: " + (e.message || e) + ". Confira se os SQLs da mesa foram rodados.");
+  }
+}
+function notaMesa(t){
+  const nota = document.getElementById("token_img_nota"); if(!nota) return;
+  nota.textContent = t; clearTimeout(nota._t); nota._t = setTimeout(() => { nota.textContent = ""; }, 8000);
 }
 
 /* Imagem do token (recorte) da ficha: segunda imagem, separada do retrato.

@@ -1094,17 +1094,18 @@ function imagemPronta(url){
   }
   return e.ok ? e.img : null;
 }
+function comVersao(u, v){ return (u && Number(v) > 0) ? u + (u.indexOf("?") >= 0 ? "&" : "?") + "v=" + v : u; }
 function urlFotoFicha(t){
-  if(!t.ficha_id || !(Number(t.foto_v) > 0)) return null;
-  const u = urlPublica("fichas/" + t.ficha_id + ".png");
-  return u ? u + (u.indexOf("?") >= 0 ? "&" : "?") + "v=" + t.foto_v : null;
+  if(!t.ficha_id) return null;
+  return comVersao(urlPublica("fichas/" + t.ficha_id + ".png"), t.foto_v);
 }
 /* recorte: a imagem própria do token vale mais; sem ela, usa a "Imagem do token" da ficha vinculada */
 function urlRecorteDaFicha(t){
-  if(!t.ficha_id || !(Number(t.recorte_v) > 0)) return null;
-  const u = urlPublica("fichas/" + t.ficha_id + "-recorte.png");
-  return u ? u + (u.indexOf("?") >= 0 ? "&" : "?") + "v=" + t.recorte_v : null;
+  if(!t.ficha_id) return null;
+  return comVersao(urlPublica("fichas/" + t.ficha_id + "-recorte.png"), t.recorte_v);
 }
+/* a imagem de token da ficha só conta se existir de fato (carregou sem erro) */
+function recorteDaFichaExiste(t){ const u = urlRecorteDaFicha(t); return !!(u && imagemPronta(u)); }
 function urlRecorte(t){ return t.imagem_url ? urlPublica(t.imagem_url) : urlRecorteDaFicha(t); }
 function estiloDaCena(){ return (cenaAtual && cenaAtual.estilo_token === "recorte") ? "recorte" : "moeda"; }
 
@@ -1125,7 +1126,9 @@ function desenharTokens(){
     const sy = cam.y + t.y * cam.escala;
     const raio = (gridPx / 2) * 0.8 * cam.escala * (t.tam || 1);
     const ehVez = t.id === daVez;
-    const recorte = estilo === "recorte" ? imagemPronta(urlRecorte(t)) : null;
+    const recorte = estilo === "recorte"
+      ? (t.imagem_url ? imagemPronta(urlPublica(t.imagem_url)) : imagemPronta(urlRecorteDaFicha(t)))
+      : null;
     let base = raio;                                  // até onde vai o desenho (para o nome)
 
     if(recorte){
@@ -1175,14 +1178,14 @@ function desenharTokens(){
       ctx.stroke();
     }
 
-    desenharBarrasToken(t, sx, sy, raio);
+    const altBarras = desenharBarrasToken(t, sx, sy + base + 4, raio);
 
     /* nome numa etiqueta índigo, legível sobre qualquer mapa */
     const texto = t.nome || "";
     if(texto){
       ctx.font = "600 11px Inter, Arial, sans-serif";
       ctx.textAlign = "center";
-      const lw = ctx.measureText(texto).width + 12, ty = sy + base + 5;
+      const lw = ctx.measureText(texto).width + 12, ty = sy + base + 5 + (altBarras ? altBarras + 3 : 0);
       ctx.fillStyle = "rgba(29,39,56,0.88)";
       if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(sx - lw / 2, ty, lw, 17, 8); ctx.fill(); }
       else ctx.fillRect(sx - lw / 2, ty, lw, 17);
@@ -1197,16 +1200,16 @@ function barrasVisiveis(t){
   if(!t || !(Number(t.vit_max) > 0 || Number(t.chakra_max) > 0)) return false;
   return souMestreDaSala() || t.dono_id === meuId || t.mostrar_barras !== false;
 }
-function desenharBarrasToken(t, sx, sy, raio){
-  if(!barrasVisiveis(t)) return;
-  /* dentro da parte de baixo do token: fica na mesma casa, sem ser coberto pela névoa ao lado */
-  const larg = Math.max(22, raio * 1.6), alt = Math.max(3, Math.min(7, raio * 0.17));
+/* barras logo abaixo do token (Vida em vermelho, Chakra em azul); devolve a altura usada */
+function desenharBarrasToken(t, sx, topo, raio){
+  if(!barrasVisiveis(t)) return 0;
+  const larg = Math.max(30, raio * 1.7), alt = Math.max(4, Math.min(7, raio * 0.16));
   const x = sx - larg / 2;
-  let y = sy + raio * 0.28;
+  let y = topo;
   const barra = (atual, max, cor) => {
     if(!(Number(max) > 0)) return;
     const frac = Math.max(0, Math.min(1, Number(atual) / Number(max)));
-    ctx.fillStyle = "rgba(20,20,25,0.75)";
+    ctx.fillStyle = "rgba(20,26,38,0.85)";
     ctx.fillRect(x - 1, y - 1, larg + 2, alt + 2);
     ctx.fillStyle = cor;
     ctx.fillRect(x, y, larg * frac, alt);
@@ -1214,6 +1217,7 @@ function desenharBarrasToken(t, sx, sy, raio){
   };
   barra(t.vit, t.vit_max, Number(t.vit) <= 0 ? "#7f1d1d" : "#d63031");
   barra(t.chakra, t.chakra_max, "#2e86de");
+  return y - topo;
 }
 
 async function carregarMapa(){
@@ -1358,7 +1362,7 @@ function temFundoOpaco(img){
 document.getElementById("mt_img_escolher").addEventListener("click", () => document.getElementById("mt_img_arquivo").click());
 document.getElementById("mt_img_remover").addEventListener("click", () => {
   menuImagemPendente = null;
-  mostrarPreviaRecorte(null, menuTokenAlvo ? urlRecorteDaFicha(menuTokenAlvo) : null);
+  mostrarPreviaRecorte(null, (menuTokenAlvo && recorteDaFichaExiste(menuTokenAlvo)) ? urlRecorteDaFicha(menuTokenAlvo) : null);
 });
 document.getElementById("mt_img_arquivo").addEventListener("change", async (e) => {
   const arq = e.target.files[0]; e.target.value = "";
@@ -1372,7 +1376,7 @@ document.getElementById("mt_img_arquivo").addEventListener("change", async (e) =
     if(error) throw error;
     menuImagemPendente = caminho;
     const url = urlPublica(caminho);
-    mostrarPreviaRecorte(url, urlRecorteDaFicha(t));
+    mostrarPreviaRecorte(url, recorteDaFichaExiste(t) ? urlRecorteDaFicha(t) : null);
     const teste = new Image(); teste.crossOrigin = "anonymous";
     teste.onload = () => { if(temFundoOpaco(teste)) avisar("Essa imagem parece ter fundo (os cantos não são transparentes). No mapa, vai aparecer um quadrado em volta do personagem."); };
     teste.src = url;
@@ -1422,7 +1426,7 @@ async function abrirMenuToken(t, px, py){
   tamSel.value = String(t.tam || 1); if(!tamSel.value) tamSel.value = "1";
   document.getElementById("mt_barras").checked = t.mostrar_barras !== false;
   menuImagemPendente = undefined;
-  mostrarPreviaRecorte(t.imagem_url ? urlRecorte(t) : null, urlRecorteDaFicha(t));
+  mostrarPreviaRecorte(t.imagem_url ? urlRecorte(t) : null, recorteDaFichaExiste(t) ? urlRecorteDaFicha(t) : null);
   const rot = ((Number(t.rotacao) || 0) % 360 + 360) % 360;
   document.getElementById("mt_rotacao").value = rot;
   document.getElementById("mt_rot_valor").textContent = rot + "°";
