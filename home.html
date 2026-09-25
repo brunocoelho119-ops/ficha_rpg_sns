@@ -91,6 +91,12 @@
   .card .acoes button.primaria:hover, .card .acoes button.abrir:hover{ background:var(--aizome-2); }
   .card .acoes button.apagar{ color:var(--erro); margin-left:auto; }
   .card .acoes button.apagar-sala{ margin-left:0; }
+  .card .tipo-tag{ align-self:flex-start; font-size:10.5px; font-weight:700; color:#fff; border-radius:999px; padding:2px 9px; }
+  .tipo-opcoes{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .tipo-opcao{ text-align:left; border:1.5px solid var(--washi-borda); background:#fff; border-radius:12px; padding:12px; cursor:pointer; font-family:var(--font-body); color:var(--sumi); display:flex; flex-direction:column; gap:4px; }
+  .tipo-opcao:hover{ border-color:var(--aizome); }
+  .tipo-opcao b{ font-family:var(--font-display); font-size:16px; }
+  .tipo-opcao span{ font-size:12px; color:var(--sumi-2); line-height:1.4; }
   .card .meta .sala-tag{ display:inline-block; margin-top:4px; padding:2px 9px; border-radius:999px; background:#e1e7f1; color:var(--aizome); font-weight:600; }
   .card .meta .sala-tag.sem{ background:var(--washi-2); color:var(--sumi-2); }
   .vazio, .carregando{
@@ -363,7 +369,8 @@ async function carregarFichas(){
   area.innerHTML = '<div class="carregando">Carregando suas fichas…</div>';
 
   /* RLS já garante: Player só recebe as próprias; Mestre recebe todas */
-  const { data: fichas, error } = await sb.from("fichas").select("id, user_id, nome, atualizado_em, sala_id").order("atualizado_em", { ascending:false });
+  let { data: fichas, error } = await sb.from("fichas").select("id, user_id, nome, atualizado_em, sala_id, tipo").order("atualizado_em", { ascending:false });
+  if(error && /tipo/.test(error.message || "")) ({ data: fichas, error } = await sb.from("fichas").select("id, user_id, nome, atualizado_em, sala_id").order("atualizado_em", { ascending:false }));
   if(error){ area.innerHTML = '<div class="vazio">Erro ao carregar: ' + escapeHtml(error.message) + '</div>'; return; }
 
   if(!fichas || fichas.length === 0){
@@ -371,8 +378,10 @@ async function carregarFichas(){
     return;
   }
 
+  const tipoDe = f => f.tipo || "pj";
+  const secao = (titulo, lista) => lista.length ? '<div class="grupo-titulo">' + escapeHtml(titulo) + '</div><div class="grid">' + lista.map(f => cardHtml(f)).join("") + '</div>' : "";
   if(meuRole !== "mestre"){
-    area.innerHTML = '<div class="grid">' + fichas.map(f => cardHtml(f)).join("") + '</div>';
+    area.innerHTML = secao("Personagens", fichas.filter(f => tipoDe(f) === "pj")) + secao("Invocações", fichas.filter(f => tipoDe(f) === "invocacao"));
     ligarCliques();
     return;
   }
@@ -384,7 +393,7 @@ async function carregarFichas(){
   (perfisDonos || []).forEach(p => { nomePor[p.id] = p.nome; });
 
   const porDono = {};
-  fichas.forEach(f => {
+  fichas.filter(f => tipoDe(f) === "pj").forEach(f => {
     const key = f.user_id;
     if(!porDono[key]) porDono[key] = [];
     porDono[key].push(f);
@@ -396,6 +405,8 @@ async function carregarFichas(){
     html += '<div class="grupo-titulo">' + escapeHtml(rotulo) + '</div>';
     html += '<div class="grid">' + porDono[uid].map(f => cardHtml(f)).join("") + '</div>';
   });
+  html += secao("PdMs e capangas", fichas.filter(f => tipoDe(f) === "pdm" || tipoDe(f) === "capanga"));
+  html += secao("Invocações", fichas.filter(f => tipoDe(f) === "invocacao"));
   area.innerHTML = html;
   ligarCliques();
 }
@@ -404,6 +415,7 @@ function cardHtml(f){
   const minha = f.user_id === meuId;
   const sala = f.sala_id ? (nomesSalas[f.sala_id] || "Sala sem acesso") : null;
   return '<div class="card" data-id="' + f.id + '" data-nome="' + escapeHtml(f.nome || "Ficha sem nome") + '">' +
+    (TIPOS_FICHA[f.tipo] && f.tipo !== "pj" ? '<span class="tipo-tag" style="background:' + TIPOS_FICHA[f.tipo].cor + '">' + TIPOS_FICHA[f.tipo].rotulo + '</span>' : '') +
     '<div class="nome">' + escapeHtml(f.nome || "Ficha sem nome") + '</div>' +
     '<div class="meta">Atualizada em ' + formatarData(f.atualizado_em) + '<br>' +
       (sala ? '<span class="sala-tag">Sala: ' + escapeHtml(sala) + '</span>' : '<span class="sala-tag sem">Sem sala vinculada</span>') + '</div>' +
@@ -432,11 +444,34 @@ function ligarCliques(){
 
 function abrirFicha(id){ location.href = "ficha.html?id=" + id; }
 
+const TIPOS_FICHA = {
+  pj:        { rotulo:"Personagem", cor:"#1d2738", desc:"Ficha completa de jogador.", nome:"Novo Shinobi" },
+  pdm:       { rotulo:"PdM", cor:"#b3372b", desc:"Personagem do mestre: ficha simplificada, perícias pelo atributo.", nome:"Novo PdM", mestre:true },
+  capanga:   { rotulo:"Capanga", cor:"#5e554b", desc:"Um cartão só: precisões, dano e 1 de Vitalidade.", nome:"Novo capanga", mestre:true },
+  invocacao: { rotulo:"Invocação", cor:"#1f4a35", desc:"Criatura do Kuchiyose, vinculada a quem invoca.", nome:"Nova invocação" }
+};
+function escolherTipoFicha(){
+  return new Promise(resolve => {
+    const ov = document.createElement("div"); ov.className = "overlay";
+    const tipos = Object.keys(TIPOS_FICHA).filter(k => meuRole === "mestre" || !TIPOS_FICHA[k].mestre);
+    ov.innerHTML = '<div class="modal" role="dialog" aria-label="Tipo de ficha"><div class="cab"><span>Nova ficha</span><button type="button" aria-label="Fechar">✕</button></div>' +
+      '<div class="corpo" style="padding:14px 18px;"><div class="tipo-opcoes">' +
+      tipos.map(k => '<button type="button" class="tipo-opcao" data-tipo="' + k + '"><b>' + TIPOS_FICHA[k].rotulo + '</b><span>' + TIPOS_FICHA[k].desc + '</span></button>').join("") +
+      '</div></div></div>';
+    const fechar = v => { ov.remove(); resolve(v); };
+    ov.addEventListener("click", e => { const b = e.target.closest(".tipo-opcao"); if(b) return fechar(b.dataset.tipo); if(e.target === ov || e.target.closest(".cab button")) fechar(null); });
+    document.body.appendChild(ov);
+  });
+}
 document.getElementById("btn_nova").addEventListener("click", async () => {
-  const nome = prompt("Nome da nova ficha (ex: nome do personagem):", "Novo Shinobi");
+  const tipo = await escolherTipoFicha();
+  if(!tipo) return;
+  const nome = prompt("Nome da nova ficha:", TIPOS_FICHA[tipo].nome);
   if(nome == null) return;
-  const { data, error } = await sb.from("fichas").insert({ user_id: meuId, nome: nome.trim() || "Ficha sem nome", dados:{} }).select("id").single();
-  if(error){ alert("Não foi possível criar a ficha: " + error.message); return; }
+  const linha = { user_id: meuId, nome: nome.trim() || "Ficha sem nome", dados:{} };
+  if(tipo !== "pj") linha.tipo = tipo;
+  const { data, error } = await sb.from("fichas").insert(linha).select("id").single();
+  if(error){ alert("Não foi possível criar a ficha: " + error.message + (/tipo/.test(error.message) ? " (rode o fichas_npc.sql)" : "")); return; }
   location.href = "ficha.html?id=" + data.id;
 });
 

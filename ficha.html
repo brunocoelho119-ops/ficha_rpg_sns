@@ -975,6 +975,67 @@
   .itens-acoes .btn-add-row{ margin-top:0 !important; }
   /* tarjas no modal de uso */
   .rl-nota{ font-size:11.5px; color:var(--gray-text); margin-top:6px; line-height:1.45; }
+
+  /* Versatilidade: escolha dos poderes versáteis e dos níveis (Básico p.242-243) */
+  #poderes_rows tr.vers-linha td{ background:#fbf7ee !important; border-top:none !important; padding:8px 10px 10px !important; }
+  .vers-painel{ display:flex; flex-direction:column; gap:7px; font-size:11.5px; }
+  .vers-painel .linha{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .vers-painel .rot{ font-weight:700; color:var(--gray-text); }
+  .vers-painel select{ font-size:11.5px !important; padding:3px 6px !important; height:auto !important; width:auto !important; border:1px solid var(--border) !important; border-radius:6px !important; background:#fff !important; }
+  .vers-painel .nv{ display:inline-flex; align-items:center; gap:3px; background:#fff; border:1px solid var(--border); border-radius:7px; padding:2px 4px 2px 6px; }
+  .vers-painel .nv b{ font-size:10.5px; color:var(--gray-text); }
+  .vers-painel .nv select{ border:none !important; padding:1px 2px !important; }
+  .vers-painel .nv.erro{ border-color:#c0392b; background:#fde2df; }
+  .vers-painel .resumo{ color:var(--ink); }
+  .vers-painel .aviso{ color:#a83226; font-weight:600; }
+  .vers-painel .aviso:empty{ display:none; }
+
+  /* ===== Fichas de NPC (Básico p.280-282) e invocações (p.224-229) ===== */
+  .npc-oculto{ display:none !important; }
+  .npc-painel{ display:none; background:#fbf7ee; border:1px solid var(--border); border-radius:14px; padding:12px 14px; margin-bottom:14px; flex-direction:column; gap:10px; }
+  body.tipo-pdm .npc-painel.pdm, body.tipo-invocacao .npc-painel.inv{ display:flex; }
+  .npc-painel .np-linha{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .npc-painel .np-rot{ font-size:11px; font-weight:700; color:var(--gray-text); text-transform:uppercase; letter-spacing:0.3px; }
+  .npc-painel select, .npc-painel input[type=text]{ font-family:var(--font-body); font-size:13px; font-weight:600; padding:6px 8px; border:1px solid var(--border); border-radius:8px; background:#fff; color:var(--ink); }
+  .npc-painel input[type=text]{ width:54px; text-align:center; }
+  .npc-painel .seg-npc{ display:flex; background:var(--gray-light); border-radius:10px; padding:3px; gap:3px; }
+  .npc-painel .seg-npc button{ border:none; background:transparent; border-radius:8px; padding:6px 12px; font-family:var(--font-body); font-weight:600; font-size:12.5px; color:var(--gray-text); cursor:pointer; }
+  .npc-painel .seg-npc button.ativo{ background:#fff; color:var(--ink); box-shadow:0 1px 3px rgba(36,32,28,0.12); }
+  .npc-painel .np-btn{ border:none; border-radius:8px; background:var(--bar-bg); color:#fff; font-family:var(--font-body); font-weight:600; font-size:12.5px; padding:7px 14px; cursor:pointer; }
+  .npc-painel .np-info{ font-size:12px; color:var(--gray-text); line-height:1.45; }
+  .npc-painel .np-info b{ color:var(--ink); }
+  .npc-painel .np-aviso{ font-size:12px; font-weight:600; color:#a83226; }
+  .npc-painel .np-aviso:empty{ display:none; }
+  .npc-painel .np-chips{ display:flex; flex-wrap:wrap; gap:5px; }
+  .npc-painel .np-chip{ font-size:11.5px; font-weight:600; border:1px solid var(--border); border-radius:999px; padding:3px 10px; background:#fff; }
+  .npc-painel .np-per{ display:inline-flex; gap:6px; align-items:center; border:1px solid var(--border); border-radius:8px; background:#fff; padding:5px 10px; font-size:12.5px; font-weight:600; cursor:pointer; font-family:var(--font-body); }
+  .npc-painel .np-per span{ color:var(--gray-text); font-weight:500; }
+  .npc-painel .np-bloco{ display:flex; flex-direction:column; gap:6px; border-top:1px solid var(--border); padding-top:8px; }
+  .npc-painel .np-titulo{ font-family:var(--font-display); font-weight:800; font-size:15px; }
+  .attr-badge.npc-foco{ box-shadow:0 0 0 2px var(--kinari); border-radius:10px; }
+  .selo-tipo{ display:inline-block; font-size:11px; font-weight:700; color:#fff; border-radius:999px; padding:3px 10px; margin-left:6px; vertical-align:middle; }
+  /* capanga: um cartão só */
+  body.tipo-capanga #scaler{ display:none !important; }
+  .capanga-view{ display:none; max-width:460px; margin:28px auto 60px; background:var(--bg); border-radius:18px; padding:22px; box-shadow:0 12px 34px rgba(4,8,16,0.45); flex-direction:column; gap:14px; color:var(--ink); }
+  body.tipo-capanga .capanga-view{ display:flex; }
+  .capanga-view .cv-topo{ display:flex; align-items:center; gap:10px; }
+  .capanga-view .cv-nome{ font-family:var(--font-display); font-weight:800; font-size:22px; flex:1; }
+  .capanga-view .cv-grade{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .capanga-view label{ display:flex; flex-direction:column; gap:4px; font-size:11px; font-weight:600; color:var(--gray-text); }
+  .capanga-view input[type=text], .capanga-view textarea{ font-family:var(--font-body); font-size:15px; font-weight:700; color:var(--ink); background:#fff; border:1px solid var(--border); border-radius:9px; padding:8px 10px; }
+  .capanga-view textarea{ font-size:13px; font-weight:500; min-height:70px; resize:vertical; }
+  .capanga-view .cv-fixo{ display:flex; align-items:center; min-height:38px; box-sizing:border-box; background:var(--calc-bg); border-radius:9px; padding:8px 10px; font-weight:800; font-size:15px; }
+  .capanga-view .cv-dica{ font-size:12px; color:var(--gray-text); line-height:1.45; }
+  .capanga-view .cv-acoes{ display:flex; gap:8px; }
+  .capanga-view .cv-acoes button{ flex:1; min-height:46px; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; font-family:var(--font-body); }
+  .capanga-view .cv-atacar{ border:none; background:var(--bar-bg); color:#fff; }
+  .capanga-view .cv-defender{ border:1px solid var(--border); background:#fff; color:var(--ink); }
+  .capanga-view .cv-regras{ background:#fbf7ee; border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:12px; line-height:1.45; display:flex; flex-direction:column; gap:3px; }
+  .capanga-view .cv-res{ background:#fff; border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:13px; line-height:1.5; }
+  .capanga-view .cv-res:empty{ display:none; }
+  .capanga-view .seg-npc{ display:flex; background:var(--gray-light); border-radius:10px; padding:3px; gap:3px; }
+  .capanga-view .seg-npc button{ flex:1; border:none; background:transparent; border-radius:8px; padding:8px; font-weight:600; font-size:13px; color:var(--gray-text); cursor:pointer; font-family:var(--font-body); }
+  .capanga-view .seg-npc button.ativo{ background:#fff; color:var(--ink); }
 </style>
   <!-- ===== NUVEM (Supabase) ===== -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -989,6 +1050,25 @@
   <label class="ft-secreto" id="ft_secreto_wrap" style="display:none;" title="As rolagens desta ficha aparecem na mesa só para você (mestre)"><input type="checkbox" id="ft_secreto"> Rolagens secretas</label>
   <span class="ft-status" id="ft_status"></span>
   <button type="button" class="ft-sair" id="ft_sair">Sair</button>
+</div>
+
+<div class="capanga-view" id="capanga_view">
+  <div class="cv-topo"><div class="cv-nome" id="cap_nome">Capanga</div><span class="selo-tipo" style="background:#5e554b;">Capanga</span></div>
+  <div class="cv-grade">
+    <label>NC<input type="text" data-npc="cap_nc" id="cap_nc" inputmode="numeric" value="4"></label>
+    <label>Ataca com<div class="seg-npc" id="cap_modo"><button type="button" data-v="CC" class="ativo">CC</button><button type="button" data-v="CD">CD</button></div></label>
+    <input type="hidden" data-npc="cap_modo" id="cap_modo_val" value="CC">
+    <label>Precisão de ataque<input type="text" data-npc="cap_atk" id="cap_atk" inputmode="numeric" placeholder=""></label>
+    <label>Precisão de defesa / Esquiva<input type="text" data-npc="cap_def" id="cap_def" inputmode="numeric" placeholder=""></label>
+    <label>Dano base<input type="text" data-npc="cap_dano" id="cap_dano" inputmode="numeric" placeholder=""></label>
+    <label>Vitalidade<span class="cv-fixo">1</span></label>
+  </div>
+  <div class="cv-dica" id="cap_dica"></div>
+  <label style="flex-direction:row; align-items:center; gap:8px; font-size:13px; color:var(--ink);"><input type="checkbox" data-npc="cap_caido" id="cap_caido" style="width:17px;height:17px;margin:0;"> Fora de combate (abatido)</label>
+  <div class="cv-acoes"><button type="button" class="cv-atacar" id="cap_atacar">Atacar</button><button type="button" class="cv-defender" id="cap_defender">Defender</button></div>
+  <div class="cv-res" id="cap_res"></div>
+  <div class="cv-regras"><b>Regras de capanga (Básico p.281)</b><span>Sem acerto crítico nem golpe de misericórdia: grau máximo 3.</span><span>Falha automaticamente em testes de atributo e perícia.</span><span>Não faz ataque oportuno. Quem o ataca pode simular 1 dado (acerto = 8 + precisão).</span></div>
+  <label>Notas<textarea data-npc="cap_notas" id="cap_notas"></textarea></label>
 </div>
 
 <div class="scaler-outer" id="scaler">
@@ -1015,6 +1095,54 @@
 <div class="tab-content active" id="tab-ficha">
 
 <div class="page" id="page1">
+  <div class="npc-painel pdm fora-do-estado" id="npc_pdm">
+    <div class="np-linha">
+      <span class="np-rot">PdM</span>
+      <span class="np-rot" style="margin-left:6px;">Estilo de combate</span>
+      <div class="seg-npc" id="npc_estilo"><button type="button" data-v="Taijutsu">Taijutsu</button><button type="button" data-v="Ninjutsu">Ninjutsu</button><button type="button" data-v="Genjutsu">Genjutsu</button></div>
+      <input type="hidden" data-npc="estilo" id="npc_estilo_val" value="">
+      <label class="np-info" style="display:flex; align-items:center; gap:5px;"><input type="checkbox" data-npc="foco_per" id="npc_foco_per" style="margin:0;"> foco em Percepção no lugar de Agilidade</label>
+    </div>
+    <div class="np-info" id="npc_estilo_dica">Escolha o estilo: a ficha destaca os atributos que devem receber mais pontos (Básico p.281).</div>
+    <div class="np-linha">
+      <span class="np-rot">Teste de perícia</span>
+      <select id="npc_pericia" aria-label="Perícia"></select>
+      <button type="button" class="np-btn" id="npc_pericia_rolar">Rolar</button>
+      <span class="np-info">PdM não distribui perícias: o teste usa o atributo como precisão.</span>
+    </div>
+  </div>
+  <div class="npc-painel inv fora-do-estado" id="npc_inv">
+    <div class="np-linha">
+      <span class="np-titulo">Invocação</span>
+      <span class="np-rot" style="margin-left:6px;">Invocador</span>
+      <select id="inv_invocador" data-npc="inv_invocador" aria-label="Invocador"><option value="">Sem vínculo (preencher à mão)</option></select>
+      <span class="np-info" id="inv_vinc_info"></span>
+    </div>
+    <div class="np-linha">
+      <span class="np-rot">Kuchiyose Nv</span><input type="text" id="inv_kuchi" data-npc="inv_kuchi" inputmode="numeric" value="">
+      <span class="np-rot">como</span><select id="inv_kuchi_tipo" data-npc="inv_kuchi_tipo"><option value="hijutsu">Hijutsu</option><option value="comum">Poder comum (capanga, −3)</option></select>
+      <span class="np-rot">Invocada</span><select id="inv_qtd" data-npc="inv_qtd"><option value="1">sozinha</option><option value="2">em dupla</option></select>
+      <span class="np-info" id="inv_limites"></span>
+    </div>
+    <div class="np-linha">
+      <span class="np-rot">Espécie</span><select id="inv_especie" data-npc="inv_especie"></select>
+      <span class="np-rot">Tamanho</span><select id="inv_tamanho" data-npc="inv_tamanho"><option>Médio</option><option>Pequeno</option><option>Miúdo</option><option>Grande</option><option>Enorme</option><option>Imenso</option></select>
+      <span class="np-info">Vitalidade pela metade · 1 ponto de poder a cada 2 NC · 3 aptidões grátis · sem iniciativa (age no turno do invocador)</span>
+    </div>
+    <div class="np-aviso" id="inv_aviso"></div>
+    <div class="np-bloco"><span class="np-rot">Atributos principais</span><div class="np-chips" id="inv_principais"></div></div>
+    <div class="np-bloco"><span class="np-rot">Perícias da espécie (usam o atributo; as outras valem 0)</span><div class="np-chips" id="inv_pericias"></div></div>
+    <div class="np-bloco">
+      <span class="np-rot">Ataque corpo a corpo (Força − 3, mínimo 3)</span>
+      <div class="np-linha"><span class="np-info">Dano base <b id="inv_dano">3</b></span>
+        <label class="np-info" style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="inv_marcial" data-npc="inv_marcial" style="margin:0;"> arma marcial (+1)</label>
+        <span class="np-info" id="inv_ataques"></span>
+        <button type="button" class="np-btn" id="inv_atacar">Atacar (CC)</button></div>
+    </div>
+    <div class="np-bloco"><span class="np-rot">Poder da espécie (um só)</span><div class="np-info" id="inv_poder"></div></div>
+    <div class="np-bloco"><span class="np-rot">Aptidões possíveis</span><div class="np-info" id="inv_aptidoes"></div></div>
+    <div class="np-bloco"><span class="np-rot">Técnicas da espécie</span><div class="np-info" id="inv_tecnicas"></div></div>
+  </div>
 
   <!-- CABECALHO -->
   <div class="header-row">
@@ -1514,6 +1642,7 @@ let _nuvemTimer = null;
 let _minhaFichaOwnerId = null, _meuUserId = null;
 let _souMestre = false, _souDono = true, _notasMestre = "", _modoEdicao = true;
 let _salaVinculada = null;
+let FICHA_TIPO = "pj", FICHA_INVOCADOR = null;   // pj | pdm | capanga | invocacao
 
 async function carregarDaNuvem(){
   try{
@@ -1522,8 +1651,13 @@ async function carregarDaNuvem(){
     _meuUserId = sess.session.user.id;
     if(!FICHA_ID){ location.href = "home.html"; return false; }
 
-    const { data, error } = await sb.from("fichas").select("dados, nome, user_id, sala_id").eq("id", FICHA_ID).single();
+    let { data, error } = await sb.from("fichas").select("dados, nome, user_id, sala_id, tipo, invocador_id").eq("id", FICHA_ID).single();
+    if(error && /tipo|invocador/.test(error.message || "")){   // banco sem as colunas novas (rode o fichas_npc.sql)
+      ({ data, error } = await sb.from("fichas").select("dados, nome, user_id, sala_id").eq("id", FICHA_ID).single());
+    }
     if(error){ alert("Erro ao carregar a ficha: " + error.message); location.href = "home.html"; return false; }
+    FICHA_TIPO = data.tipo || "pj"; FICHA_INVOCADOR = data.invocador_id || null;
+    document.body.classList.add("tipo-" + FICHA_TIPO);
 
     _minhaFichaOwnerId = data.user_id;
     _souDono = (_meuUserId === _minhaFichaOwnerId);
@@ -1634,6 +1768,14 @@ async function enviarStatusParaTokens(forcar){
   const vitEl = document.getElementById("in_vit_atual"), chaEl = document.getElementById("in_chakra_atual");
   const vit = (vitEl && vitEl.value.trim() !== "") ? n(vitEl.value) : vitMax;
   const cha = (chaEl && chaEl.value.trim() !== "") ? n(chaEl.value) : chaMax;
+  if(typeof FICHA_TIPO !== "undefined" && FICHA_TIPO === "capanga"){
+    const v1 = (document.getElementById("cap_caido") || {}).checked ? 0 : 1;
+    try{
+      await sb.rpc("atualizar_status_ficha", { p_ficha: FICHA_ID, p_vit: v1, p_vit_max: 1, p_chakra: 0, p_chakra_max: 0 });
+      await sb.rpc("publicar_extra_ficha", { p_ficha: FICHA_ID, p_desloc: null, p_condicoes: v1 ? [] : ["fora"] });
+    }catch(e){}
+    return;
+  }
   /* deslocamento (Básico p.262) e condições marcadas, mais o estado vital pela Vitalidade */
   const desloc = n((document.getElementById("in_deslocamento") || {}).value);
   const conds = [];
@@ -2638,6 +2780,92 @@ function tecnicaVisivel(it){
 }
 
 /* ===== PODER ESCOLHIDO (aba Skills) -> dropdown de Poder do card de Jutsu ===== */
+/* ===== Versatilidade (Básico p.242-243) =====
+   Dois poderes versáteis (Ninpou, Suiton, Katon, Doton, Fuuton, Raiton, Fuuinjutsu).
+   Nv 1 dá efeito aos dois; do Nv 2 em diante cada nível vai para um deles, no máximo
+   2 seguidos para o mesmo. Onde a regra usa o nível do poder, vale o da Versatilidade. */
+const VERS_OPCOES = ["Ninpou","Suiton","Katon","Doton","Fuuton","Raiton","Fuuinjutsu"];
+function linhaVersatilidade(){
+  return Array.from(document.querySelectorAll("#poderes_rows > tr")).find(tr => {
+    const i = tr.querySelector("td:first-child input"); return i && normNome(i.value).indexOf("versatilidade") === 0;
+  }) || null;
+}
+function versInfo(){
+  const tr = linhaVersatilidade(); if(!tr) return null;
+  const nivel = num((tr.querySelector(".pod-nivel") || {}).value);
+  const painel = tr.nextElementSibling && tr.nextElementSibling.classList.contains("vers-linha") ? tr.nextElementSibling : null;
+  const A = painel ? ((painel.querySelector(".vers-a") || {}).value || "") : "";
+  const B = painel ? ((painel.querySelector(".vers-b") || {}).value || "") : "";
+  const niveis = {};
+  if(painel) painel.querySelectorAll(".vers-nv").forEach(sel => { if(sel.value) niveis[num(sel.dataset.nv)] = sel.value; });
+  return { tr, painel, nivel, A, B, niveis };
+}
+/* maior nível atribuído a um poder versátil (o Nv 1 vale para os dois) */
+function versNivelDe(poder){
+  const v = versInfo(); if(!v || !v.nivel) return 0;
+  const k = normNome(poder); const qual = normNome(v.A) === k ? "A" : (normNome(v.B) === k ? "B" : null);
+  if(!qual) return 0;
+  let mx = 1;
+  for(let n = 2; n <= v.nivel; n++) if(v.niveis[n] === qual) mx = n;
+  return mx;
+}
+function ehVersatil(nomePoder){ return /\(vers[aá]til\)\s*$/i.test(String(nomePoder || "")); }
+/* monta (ou atualiza) a linha de escolhas logo abaixo do poder Versatilidade */
+function montarVersatilidade(){
+  const tr = linhaVersatilidade();
+  document.querySelectorAll("#poderes_rows > tr.vers-linha").forEach(l => { if(!tr || l.previousElementSibling !== tr) l.remove(); });
+  if(!tr) return;
+  let painel = tr.nextElementSibling && tr.nextElementSibling.classList.contains("vers-linha") ? tr.nextElementSibling : null;
+  if(!painel){
+    painel = document.createElement("tr"); painel.className = "vers-linha";
+    painel.innerHTML = '<td colspan="4"><div class="vers-painel">' +
+      '<div class="linha"><span class="rot">Poderes versáteis:</span><select class="vers-a" title="Primeiro poder versátil"></select><span>e</span><select class="vers-b" title="Segundo poder versátil"></select></div>' +
+      '<div class="linha vers-niveis"></div><div class="resumo"></div><div class="aviso"></div></div></td>';
+    tr.insertAdjacentElement("afterend", painel);
+  }
+  const selA = painel.querySelector(".vers-a"), selB = painel.querySelector(".vers-b");
+  const opts = (sel, outro) => { const v = sel.value; sel.innerHTML = '<option value="">—</option>' + VERS_OPCOES.filter(o => o !== outro).map(o => '<option' + (o === v ? " selected" : "") + '>' + o + '</option>').join(""); sel.value = VERS_OPCOES.indexOf(v) >= 0 && v !== outro ? v : ""; };
+  opts(selA, selB.value); opts(selB, selA.value);
+  const nivel = num((tr.querySelector(".pod-nivel") || {}).value);
+  const box = painel.querySelector(".vers-niveis");
+  const antes = {}; box.querySelectorAll(".vers-nv").forEach(sel => { antes[sel.dataset.nv] = sel.value; });
+  const A = selA.value || "1º", B = selB.value || "2º";
+  let html = '<span class="rot">Níveis:</span><span class="nv"><b>1</b>&nbsp;ambos&nbsp;</span>';
+  for(let n = 2; n <= Math.min(nivel, 20); n++){
+    const v = antes[n] || "";
+    html += '<span class="nv" data-nv="' + n + '"><b>' + n + '</b><select class="vers-nv" data-nv="' + n + '" aria-label="Nível ' + n + ' vai para">' +
+      '<option value="">?</option><option value="A"' + (v === "A" ? " selected" : "") + '>' + escapeHtml(A) + '</option><option value="B"' + (v === "B" ? " selected" : "") + '>' + escapeHtml(B) + '</option></select></span>';
+  }
+  box.innerHTML = nivel >= 1 ? html : '<span class="rot">Defina o nível da Versatilidade.</span>';
+  validarVersatilidade();
+}
+function validarVersatilidade(){
+  const v = versInfo(); if(!v || !v.painel) return;
+  const erros = [];
+  if(!v.A || !v.B) erros.push("escolha os dois poderes versáteis");
+  let seq = 0, ult = null, faltam = 0;
+  v.painel.querySelectorAll(".vers-niveis .nv[data-nv]").forEach(el => el.classList.remove("erro"));
+  for(let n = 2; n <= v.nivel; n++){
+    const x = v.niveis[n];
+    if(!x){ faltam++; ult = null; seq = 0; continue; }
+    seq = (x === ult) ? seq + 1 : 1; ult = x;
+    if(seq > 2){ erros.push("o Nv " + n + " não pode ir para o mesmo poder dos dois níveis anteriores"); const el = v.painel.querySelector('.nv[data-nv="' + n + '"]'); if(el) el.classList.add("erro"); }
+  }
+  if(faltam) erros.push(faltam + (faltam > 1 ? " níveis sem poder escolhido" : " nível sem poder escolhido"));
+  const resumo = v.painel.querySelector(".resumo");
+  if(v.A && v.B) resumo.innerHTML = "<b>" + escapeHtml(v.A) + " Versátil</b>: efeitos até o Nv " + versNivelDe(v.A) + " · <b>" + escapeHtml(v.B) + " Versátil</b>: efeitos até o Nv " + versNivelDe(v.B) + " · uso até o Nv " + v.nivel + " (nível da Versatilidade).";
+  else resumo.textContent = "";
+  v.painel.querySelector(".aviso").textContent = erros.length ? "⚠ " + erros.join("; ") + " (Básico p.242)." : "";
+}
+document.getElementById("poderes_rows").addEventListener("change", (e) => {
+  if(e.target.closest(".vers-linha")){
+    if(e.target.matches(".vers-a, .vers-b")) montarVersatilidade(); else validarVersatilidade();
+    atualizarSelectsPoderJutsu(); recalc(); agendarSalvar();
+  }
+});
+document.getElementById("poderes_rows").addEventListener("input", (e) => {
+  if(e.target.matches(".pod-nivel, .pod-nome")) montarVersatilidade();
+});
 function poderesEscolhidos(){
   const out = [];
   document.querySelectorAll("#poderes_rows tr").forEach(tr => {
@@ -2648,10 +2876,19 @@ function poderesEscolhidos(){
   });
   return out;
 }
-function nivelDoPoderEscolhido(nome){ const p = poderesEscolhidos().find(x => x.nome === nome); return p ? p.nivel : ""; }
+function nivelDoPoderEscolhido(nome){
+  if(ehVersatil(nome)){ const v = versInfo(); return v && v.nivel ? String(v.nivel) : ""; }   // usa o nível da Versatilidade
+  const p = poderesEscolhidos().find(x => x.nome === nome); return p ? p.nivel : "";
+}
 function opcoesPoderJutsu(selecionado){
   const nomes = [];
   poderesEscolhidos().forEach(p => { if(nomes.indexOf(p.nome) === -1) nomes.push(p.nome); });
+  /* Versatilidade: cada poder versátil aparece como opção própria */
+  const _v = versInfo();
+  if(_v && (_v.A || _v.B)){
+    [_v.A, _v.B].forEach(x => { if(x){ const n = x + " (Versátil)"; if(nomes.indexOf(n) === -1) nomes.push(n); } });
+    for(let i = nomes.length - 1; i >= 0; i--) if(normNome(nomes[i]).indexOf("versatilidade") === 0 && nomes[i] !== selecionado) nomes.splice(i, 1);   // o poder "cru" some: use os versáteis
+  }
   /* mantém uma seleção antiga visível mesmo se o poder foi removido do Skills */
   if(selecionado && nomes.indexOf(selecionado) === -1) nomes.push(selecionado);
   /* aptidões escolhidas que liberam técnicas no BD (ex.: Nidan Sharingan, Kikaichuu, Kongou Fuusa) */
@@ -2871,6 +3108,7 @@ document.addEventListener("click", (e) => {
     const eraPoder = tr.closest("#poderes_rows");
     tr.remove();
     if (jid) document.querySelectorAll('tr[data-jid="'+jid+'"]').forEach(r => r.remove());
+    if (eraPoder && typeof montarVersatilidade === "function") montarVersatilidade();
     if (eraPoder && typeof atualizarSelectsPoderJutsu === "function") atualizarSelectsPoderJutsu();
     recalc();
   }
@@ -3301,7 +3539,7 @@ function syncJutsuCalc(card){
     const nomeEl = q(".jf-nome"), nvEl = q(".jutsu-nivel-poder"), poder = q(".jutsu-poder");
     const cj = row.querySelector(".cj-jutsu"); if(cj && nomeEl) cj.value = nomeEl.value;
     const cn = row.querySelector(".cj-nv"); if(cn && nvEl) cn.value = nvEl.value;
-    if(poder) row.dataset.poder = poderBaseKey(poder.value);
+    if(poder){ row.dataset.poder = poderBaseKey(poder.value); row.dataset.versatil = ehVersatil(poder.value) ? "1" : ""; }
     const _jm = q(".jf-modo"); if(_jm) row.dataset.jmodo = _jm.value;
     const tipoAntes = row.dataset.jdano;
     row.dataset.jcura = (q(".jf-cura") && q(".jf-cura").checked) ? "1" : "";
@@ -3466,10 +3704,16 @@ document.getElementById("jutsu_grid").addEventListener("click", (e) => {
   const btn = e.target.closest(".jutsu-efeito-btn");
   if(!btn) return;
   const card = btn.closest(".jutsu-card");
-  const poder = poderBaseKey(card.querySelector(".jutsu-poder").value);
-  const nivel = card.querySelector(".jutsu-nivel-poder").value;
-  const itens = efeitosDisponiveis(poder, nivel).map(it => Object.assign({}, it, {_grupo: grupoJutsu(it)}));
-  const titulo = poder ? ("Efeitos: " + poder + (String(nivel).trim() ? " (até Nv " + nivel + ")" : "")) : "Escolher Efeito";
+  const _valPoder = card.querySelector(".jutsu-poder").value;
+  const poder = poderBaseKey(_valPoder);
+  const _vers = ehVersatil(_valPoder);
+  const nivel = _vers ? String(versNivelDe(poder) || "") : card.querySelector(".jutsu-nivel-poder").value;
+  let itens = efeitosDisponiveis(poder, nivel).map(it => Object.assign({}, it, {_grupo: grupoJutsu(it)}));
+  if(typeof FICHA_TIPO !== "undefined" && FICHA_TIPO === "invocacao" && ["Doton","Fuuton","Katon","Raiton","Suiton"].indexOf(poder) >= 0){
+    const _perm = ["canhao","orbe","flechas","coluna","sopro destrutivo","raio","missil","ricochete"];
+    itens = itens.filter(it => _perm.indexOf(normNome(it.nome)) >= 0);   // Básico p.227
+  }
+  const titulo = poder ? ("Efeitos: " + poder + (_vers ? " Versátil" : "") + (String(nivel).trim() ? " (até Nv " + nivel + ")" : "")) : "Escolher Efeito";
   abrirSeletor(titulo, itens, (it) => preencherEfeitoNoJutsu(card, it));
 });
 
@@ -3587,6 +3831,10 @@ function coletarMods(){
       add(normNome(escEl.value), 2, "Perito");
     }
   });
+  /* invocação com Kuchiyose comum: capanga, -3 nas habilidades de combate (Básico p.226; fora do limite de -3) */
+  if(typeof FICHA_TIPO !== "undefined" && FICHA_TIPO === "invocacao" && typeof npcKuchiComum === "function" && npcKuchiComum()){
+    ["CC","CD","ESQ","LM"].forEach(k => add(k, -3, "Kuchiyose como poder comum (capanga)"));
+  }
   /* condições: soma por teste, limite de -3 (Básico p.276) */
   const porChave = {};
   const nomesPericias = Array.from(document.querySelectorAll(".per-row")).map(r => normNome(r.dataset.peri));
@@ -3875,7 +4123,8 @@ function _recalcInterno(){
   const ncEl = document.getElementById("in_nc");
   const NC = ncEl ? num(ncEl.value) : 0;
   const _vitEl = document.querySelector('.auto[data-calc="vit"]');
-  setAuto(_vitEl, c.vitBase + c.vitVigor*attrVal("Vigor") + c.vitNC*NC + (bonus.vit||0));
+  const _vitCalc = c.vitBase + c.vitVigor*attrVal("Vigor") + c.vitNC*NC + (bonus.vit||0);
+  setAuto(_vitEl, (typeof FICHA_TIPO !== "undefined" && FICHA_TIPO === "invocacao") ? Math.ceil(_vitCalc / 2) : _vitCalc);   // invocação: Vitalidade pela metade (Básico p.226)
   marcarMod(_vitEl, mods.vit, "");
   const _chaEl = document.querySelector('.auto[data-calc="chakra"]');
   setAuto(_chaEl, c.chakraBase + c.chakraEsp*attrVal("Espírito") + (bonus.chakra||0));
@@ -3936,6 +4185,7 @@ function _recalcInterno(){
     max: NC,
     limitePP: Math.floor(NC/c.limiteDiv)
   };
+  if(typeof FICHA_TIPO !== "undefined" && FICHA_TIPO === "invocacao") orc.pod = Math.floor(NC / 2);   // 1 ponto de poder a cada 2 NC (Básico p.226)
   let atrGasto = 0; document.querySelectorAll(".attr-val").forEach(i => atrGasto += num(i.value));
   let perGasto = 0; document.querySelectorAll(".pr-pontos").forEach(i => perGasto += num(i.value));
   let podGasto = 0;
@@ -4369,6 +4619,9 @@ function reqEstado(){
   const apts = [];
   document.querySelectorAll("#apt_rows .apt-nome").forEach(i => { const v = (i.value||"").trim(); if(v) apts.push(reqBase(v)); });
   const pods = poderesEscolhidos().map(p => ({ base: normNome(poderBaseKey(p.nome)), nivel: num(p.nivel) }));
+  /* Versatilidade: o nível dela serve de pré-requisito para os poderes versáteis (Básico p.243) */
+  const _vi = versInfo();
+  if(_vi && _vi.nivel){ [_vi.A, _vi.B].forEach(x => { if(x) pods.push({ base: normNome(x), nivel: _vi.nivel, versatil: true }); }); }
   const efs = [];
   document.querySelectorAll("#jutsu_grid .jf-efeitos").forEach(i => { const v = (i.value||"").trim(); if(v) efs.push(normNome(v)); });
   return { apts, pods, efs, lin: linhagemAtual() };
@@ -4406,7 +4659,7 @@ function reqAtomo(a, st, ctx){
     const temMoku = st.pods.some(p => p.base === "mokuton");
     if(temMoku && (eu === "doton" || eu === "suiton")) ok = true;
     else {
-      const outros = new Set(st.pods.filter(p => REQ_ELEM.indexOf(p.base) >= 0 && p.base !== eu && !(temMoku && (p.base === "doton" || p.base === "suiton"))).map(p => p.base));
+      const outros = new Set(st.pods.filter(p => !p.versatil && REQ_ELEM.indexOf(p.base) >= 0 && p.base !== eu && !(temMoku && (p.base === "doton" || p.base === "suiton"))).map(p => p.base));
       ok = outros.size < (attrVal("Espírito") >= 10 ? 2 : 1);
     }
     txt = "afinidade elemental: só 1 elemento básico (2 com Espírito 10)";
@@ -4563,13 +4816,14 @@ function adicionarPoder(it){
   tdDel.innerHTML = '<span class="del-row-btn" title="Remover linha">×</span>';
   tr.appendChild(tdDel);
   tbody.appendChild(tr);
+  montarVersatilidade();
   atualizarSelectsPoderJutsu();
   recalc();
 }
 function opcoesEscolha(aptNome){
   const n = normNome(aptNome);
   if(n === "perito" || n === "pericia inata") return PERICIAS.map(p => p.nome.replace(/^\*+/,""));
-  if(n === "maestria") return ["Ninpou","Doton","Fuuton","Katon","Raiton","Suiton","Taijutsu","Genjutsu","Iryou Ninjutsu"];
+  if(n === "maestria") return ["Ninpou","Doton","Fuuton","Katon","Raiton","Suiton","Versatilidade","Taijutsu","Genjutsu","Iryou Ninjutsu"];
   if(n === "especialista" || n === "dano extra") return ["Desarmado","Armas naturais","Leves","Medianas","Longas","Pesadas","Disparo","Arremesso","Especiais"];
   if(n === "guerreiro") return ["Longas","Pesadas"];
   if(n === "resistencia maior") return ["Força","Destreza","Agilidade","Percepção","Inteligência","Vigor","Espírito"];
@@ -5164,6 +5418,7 @@ function modoDoAlcance(alc, alvo){
 }
 function nivelMaxDoPoderRow(tr){
   const pk = tr.dataset.poder || "";
+  if(tr.dataset.versatil === "1"){ const v = versInfo(); if(v && v.nivel) return v.nivel; }
   let mx = 0;
   (typeof poderesEscolhidos === "function" ? poderesEscolhidos() : []).forEach(p => {
     if(poderBaseKey(p.nome) === pk) mx = Math.max(mx, num(p.nivel));
@@ -5714,7 +5969,7 @@ function bonusPrecisaoAtaque(){
     if(!nomeEl || !escEl) return;
     const apt = normNome(nomeEl.value), esc = String(escEl.value||"").trim();
     if(!esc) return;
-    if(ehJutsu && apt === "maestria" && normNome(tr.dataset.poder || "") === normNome(esc)) bonus += 1;
+    if(ehJutsu && apt === "maestria" && (normNome(tr.dataset.poder || "") === normNome(esc) || (tr.dataset.versatil === "1" && normNome(esc) === "versatilidade"))) bonus += 1;
     if(!ehJutsu && apt === "especialista" && catMatch(esc, tr.dataset.classe || "")) bonus += 1;
   });
   return bonus;
@@ -6197,7 +6452,7 @@ function dentroDeDinamico(el){
 }
 function camposEstaticos(){
   const stage = document.getElementById("stage"); if(!stage) return [];
-  return Array.from(stage.querySelectorAll("input, textarea, select")).filter(el => !dentroDeDinamico(el));
+  return Array.from(stage.querySelectorAll("input, textarea, select")).filter(el => !dentroDeDinamico(el) && !el.closest(".fora-do-estado"));
 }
 function serializarContainer(id){
   const c = document.getElementById(id); if(!c) return "";
@@ -6224,6 +6479,10 @@ function salvarEstado(){
       containers: {}
     };
     DINAMICOS.forEach(id => { estado.containers[id] = serializarContainer(id); });
+    /* campos das fichas de NPC (painel de PdM/invocação e cartão de capanga) */
+    const npc = {};
+    document.querySelectorAll("[data-npc]").forEach(el => { npc[el.dataset.npc] = (el.type === "checkbox") ? (el.checked ? 1 : 0) : el.value; });
+    if(Object.keys(npc).length) estado.npc = npc;
     localStorage.setItem(ESTADO_KEY, JSON.stringify(estado));
   }catch(e){}
 }
@@ -6299,10 +6558,212 @@ restaurarEstado();
 migrarCardsItens();
 migrarCardsJutsu();
 migrarNomesUsar();
+montarVersatilidade();
+setTimeout(() => { try{ montarNpc(); }catch(e){ console.error(e); } }, 0);
 atualizarVenenosAtivos();
 refreshLinhagensUI();
 recalc();
 montarControlesMestre();
+
+/* ===== FICHAS DE NPC: PdM, capanga e invocação ===== */
+const INV_ESPECIES = {
+  "Sapos":   { principais:["Agilidade","Espírito","Força"], pericias:["Acrobacia","Atletismo","Escapar","Prontidão"], poderes:["Fuuton","Suiton","Katon"],
+               aptidoes:"Ataque em Movimento, Especialista, Guerreiro, Intuição, Reflexos, Velocista, Maestria, Perito, Perícia Inata, Usar Arma",
+               tecnicas:"Tadayou; Óleo do Sapo (com Suiton, Inflamável Nv 5 grátis; tamanho Médio ou maior)", ataques:"clava, lança e espadas", fala:true },
+  "Águias":  { principais:["Agilidade","Percepção"], pericias:["Acrobacia","Atletismo","Voo","Prontidão","Rastrear"], poderes:[],
+               aptidoes:"Ataque em Movimento, Especialista, Reflexos, Intuição, Velocista, Perito, Perícia Inata, Ponto Cego, Ataque Atordoante, Ataque Poderoso, Derrubar Agressivo (sem Lutador e sem penalidade)",
+               tecnicas:"Bater de Asas (ventania de 2m por nível de Força; sem dano; dissipa gases)", ataques:"garras (corte) e bico (perfuração)", fala:false },
+  "Cães":    { principais:["Agilidade","Percepção"], pericias:["Acrobacia","Atletismo","Escapar","Furtividade","Procurar","Prontidão","Rastrear"], poderes:[],
+               aptidoes:"Acuidade, Ataque em Movimento, Especialista, Intuição, Reflexos, Velocista, Perito, Perícia Inata, Lutador, Ponto Cego, Ataque Atordoante, Ataque Poderoso, Derrubar Agressivo, De Pé, Desarme Agressivo, Rasteira, Sensor (olfato)",
+               tecnicas:"Tadayou; Tsuiga no Jutsu. Invocação numerosa: até 8 cães no nível máximo, mas como capangas com 1 de Vitalidade. Até tamanho Médio", ataques:"mordida (perfuração)", fala:true },
+  "Cobras":  { principais:["Força","Agilidade","Percepção"], pericias:["Acrobacia","Atletismo","Furtividade","Prontidão","Rastrear"], poderes:[],
+               aptidoes:"Ataque em Movimento, Especialista, Reflexos, Intuição, Velocista, Perito, Perícia Inata, Lutador, Ponto Cego, Arremessar, Ataque Atordoante, Ataque Poderoso, Derrubar Agressivo, Sensor (olfato)",
+               tecnicas:"Kawarimi (troca de pele), Kinobori, Imergir (Doton), Amedrontar Nv 2 (Magen; Dif 6 + Int; só contra criaturas menores)", ataques:"mordida (perfuração) e cauda (esmagamento)", fala:true },
+  "Lesmas":  { principais:["Inteligência","Espírito","Vigor"], pericias:["Ciências Naturais","Concentração","Escapar","Furtividade","Medicina","Prontidão"], poderes:["Iryou Ninjutsu"],
+               aptidoes:"Acuidade, Ataque em Movimento, Intuição, Reflexos, Ninja Médico, Perito, Perícia Inata, Lutar às Cegas, Maestria, Resistência Maior (Vigor), Duro de Matar",
+               tecnicas:"Tadayou, Kinobori, Katsuyu Daibunretsu, Byakugou no In, Ácido (Sopro Destrutivo Nv 4 com dano base igual ao Espírito; tamanho Médio ou maior). Uma única lesma por cena", ataques:"batida de corpo (esmagamento)", fala:true },
+  "Macacos": { principais:["Força","Agilidade","Vigor"], pericias:["Acrobacia","Atletismo","Disfarce","Prontidão"], poderes:[],
+               aptidoes:"Ataque em Movimento, Especialista, Reflexos, Velocista, Perito, Perícia Inata, Lutador, Lutar às Cegas, Ponto Cego, Arremessar, Ataque Atordoante, Ataque Múltiplo, Ataque Poderoso, Derrubar Agressivo, De Pé, Desarme Agressivo, Soco Agarrado, Chute Inverso, Voadora",
+               tecnicas:"Henge no Jutsu; Henge: Kongōnyoi. Até tamanho Grande", ataques:"socos e chutes", fala:true }
+};
+const INV_TAMANHOS = { "Miúdo":{min:14}, "Pequeno":{max:8}, "Médio":{}, "Grande":{min:12}, "Enorme":{min:14}, "Imenso":{min:16} };
+const ESTILOS_NPC = { Taijutsu:["Força","Agilidade","Vigor"], Ninjutsu:["Destreza","Agilidade","Espírito"], Genjutsu:["Inteligência","Agilidade","Espírito"] };
+function atrDaPericia(nome){
+  if(/^voo$/i.test(nome)) return "Agilidade";
+  const p = PERICIAS.find(x => normNome(x.nome.replace(/^\*+/, "")) === normNome(nome));
+  return p ? CODE2ATTR[p.attr] : null;
+}
+function npcKuchiComum(){ const s = document.getElementById("inv_kuchi_tipo"); return !!(s && s.value === "comum"); }
+/* rolagem simples de ataque (capanga e ataque natural da invocação) */
+function rolarAtaqueSimples(nome, rotHab, precisao, danoBase, maxGrau3, extraDetalhe){
+  const a = d8(), b = d8(), soma = a + b;
+  let g = grauDe(soma); const critico = !maxGrau3 && soma >= 15;
+  if(maxGrau3 && g > 3) g = 3;
+  const total = soma + precisao;
+  const badge = g === 0 ? { texto:"Falha", classe:"fail" } : { texto: (critico ? "Crítico · " : "") + "Grau " + g, classe: critico ? "crit" : classeGrau(g) };
+  const linhas = ["Acerto <b>" + total + "</b> = 2d8(" + soma + ") + " + rotHab + " (" + precisao + ")"];
+  if(g > 0) linhas.push("Dano <b>" + (danoBase * g) + "</b> = " + danoBase + " × Grau " + g + (maxGrau3 && soma >= 15 ? " (capanga: sem crítico, grau máximo 3)" : ""));
+  const det = Object.assign({ tipo:"arma", nome: nome, acerto:{ dados:[a,b], soma, hab: rotHab, valor: precisao, total }, grau: g, critico, dano:{ base: danoBase, final: danoBase * g } }, extraDetalhe || {});
+  emitirResultado({ dados:[a,b], titulo: nome, badge, linhas }, false, { grupo:_novoGrupo(), arma: nome, etapa:"uso", detalhe: det });
+  return { a, b, soma, g, total, dano: danoBase * g, critico };
+}
+function montarNpc(){
+  if(typeof FICHA_TIPO === "undefined" || FICHA_TIPO === "pj") return;
+  /* o que não serve para NPC some (PdM e invocação) */
+  if(FICHA_TIPO === "pdm" || FICHA_TIPO === "invocacao"){
+    ["in_patente","in_idade","in_genero","in_vila_origem","in_vila_atuante","in_tendencia","in_altura_peso"].forEach(id => { const el = document.getElementById(id); if(el){ const c = el.closest(".hr-cell"); if(c) c.classList.add("npc-oculto"); } });
+    document.querySelectorAll(".hr-row").forEach(r => { const cs = r.querySelectorAll(".hr-cell"); if(cs.length && Array.from(cs).every(c => c.classList.contains("npc-oculto"))) r.classList.add("npc-oculto"); });
+    document.querySelectorAll(".social-box").forEach(el => el.classList.add("npc-oculto"));
+    const perBar = document.getElementById("pt_per"); if(perBar){ const bar = perBar.closest(".bar"); if(bar){ bar.classList.add("npc-oculto"); const t = bar.nextElementSibling; if(t && t.classList.contains("per-table")) t.classList.add("npc-oculto"); } }
+    ["in_comp_usados","comp_nota"].forEach(id => { const el = document.getElementById(id); if(el){ (el.closest(".pill-stat") || el).classList.add("npc-oculto"); } });
+    document.querySelectorAll(".pill-stat").forEach(ps => { if(/ryos/i.test(ps.textContent)) ps.classList.add("npc-oculto"); });
+    const bdTab = document.querySelector('.tab-btn[data-tab="bd"]'); if(bdTab) bdTab.classList.add("npc-oculto");
+  }
+  /* restaura os campos de NPC salvos */
+  let npc = {}; try{ npc = (JSON.parse(localStorage.getItem(ESTADO_KEY) || "{}").npc) || {}; }catch(e){}
+  document.querySelectorAll("[data-npc]").forEach(el => { if(npc[el.dataset.npc] == null) return; if(el.type === "checkbox") el.checked = !!npc[el.dataset.npc]; else el.value = npc[el.dataset.npc]; });
+  const seg = (id, hidden, cb) => {
+    const box = document.getElementById(id), h = document.getElementById(hidden); if(!box || !h) return;
+    const marcar = () => box.querySelectorAll("button").forEach(b => b.classList.toggle("ativo", b.dataset.v === h.value));
+    box.addEventListener("click", (e) => { const b = e.target.closest("button"); if(!b) return; h.value = b.dataset.v; marcar(); if(cb) cb(); agendarSalvar(); });
+    marcar();
+  };
+  if(FICHA_TIPO === "pdm"){
+    seg("npc_estilo", "npc_estilo_val", atualizarEstiloNpc);
+    document.getElementById("npc_foco_per").addEventListener("change", () => { atualizarEstiloNpc(); agendarSalvar(); });
+    const sel = document.getElementById("npc_pericia");
+    sel.innerHTML = PERICIAS.map(p => { const n = p.nome.replace(/^\*+/, ""); return '<option value="' + escapeHtml(n) + '">' + escapeHtml(n) + ' (' + CODE2ATTR[p.attr] + ')</option>'; }).join("");
+    document.getElementById("npc_pericia_rolar").addEventListener("click", () => rolarPericiaNpc(sel.value));
+    atualizarEstiloNpc();
+  }
+  if(FICHA_TIPO === "invocacao") montarInvocacao();
+  if(FICHA_TIPO === "capanga") montarCapanga();
+}
+function atualizarEstiloNpc(){
+  const est = (document.getElementById("npc_estilo_val") || {}).value || "";
+  let foco = (ESTILOS_NPC[est] || []).slice();
+  if(foco.length && est !== "Taijutsu" && document.getElementById("npc_foco_per").checked) foco = foco.map(a => a === "Agilidade" ? "Percepção" : a);
+  document.querySelectorAll(".attr-badge").forEach(bd => { const i = bd.querySelector(".attr-val"); bd.classList.toggle("npc-foco", !!(i && foco.indexOf(i.dataset.attr) >= 0)); });
+  const dica = document.getElementById("npc_estilo_dica");
+  if(dica) dica.innerHTML = est ? "Foco em <b>" + foco.join(", ") + "</b>." + (foco.indexOf("Agilidade") >= 0 ? " Com foco em Agilidade, lembre da aptidão Reflexos." : " Com foco em Percepção, lembre do efeito Barreira.") + " (Básico p.281)"
+                                : "Escolha o estilo: a ficha destaca os atributos que devem receber mais pontos (Básico p.281).";
+}
+function rolarPericiaNpc(nome){
+  const atr = atrDaPericia(nome); if(!atr) return;
+  abrirQuickRoll({ titulo: "Teste de " + nome + " (usa " + atr + ")", nDados: 2, modo: "teste", bonusRotulo: SIGLAS[atr] || atr, bonus: () => attrVal(atr) + (typeof _penalAtributosCond !== "undefined" ? _penalAtributosCond : 0) });
+}
+/* ----- invocação ----- */
+async function montarInvocacao(){
+  const esp = document.getElementById("inv_especie");
+  const salva = esp.value;
+  esp.innerHTML = Object.keys(INV_ESPECIES).map(k => '<option' + (k === salva ? " selected" : "") + '>' + k + '</option>').join("");
+  if(!salva) esp.value = "Sapos";
+  ["inv_especie","inv_tamanho","inv_qtd","inv_kuchi_tipo","inv_marcial"].forEach(id => document.getElementById(id).addEventListener("change", () => { atualizarInvocacao(); recalc(); agendarSalvar(); }));
+  document.getElementById("inv_kuchi").addEventListener("input", () => { atualizarInvocacao(); agendarSalvar(); });
+  document.getElementById("inv_atacar").addEventListener("click", () => {
+    const precisao = (typeof habTotal === "function") ? habTotal("CC") : 0;
+    rolarAtaqueSimples(((document.getElementById("ft_nome_ficha") || {}).value || "Invocação") + " (ataque)", "CC", precisao, danoNaturalInv(), npcKuchiComum());
+  });
+  /* invocadores possíveis: o mestre vê todas as fichas de jogador e PdM; o jogador, só as dele */
+  const sel = document.getElementById("inv_invocador");
+  const atual = FICHA_INVOCADOR || sel.value || "";
+  try{
+    let q = sb.from("fichas").select("id, nome, tipo, user_id").neq("id", FICHA_ID);
+    const { data, error } = await q;
+    const lista = (error ? [] : (data || [])).filter(f => (f.tipo || "pj") === "pj" || f.tipo === "pdm").filter(f => _souMestre || f.user_id === _meuUserId);
+    sel.innerHTML = '<option value="">Sem vínculo (preencher à mão)</option>' + lista.map(f => '<option value="' + f.id + '"' + (f.id === atual ? " selected" : "") + '>' + escapeHtml(f.nome || "Ficha") + (f.tipo === "pdm" ? " (PdM)" : "") + '</option>').join("");
+  }catch(e){}
+  sel.value = atual;
+  sel.addEventListener("change", async () => {
+    FICHA_INVOCADOR = sel.value || null;
+    try{ await sb.from("fichas").update({ invocador_id: FICHA_INVOCADOR }).eq("id", FICHA_ID); }catch(e){}
+    await puxarInvocador(); agendarSalvar();
+  });
+  await puxarInvocador();
+}
+/* puxa da ficha do invocador o nível e o tipo do Kuchiyose */
+async function puxarInvocador(){
+  const info = document.getElementById("inv_vinc_info"), kn = document.getElementById("inv_kuchi"), kt = document.getElementById("inv_kuchi_tipo");
+  const id = FICHA_INVOCADOR;
+  kn.readOnly = !!id; kt.disabled = !!id;
+  if(!id){ info.textContent = "Preencha o Kuchiyose à mão."; atualizarInvocacao(); return; }
+  try{
+    const { data } = await sb.from("fichas").select("nome, dados").eq("id", id).single();
+    const est = (data && data.dados && data.dados.estado) || {};
+    const doc = new DOMParser().parseFromString("<table><tbody>" + ((est.containers || {}).poderes_rows || "") + "</tbody></table>", "text/html");
+    let nivel = 0;
+    doc.querySelectorAll("tr").forEach(tr => { const n = tr.querySelector("td:first-child input"); if(n && /^kuchiyose/i.test((n.getAttribute("value") || "").trim())){ const nv = tr.querySelector(".pod-nivel"); nivel = Math.max(nivel, num(nv ? nv.getAttribute("value") : 0)); } });
+    const idxCla = camposEstaticos().indexOf(document.getElementById("in_cla"));
+    const cla = (Array.isArray(est.estaticos) && idxCla >= 0) ? String(est.estaticos[idxCla] || "") : "";
+    kn.value = nivel ? String(nivel) : "";
+    kt.value = cla === "kuchiyose" ? "hijutsu" : "comum";
+    info.innerHTML = nivel ? "Puxado de <b>" + escapeHtml(data.nome || "invocador") + "</b>: Kuchiyose Nv " + nivel + " (" + (cla === "kuchiyose" ? "Hijutsu" : "poder comum") + ")."
+                           : "<b>" + escapeHtml((data && data.nome) || "Invocador") + "</b> não tem o poder Kuchiyose na ficha.";
+  }catch(e){ info.textContent = "Não foi possível ler a ficha do invocador."; }
+  atualizarInvocacao(); recalc();
+}
+function danoNaturalInv(){ return Math.max(3, attrVal("Força") - 3) + ((document.getElementById("inv_marcial") || {}).checked ? 1 : 0); }
+function atualizarInvocacao(){
+  const esp = INV_ESPECIES[(document.getElementById("inv_especie") || {}).value] || INV_ESPECIES.Sapos;
+  const nivel = num((document.getElementById("inv_kuchi") || {}).value);
+  const qtd = num((document.getElementById("inv_qtd") || {}).value) || 1;
+  const nc = num((document.getElementById("in_nc") || {}).value);
+  const ncMax = nivel ? 2 * nivel - (qtd === 2 ? 2 : 0) : 0;
+  document.getElementById("inv_limites").innerHTML = nivel ? "NC máximo <b>" + ncMax + "</b> · custo <b>" + (2 * nivel) + "</b> de chakra (Básico p.225)" : "";
+  const avisos = [];
+  if(nivel && nc > ncMax) avisos.push("NC " + nc + " passa do máximo (" + ncMax + ") para este Kuchiyose");
+  if(nc && nc < 4) avisos.push("abaixo de NC 4 a criatura não tem pontos, aptidões nem dano");
+  const tam = (document.getElementById("inv_tamanho") || {}).value, lt = INV_TAMANHOS[tam] || {};
+  if(lt.min && nc < lt.min) avisos.push("tamanho " + tam + " exige NC " + lt.min + " ou mais");
+  if(lt.max && nc > lt.max) avisos.push("tamanho " + tam + " só até NC " + lt.max);
+  document.getElementById("inv_aviso").textContent = avisos.length ? "⚠ " + avisos.join("; ") + "." : "";
+  document.getElementById("inv_principais").innerHTML = esp.principais.map(a => '<span class="np-chip">' + a + '</span>').join("");
+  document.getElementById("inv_pericias").innerHTML = esp.pericias.map(p => { const a = atrDaPericia(p) || "Agilidade"; return '<button type="button" class="np-per" data-per="' + escapeHtml(p) + '">' + escapeHtml(p) + ' <span>' + (SIGLAS[a] || a) + ' ' + attrVal(a) + '</span></button>'; }).join("");
+  document.getElementById("inv_dano").textContent = danoNaturalInv();
+  document.getElementById("inv_ataques").textContent = "Ataques: " + esp.ataques;
+  document.getElementById("inv_poder").innerHTML = esp.poderes.length ? "Escolha um: <b>" + esp.poderes.join(", ") + "</b>. Poder elemental só com Canhão, Orbe, Flechas, Coluna, Sopro Destrutivo, Raio, Míssil e Ricochete (Básico p.227)." : "Esta espécie não tem poder: usa as técnicas abaixo.";
+  document.getElementById("inv_aptidoes").textContent = esp.aptidoes + ".";
+  document.getElementById("inv_tecnicas").textContent = esp.tecnicas + "." + (esp.fala ? "" : " Não falam a língua humana.");
+  document.querySelectorAll(".attr-badge").forEach(bd => { const i = bd.querySelector(".attr-val"); bd.classList.toggle("npc-foco", !!(i && esp.principais.indexOf(i.dataset.attr) >= 0)); });
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("#inv_pericias .np-per"); if(!b) return;
+  rolarPericiaNpc(b.dataset.per);
+});
+/* ----- capanga ----- */
+function capPadroes(){
+  const nc = num(document.getElementById("cap_nc").value) || 0;
+  return { atk: 3 + nc, def: 3 + nc, dano: Math.max(Math.floor(nc / 2), nc - 3), lp: Math.floor(nc / 2), nc };
+}
+function montarCapanga(){
+  const nomeTop = document.getElementById("ft_nome_ficha");
+  const atualizaNome = () => { document.getElementById("cap_nome").textContent = (nomeTop && nomeTop.value) || "Capanga"; };
+  if(nomeTop) nomeTop.addEventListener("input", atualizaNome); atualizaNome();
+  const seg = document.getElementById("cap_modo"), h = document.getElementById("cap_modo_val");
+  const marcar = () => seg.querySelectorAll("button").forEach(b => b.classList.toggle("ativo", b.dataset.v === h.value));
+  seg.addEventListener("click", (e) => { const b = e.target.closest("button"); if(!b) return; h.value = b.dataset.v; marcar(); agendarSalvar(); });
+  marcar();
+  const atualizar = () => {
+    const p = capPadroes();
+    document.getElementById("cap_atk").placeholder = p.atk; document.getElementById("cap_def").placeholder = p.def; document.getElementById("cap_dano").placeholder = p.dano;
+    document.getElementById("cap_dica").textContent = "Padrão do livro: precisões 3 + NC (" + p.atk + "); dano NC − 3 (" + p.dano + "), entre o Limite de Poder (" + p.lp + ") e o NC (" + p.nc + "). Deixe em branco para usar o padrão.";
+  };
+  ["cap_nc","cap_atk","cap_def","cap_dano","cap_notas"].forEach(id => document.getElementById(id).addEventListener("input", () => { atualizar(); agendarSalvar(); }));
+  document.getElementById("cap_caido").addEventListener("change", () => { agendarSalvar(); enviarStatusParaTokens(true); });
+  atualizar();
+  const val = (id, pad) => { const v = String(document.getElementById(id).value).trim(); return v === "" ? pad : num(v); };
+  document.getElementById("cap_atacar").addEventListener("click", () => {
+    const p = capPadroes(), modo = h.value || "CC";
+    const r = rolarAtaqueSimples((nomeTop && nomeTop.value) || "Capanga", modo, val("cap_atk", p.atk), val("cap_dano", p.dano), true);
+    document.getElementById("cap_res").innerHTML = "Acerto <b>" + r.total + "</b> (2d8: " + r.a + " + " + r.b + ") · " + (r.g ? "Grau " + r.g + " · dano <b>" + r.dano + "</b>" : "Falha");
+  });
+  document.getElementById("cap_defender").addEventListener("click", () => {
+    const p = capPadroes(), prec = val("cap_def", p.def), a = d8(), b = d8();
+    const c = { dados:[a,b], bonus: prec, bonusRotulo:"defesa", titulo: ((nomeTop && nomeTop.value) || "Capanga") + " — defesa", badge:{ texto:"Defesa " + (a + b + prec), classe:"g1" }, linhas:[] };
+    emitirResultado(c, false, { grupo:_novoGrupo(), arma:"defesa", etapa:"defesa" });
+    document.getElementById("cap_res").innerHTML = "Defesa <b>" + (a + b + prec) + "</b> (2d8: " + a + " + " + b + " + " + prec + ")";
+  });
+}
 
 /* ===== ABAS + STATUS FIXOS: acompanham a rolagem da página ===== */
 (function(){
@@ -6465,13 +6926,17 @@ montarControlesMestre();
     const ok = await carregarDaNuvem();
     if(!ok) return;              // redirecionado para login/home
     await carregarCompendio();   // banco compartilhado (cai no embutido se a tabela não existir)
+  } else {
+    /* sem nuvem (arquivo local): o tipo pode vir na URL, ex.: ficha.html?tipo=pdm */
+    FICHA_TIPO = new URLSearchParams(location.search).get("tipo") || "pj";
+    document.body.classList.add("tipo-" + FICHA_TIPO);
   }
   iniciarFicha();
   (function(){
     const w = document.getElementById("ft_secreto_wrap"), c = document.getElementById("ft_secreto");
     if(!w || !c || !NUVEM_ATIVA || !_souMestre) return;
     w.style.display = "flex";
-    try{ c.checked = localStorage.getItem("sns_rolagem_secreta_" + FICHA_ID) === "1"; }catch(e){}
+    try{ const _pref = localStorage.getItem("sns_rolagem_secreta_" + FICHA_ID); c.checked = _pref == null ? (FICHA_TIPO === "pdm" || FICHA_TIPO === "capanga") : _pref === "1"; }catch(e){}
     c.addEventListener("change", () => { try{ localStorage.setItem("sns_rolagem_secreta_" + FICHA_ID, c.checked ? "1" : "0"); }catch(e){} });
   })();
   setTimeout(() => { enviarStatusParaTokens(true); enviarFotoParaTokens(); }, 1500);   // barras e foto da mesa em dia ao abrir
