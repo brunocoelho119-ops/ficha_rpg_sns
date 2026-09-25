@@ -251,6 +251,7 @@
   .cu-conta{ font-size:12.5px; font-weight:600; }
   .cu-total{ margin-left:auto; font-size:19px; font-weight:800; }
   .cu-total.dano{ font-size:22px; color:var(--shu); }
+  .cu-total.cura{ font-size:22px; color:var(--ok); }
   .cu-sub{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:11.5px; color:var(--sumi-2); padding-left:50px; line-height:1.4; }
   .cu-rodape{ display:flex; justify-content:space-between; gap:8px; border-top:1px solid var(--washi-2); padding-top:6px; font-size:11.5px; color:var(--sumi-2); }
   .cu-rodape b{ color:var(--sumi); }
@@ -2865,6 +2866,20 @@ function cartaUsoHtml(d, nome){
   let html = '<div class="carta-rolagem carta-uso">' +
     '<div class="cr-cab"><span class="cr-titulo">' + escapeHtml(d.nome || "Uso") + '</span><span class="cr-quem">' + escapeHtml(nome) + '</span></div>' +
     (chips.length ? '<div class="cu-chips">' + chips.join("") + '</div>' : "");
+  /* cura do Iryou: valor fixo por turno de tratamento, sem dados */
+  if(d.curaFixa){
+    html += '<div class="cu-bloco">' +
+      '<div class="cu-linha"><span class="cu-rot">Cura</span><span class="cu-conta">por turno de tratamento' + (d.emSiMesmo ? " · em si mesmo" : "") + '</span>' +
+        '<span class="cu-total cura">' + (d.dano ? d.dano.final : 0) + '</span></div>' +
+      (d.dano && d.dano.formula ? '<div class="cu-sub">' + escapeHtml(d.dano.formula) + '</div>' : "") +
+      '<div class="cu-sub">Sangramento e cortes do Bisturi de Chakra saem no primeiro turno.</div>' +
+    '</div>';
+    const rod = [];
+    if(d.chakra != null) rod.push('Chakra gasto: <b>' + d.chakra + '</b>');
+    if(d.acao) rod.push(escapeHtml("Ação " + d.acao.toLowerCase()));
+    if(rod.length) html += '<div class="cu-rodape">' + rod.map(r => '<span>' + r + '</span>').join("") + '</div>';
+    return html + '</div>';
+  }
   const grauTxt = d.grau > 0 ? ((d.critico ? "Crítico · " : "") + "Grau " + d.grau) : "Falha";
   const grauCls = d.grau <= 0 ? "fail" : (d.critico ? "crit" : "g" + d.grau);
   if(d.acerto){
@@ -2878,15 +2893,17 @@ function cartaUsoHtml(d, nome){
     html += '<div class="cu-bloco"><div class="cu-linha"><span class="cu-rot">Dados</span>' + (d.acerto ? "" : "") +
       '<span class="cr-badge cr-' + grauCls + '">' + grauTxt + '</span><span class="cu-mod">sem teste de acerto</span></div></div>';
   }
+  const rotDano = d.cura ? "Cura" : (d.tarjas ? "Explosão" : "Dano");
   if(d.dano && d.grau > 0){
     html += '<div class="cu-bloco">' +
-      '<div class="cu-linha"><span class="cu-rot">Dano</span><span class="cu-conta">' + d.dano.base + ' × Grau ' + d.grau + '</span>' +
-        '<span class="cu-total dano">' + d.dano.final + '</span></div>' +
+      '<div class="cu-linha"><span class="cu-rot">' + rotDano + '</span><span class="cu-conta">' + d.dano.base + ' × Grau ' + d.grau + '</span>' +
+        '<span class="cu-total ' + (d.cura ? "cura" : "dano") + '">' + d.dano.final + '</span></div>' +
+      (d.tarjas && d.tarjaInfo ? '<div class="cu-sub">' + d.tarjas + (d.tarjas > 1 ? " tarjas" : " tarja") + ' · esfera de ' + d.tarjaInfo.diametro + 'm · reação de Agilidade ou Prontidão, Dif ' + d.tarjaInfo.dif + '</div>' : "") +
       (d.dano.formula ? '<div class="cu-sub">' + escapeHtml(d.dano.formula) + '</div>' : "") +
       (d.dano.qtd ? '<div class="cu-sub">Quantidade: ' + d.dano.qtd + '</div>' : "") +
     '</div>';
   } else if(d.dano && d.grau <= 0){
-    html += '<div class="cu-bloco"><div class="cu-linha"><span class="cu-rot">Dano</span><span class="cu-conta">nenhum (falha)</span></div></div>';
+    html += '<div class="cu-bloco"><div class="cu-linha"><span class="cu-rot">' + rotDano + '</span><span class="cu-conta">nenhum (falha)</span></div></div>';
   }
   const rodape = [];
   if(d.tipo === "jutsu" && d.chakra != null) rodape.push('Chakra gasto: <b>' + d.chakra + '</b>');
