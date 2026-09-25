@@ -845,6 +845,117 @@
   .modal-btn.primary{ background:var(--bar-bg); border-color:var(--bar-bg); }
   .sel-item:hover{ background:var(--gray-light); }
   .modal-search:focus, .dtable td select.apt-escolha:focus{ outline:2px solid var(--kinari); }
+
+  /* =====================================================================
+     CARDS DE JUTSU E DE ARMA (aba Skills). A estrutura continua sendo a
+     tabela de sempre (a lógica e o salvamento não mudam); cada linha é
+     desenhada como um card. As classes c-* são postas pelo script.
+     ===================================================================== */
+  .bar-cartoes{ display:flex; align-items:center; justify-content:space-between; }
+  .bar-cartoes .bar-dica{ font-family:var(--font-body); font-weight:500; font-size:11.5px; color:#c9d1de; }
+  .tabela-cartoes{ display:block; width:100%; border:none !important; background:transparent !important; margin-top:10px; }
+  .tabela-cartoes > tbody:not([id]), .tabela-cartoes tr:has(> th){ display:none !important; }
+  .tabela-cartoes > tbody[id]{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; }
+  .tabela-cartoes > tbody[id]:empty{ display:block; }
+  .cartoes-jutsu > tbody[id]:empty::before{ content:"Nenhum jutsu ainda. Crie os jutsus na aba Jutsus: cada um aparece aqui como um card."; }
+  .cartoes-armas > tbody[id]:empty::before{ content:"Nenhuma arma ainda. Adicione armas no Inventário."; }
+  .tabela-cartoes > tbody[id]:empty::before{ display:block; padding:16px; border:1.5px dashed var(--border); border-radius:12px; color:var(--gray-text); font-size:12.5px; text-align:center; }
+  .tabela-cartoes tr{
+    display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px 6px; position:relative;
+    background:#fbf7ee; border:1px solid var(--border); border-radius:14px; padding:10px; align-content:start;
+  }
+  .tabela-cartoes td{ display:block; border:none !important; padding:0 !important; background:transparent !important; height:auto !important; min-width:0; }
+  .tabela-cartoes td input{ width:100%; box-sizing:border-box; }
+  /* rótulos */
+  .tabela-cartoes td[class*="c-"]::before{ display:block; font-size:10.5px; font-weight:600; color:var(--gray-text); margin-bottom:2px; }
+  .tabela-cartoes td.c-base::before{ content:"Dano base"; }
+  .tabela-cartoes td.c-dureza::before{ content:"Dureza"; }
+  .tabela-cartoes td.c-delem::before{ content:"Bônus poder"; }
+  .tabela-cartoes td.c-fixo::before{ content:"Dano fixo"; }
+  .tabela-cartoes td.c-bonus::before{ content:"Bônus"; }
+  .tabela-cartoes td.c-custo::before{ content:"Custo"; }
+  .tabela-cartoes td.c-arma::before{ content:"Dano da arma"; }
+  .tabela-cartoes td.c-crit::before{ content:"Crítico"; }
+  .tabela-cartoes td.c-alc::before{ content:"Alcance"; }
+  .tabela-cartoes td.c-nome::before, .tabela-cartoes td.c-dano::before, .tabela-cartoes td.c-tipo::before,
+  .tabela-cartoes td.c-info::before, .tabela-cartoes td.c-acoes::before, .tabela-cartoes td.c-nv::before{ display:none; }
+  /* cabeçalho: o nome é o botão de usar */
+  .tabela-cartoes td.c-nome{
+    grid-column:1 / -1; order:0; background:var(--bar-bg) !important; border-radius:10px; padding:8px 40px 8px 12px !important;
+    min-height:52px; display:flex; flex-direction:column; justify-content:center; cursor:pointer; position:relative;
+  }
+  .tabela-cartoes td.c-nome:hover{ background:#2a3850 !important; }
+  .tabela-cartoes td.c-nome input{
+    background:transparent !important; border:none !important; color:#fff !important; padding:0 !important; cursor:pointer;
+    font-family:var(--font-display) !important; font-weight:800 !important; font-size:16.5px !important; line-height:1.2; height:auto !important;
+    text-overflow:ellipsis; box-shadow:none !important;
+  }
+  .tabela-cartoes td.c-nome .cartao-sub{ font-size:11.5px; color:#c9d1de; font-weight:500; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tabela-cartoes td.c-nome .cartao-sub:empty{ display:none; }
+  .tabela-cartoes td.c-nome::after{
+    content:""; position:absolute; right:12px; top:50%; width:20px; height:20px; transform:translateY(-50%);
+    background:no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d9b872' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='4' width='16' height='16' rx='3'/%3E%3Ccircle cx='9' cy='9' r='1' fill='%23d9b872'/%3E%3Ccircle cx='15' cy='15' r='1' fill='%23d9b872'/%3E%3Ccircle cx='15' cy='9' r='1' fill='%23d9b872'/%3E%3Ccircle cx='9' cy='15' r='1' fill='%23d9b872'/%3E%3C/svg%3E");
+  }
+  /* linha de informação (efeito / classe da arma) */
+  .tabela-cartoes td.c-info{ grid-column:1 / -1; order:1; font-size:12.5px; display:flex; align-items:center; gap:8px; min-height:22px; padding:0 2px !important; }
+  .tabela-cartoes td.c-info .rot{ font-size:11.5px; font-weight:600; color:var(--gray-text); }
+  .tabela-cartoes td.c-info b{ font-weight:600; }
+  .tabela-cartoes td.c-info .chip-buff{ margin-left:auto; font-size:11px; font-weight:700; color:#6b5210; background:#f1e3bd; border-radius:999px; padding:3px 9px; white-space:nowrap; }
+  .tabela-cartoes td.c-info:empty{ display:none; }
+  /* jutsu: "Dano?" + tipo */
+  .cartoes-jutsu td.c-dano{ order:2; grid-column:1 / span 2; display:flex !important; align-items:center; gap:7px; font-size:13px; font-weight:600; min-height:30px; cursor:pointer; }
+  .cartoes-jutsu td.c-dano::after{ content:"Dano?"; }
+  .cartoes-jutsu td.c-dano input{ width:18px !important; height:18px; margin:0; accent-color:var(--bar-bg); }
+  .cartoes-jutsu td.c-tipo{ order:3; display:flex; align-items:center; justify-content:flex-end; }
+  .tabela-cartoes.cartoes-jutsu td.c-tipo input, .tabela-cartoes.cartoes-jutsu td.c-tipo input.calc-ro{
+    width:auto !important; max-width:100%; text-align:center; font-size:11.5px !important; font-weight:700 !important; color:var(--bar-bg) !important;
+    background:var(--calc-bg) !important; border:none !important; border-radius:999px !important; padding:4px 10px !important; height:auto !important;
+  }
+  .cartoes-jutsu td.c-base{ order:4; } .cartoes-jutsu td.c-dureza{ order:5; } .cartoes-jutsu td.c-delem{ order:6; }
+  .cartoes-jutsu td.c-fixo{ order:7; } .cartoes-jutsu td.c-bonus{ order:8; } .cartoes-jutsu td.c-custo{ order:9; }
+  .cartoes-jutsu td.c-nv{ display:none !important; }
+  /* arma */
+  .cartoes-armas td.c-arma{ order:4; } .cartoes-armas td.c-crit{ order:5; } .cartoes-armas td.c-alc{ order:6; }
+  .cartoes-armas td.c-base{ order:7; } .cartoes-armas td.c-dureza{ order:8; } .cartoes-armas td.c-bonus{ order:9; }
+  .cartoes-armas td.c-acoes{ order:2; grid-column:1 / -1; }
+  /* valores: calculado (dourado) x você preenche (branco) x custo (azulado) */
+  .tabela-cartoes td input.calc-ro, .cartoes-armas td.c-arma input, .cartoes-armas td.c-crit input, .cartoes-armas td.c-alc input{
+    background:var(--calc-bg) !important; border:none !important; border-radius:8px !important; font-size:17px !important; font-weight:700 !important;
+    padding:4px 8px !important; height:34px !important; color:var(--ink) !important;
+  }
+  .cartoes-armas td.c-arma input, .cartoes-armas td.c-crit input, .cartoes-armas td.c-alc input{ font-size:14px !important; }
+  .tabela-cartoes td.c-fixo input, .tabela-cartoes td.c-bonus input, .cartoes-armas td.c-dureza input{
+    background:#fff !important; border:1px solid var(--border) !important; border-radius:8px !important; font-size:15px !important; font-weight:700 !important;
+    padding:4px 8px !important; height:34px !important;
+  }
+  .tabela-cartoes.cartoes-jutsu td.c-custo input, .tabela-cartoes.cartoes-jutsu td.c-custo input.calc-ro{
+    background:#e1e7f1 !important; color:var(--bar-bg) !important; border:none !important; border-radius:8px !important;
+    font-size:11.5px !important; font-weight:700 !important; padding:4px 8px !important; height:34px !important;
+  }
+  /* sem dano: números apagados */
+  .cartoes-jutsu tr.sem-dano td.c-tipo, .cartoes-jutsu tr.sem-dano td.c-base, .cartoes-jutsu tr.sem-dano td.c-dureza,
+  .cartoes-jutsu tr.sem-dano td.c-delem, .cartoes-jutsu tr.sem-dano td.c-fixo, .cartoes-jutsu tr.sem-dano td.c-bonus{ opacity:.42; }
+  /* ações: dado escondido (o nome rola), × no canto, CC/CD da arma na linha de info */
+  .tabela-cartoes td.c-acoes{ display:flex !important; align-items:center; justify-content:flex-end; gap:6px; min-height:0; }
+  .tabela-cartoes td.c-acoes .roll-btn{ display:none !important; }
+  .tabela-cartoes td.c-acoes .del-row-btn{
+    position:absolute; top:-7px; right:-7px; width:22px; height:22px; border-radius:50%; background:#fff; border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; font-size:13px; z-index:2; box-shadow:0 1px 3px rgba(0,0,0,0.15);
+  }
+  .cartoes-jutsu td.c-acoes{ position:static; order:99; height:0; }
+  .cartoes-armas td.c-acoes .mode-toggle{ margin-right:auto; }
+  .legenda-cartoes{ display:flex; gap:18px; flex-wrap:wrap; font-size:11.5px; color:var(--gray-text); margin:12px 2px 0; }
+  .legenda-cartoes span{ display:flex; align-items:center; gap:6px; }
+  .legenda-cartoes i{ width:13px; height:13px; border-radius:4px; display:inline-block; }
+  .legenda-cartoes .lg-calc{ background:var(--calc-bg); }
+  .legenda-cartoes .lg-edit{ background:#fff; border:1px solid var(--border); }
+  .legenda-cartoes .lg-custo{ background:#e1e7f1; }
+
+  /* aba Jutsus: nível base do efeito */
+  .jf-nvbase{ flex:none; font-size:10.5px; font-weight:700; color:#fff; background:var(--bar-bg); border-radius:999px; padding:3px 8px; white-space:nowrap; }
+  .jf-nvbase:empty{ display:none; }
+  .jf-nvinfo{ font-size:10.5px; color:var(--gray-text); margin:-3px 0 6px; line-height:1.35; }
+  .jf-nvinfo:empty{ display:none; }
 </style>
   <!-- ===== NUVEM (Supabase) ===== -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1101,12 +1212,25 @@
   </table>
   <button class="btn-add-row" id="btn_add_apt" data-catalogo="aptidoes">+ Escolher aptidão</button>
 
-  <div class="bar" style="margin-top:14px;">Calculadora de Dano - Jutsus com Dano Comum do Poder</div>
-  <table class="dtable">
+  <div class="bar bar-cartoes" style="margin-top:14px;"><span>Jutsus</span><span class="bar-dica">Clique no nome para usar o jutsu</span></div>
+  <table class="dtable tabela-cartoes cartoes-jutsu">
     <tr><th style="width:20%;">Jutsu</th><th style="width:6%;" title="Desmarque para jutsus que não causam dano (ex: suporte, transformação, invocação) — a rolagem de Ataque vira só teste de acerto.">Dano?</th><th style="width:9%;" title="Tipo de dano escolhido no card do jutsu (Comum / Diferente / Especial / Sem dano). Linhas sem card usam o cálculo antigo.">Tipo Dano</th><th style="width:8%;">Custo</th><th style="width:9%;" title="Nível usado do Poder">Nv. Poder</th><th style="width:8%;">Dureza</th><th style="width:9%;" title="Parte do dano que vem do card: no Dano Comum é o Bônus (elemento / livro). Soma com o Dano Base.">Bônus Poder</th><th style="width:8%;" title="Bônus de Dano (manual)">Bônus</th><th style="width:8%;">Dano Base</th><th style="width:9%;" title="Preencha aqui SÓ se este jutsu causa um valor de dano fixo (não multiplica pelo grau — ex: Amaterasu, sufocamento). Deixe vazio pra usar o cálculo padrão (Dano Base × Grau).">Dano Fixo</th><th class="del-th" style="width:64px;"></th></tr>
     <tbody id="calc_jutsu_rows"></tbody>
   </table>
   <button class="btn-add-row" data-add="calc_jutsu_rows" data-cols="10">+ Adicionar linha</button>
+
+  <div class="bar bar-cartoes" style="margin-top:16px;"><span>Ataques armados e desarmado</span><span class="bar-dica">Clique no nome para atacar</span></div>
+  <table class="dtable tabela-cartoes cartoes-armas">
+    <tr><th style="width:28%;">Nome</th><th style="width:10%;">Dano</th><th style="width:10%;" title="Bônus de Dano (manual)">Bônus</th><th style="width:12%;">Alcance</th><th style="width:12%;">Crítico</th><th style="width:9%;">Dureza</th><th style="width:11%;">Dano Base</th><th class="del-th" style="width:120px;"></th></tr>
+    <tbody id="calc_armado_rows"></tbody>
+  </table>
+  <button class="btn-add-row" data-add="calc_armado_rows" data-cols="7">+ Adicionar linha</button>
+
+  <div class="legenda-cartoes">
+    <span><i class="lg-calc"></i>Calculado pela ficha</span>
+    <span><i class="lg-edit"></i>Você preenche</span>
+    <span><i class="lg-custo"></i>Custo de chakra (depende do nível usado)</span>
+  </div>
 
   <div class="row2col" style="margin-top:14px; align-items:stretch;">
     <div class="d8-box">
@@ -1120,14 +1244,6 @@
       </div>
       <div class="d8-result" id="d8_result">Clique no 🎲 de uma linha de dano para rolar.</div>
       <button class="btn-add-row" id="btn_abrir_rolagem" style="margin-top:10px; width:100%;">🎲 Rolar Ação (Defesa / Manobra)</button>
-    </div>
-    <div style="flex:1;">
-      <div class="bar">Calculadora de Dano — Ataques Armados / Desarmado</div>
-      <table class="dtable">
-        <tr><th style="width:28%;">Nome</th><th style="width:10%;">Dano</th><th style="width:10%;" title="Bônus de Dano (manual)">Bônus</th><th style="width:12%;">Alcance</th><th style="width:12%;">Crítico</th><th style="width:9%;">Dureza</th><th style="width:11%;">Dano Base</th><th class="del-th" style="width:120px;"></th></tr>
-        <tbody id="calc_armado_rows"></tbody>
-      </table>
-      <button class="btn-add-row" data-add="calc_armado_rows" data-cols="7">+ Adicionar linha</button>
     </div>
   </div>
 
@@ -2769,7 +2885,8 @@ function criarJutsuCard(jid){
     '<div class="jutsu-field"><span>Alcance:</span><input class="jf-alcance"></div>' +
     '<div class="jutsu-field"><span>Modo:</span><select class="jf-modo"><option value="CC">CC (corpo/toque)</option><option value="CD">CD (à distância)</option><option value="CCCD">CC · CD (escolhe ao usar)</option><option value="SUPORTE">Suporte (buff numa arma, sem dano)</option><option value="PESSOAL">Pessoal (sem acerto)</option></select></div>' +
     '<div class="jutsu-field"><span>Duração:</span><input class="jf-duracao"></div>' +
-    '<div class="jutsu-field"><span>Efeitos:</span><input class="jf-efeitos jf-ro" readonly tabindex="-1" title="Vem do efeito puxado do BD"></div>' +
+    '<div class="jutsu-field"><span>Efeitos:</span><input class="jf-efeitos jf-ro" readonly tabindex="-1" title="Vem do efeito puxado do BD"><span class="jf-nvbase" title="Nível base do efeito no livro"></span></div>' +
+    '<div class="jf-nvinfo"></div>' +
     '<div class="jutsu-field"><span>Custo de Chakra:</span><select class="jf-custo-tipo">'+_optsLista(JUTSU_CUSTO_TIPOS,"nivel")+'</select><input class="jf-custo-valor" placeholder="0" title="Custo fixo de chakra" style="width:34px;flex:none;text-align:center;"></div>' +
     '<div class="jutsu-desc-bar">Descrição</div>' +
     '<div class="jutsu-desc-lines"><textarea class="jf-desc"></textarea></div>';
@@ -2802,8 +2919,9 @@ function aplicarVisibilidadeDano(tr){
   const causaDano = chk.checked;
   tr.querySelectorAll(".cj-dureza, .cj-delem, .cj-bonus, .cj-dbase, .cj-fixo").forEach(el => {
     const td = el.closest("td");
-    if(td) td.style.visibility = causaDano ? "" : "hidden";
+    if(td) td.style.visibility = "";
   });
+  tr.classList.toggle("sem-dano", !causaDano);
   const rollBtn = tr.querySelector(".roll-btn");
   if(rollBtn) rollBtn.style.display = causaDano ? "" : "none";
 }
@@ -3054,6 +3172,16 @@ function syncJutsuCalc(card){
   const tipo = (q(".jf-dano-tipo")||{}).value || "comum";
   card.dataset.dano = tipo;
   card.dataset.custo = (q(".jf-custo-tipo")||{}).value || "nivel";
+  /* nível base do efeito x nível do poder (o efeito pode ser usado do nível base até o do poder) */
+  if(!q(".jf-nvbase")){
+    const ef = q(".jf-efeitos");
+    if(ef){ ef.insertAdjacentHTML("afterend", '<span class="jf-nvbase" title="Nível base do efeito no livro"></span>');
+            ef.closest(".jutsu-field").insertAdjacentHTML("afterend", '<div class="jf-nvinfo"></div>'); }
+  }
+  const _nvb = nivelBaseDoCard(card), _nvp = num((q(".jutsu-nivel-poder")||{}).value);
+  const _bdg = q(".jf-nvbase"); if(_bdg) _bdg.textContent = _nvb ? "Nv base " + _nvb : "";
+  const _inf = q(".jf-nvinfo");
+  if(_inf) _inf.textContent = (_nvb && _nvp) ? (_nvp >= _nvb ? "Pode ser usado do Nv " + _nvb + " até o Nv " + _nvp + " (nível do poder)." : "O poder ainda está abaixo do nível base deste efeito.") : "";
   const qtdChk = q(".jf-qtd-nivel"), qtdEl = q(".jf-qtd");
   const qtdNv = !!(qtdChk && qtdChk.checked);
   if(qtdEl){ qtdEl.disabled = qtdNv; qtdEl.placeholder = qtdNv ? "Nv" : "1"; }
@@ -3078,7 +3206,8 @@ function syncJutsuCalc(card){
     row.dataset.jcusto = ct; row.dataset.jcustoval = cv;
     row.dataset.jmult = (q(".jc-mult")||{}).value || "0.5";
     const cc = row.querySelector(".cj-custo");
-    if(cc){ cc.value = ct === "metade" ? "½ nível usado" : (ct === "sem" ? "sem custo" : (ct === "fixo" ? String(num(cv)) : "= nível usado")); cc.readOnly = true; cc.classList.add("calc-ro"); }
+    if(cc){ cc.value = ct === "metade" ? "Metade do Nv" : (ct === "sem" ? "Sem custo" : (ct === "fixo" ? "Fixo: " + num(cv) : "= Nv usado"));
+      cc.title = ct === "metade" ? "Custo: metade do nível usado (arredondado para cima)" : (ct === "sem" ? "Sem custo de chakra" : (ct === "fixo" ? "Custo fixo de " + num(cv) + " de chakra" : "Custo igual ao nível usado")); cc.readOnly = true; cc.classList.add("calc-ro"); }
     const be = row.querySelector(".cj-base-efeito");
     if(be){ const lb = JUTSU_DANO_TIPOS.find(x => x[0] === tipo); be.value = lb ? lb[1].replace(" do Poder","") : ""; be.readOnly = true; be.classList.add("calc-ro"); }
     const chk = row.querySelector(".cj-causa-dano");
@@ -3403,8 +3532,70 @@ function setCounter(id, gasto, total, nota){
 }
 
 function recalc(){
-  try{ _recalcInterno(); } finally { try{ validarRequisitosFicha(); }catch(e){ console.error(e); } try{ atualizarMedidores(); }catch(e){} }
+  try{ _recalcInterno(); } finally { try{ validarRequisitosFicha(); }catch(e){ console.error(e); } try{ atualizarMedidores(); }catch(e){} try{ montarCartoes(); }catch(e){ console.error(e); } }
 }
+/* nível base do efeito (o nível do efeito no livro, não o do poder) */
+function nivelBaseDoCard(card){
+  if(!card) return null;
+  const v = num(card.dataset.efnivel); if(v > 0) return v;
+  const nome = ((card.querySelector(".jf-efeitos") || {}).value || "").trim(); if(!nome) return null;
+  const k = normNome(nome);
+  const it = (DB.tecnicas || []).concat(DB.efeitos || []).find(x => normNome(x.nome) === k);
+  return it && num(it.nivel) > 0 ? num(it.nivel) : null;
+}
+/* cada linha das tabelas de jutsu e de arma vira um card (só visual; a estrutura continua a mesma) */
+const MAPA_JUTSU = ["c-nome","c-dano","c-tipo","c-custo","c-nv","c-dureza","c-delem","c-bonus","c-base","c-fixo","c-acoes"];
+const MAPA_ARMA  = ["c-nome","c-arma","c-bonus","c-alc","c-crit","c-dureza","c-base","c-acoes"];
+function prepararCartao(tr, mapa){
+  if(tr.dataset.cartao === "1" && tr.querySelector("td.c-info")) return;
+  Array.from(tr.children).forEach((td, i) => { if(td.tagName === "TD" && mapa[i] && !td.classList.contains("c-info")) td.classList.add(mapa[i]); });
+  const nome = tr.querySelector("td.c-nome");
+  if(nome && !nome.querySelector(".cartao-sub")) nome.insertAdjacentHTML("beforeend", '<div class="cartao-sub"></div>');
+  if(!tr.querySelector("td.c-info")){ const td = document.createElement("td"); td.className = "c-info"; tr.appendChild(td); }
+  tr.dataset.cartao = "1";
+}
+function montarCartoes(){
+  document.querySelectorAll("#calc_jutsu_rows > tr").forEach(tr => {
+    prepararCartao(tr, MAPA_JUTSU);
+    const card = tr.dataset.jid ? document.querySelector('#jutsu_grid .jutsu-card[data-jid="' + tr.dataset.jid + '"]') : null;
+    const sub = tr.querySelector(".cartao-sub"), info = tr.querySelector("td.c-info");
+    if(card){
+      const poder = poderBaseKey((card.querySelector(".jutsu-poder") || {}).value || "");
+      const nvb = nivelBaseDoCard(card);
+      const txtSub = [poder, nvb ? "Nv base " + nvb : ""].filter(Boolean).join(" · ");
+      if(sub.textContent !== txtSub) sub.textContent = txtSub;
+      const ef = ((card.querySelector(".jf-efeitos") || {}).value || "").trim();
+      const html = ef ? '<span class="rot">Efeito</span><b>' + escapeHtml(ef) + '</b>' : "";
+      if(info.innerHTML !== html) info.innerHTML = html;
+    } else { if(sub.textContent) sub.textContent = ""; if(info.innerHTML) info.innerHTML = ""; }
+    const chk = tr.querySelector(".cj-causa-dano");
+    tr.classList.toggle("sem-dano", !!chk && !chk.checked);
+  });
+  document.querySelectorAll("#calc_armado_rows > tr").forEach(tr => {
+    prepararCartao(tr, MAPA_ARMA);
+    const sub = tr.querySelector(".cartao-sub"), info = tr.querySelector("td.c-info");
+    const modo = tr.dataset.modo || tr.dataset.uso || "";
+    const rotModo = modo === "CD" ? "À distância · CD" : (modo === "CC" ? "Corpo a corpo · CC" : modo);
+    const txtSub = [tr.dataset.classe, rotModo].filter(Boolean).join(" · ");
+    if(sub.textContent !== txtSub) sub.textContent = txtSub;
+    const nomeArma = normNome(((tr.querySelector("td input") || {}).value) || "");
+    const buffs = [];
+    document.querySelectorAll("#buffs_ativos .buff-chip").forEach(ch => { if(nomeArma && normNome(ch.dataset.arma) === nomeArma) buffs.push((ch.querySelector(".cond-nome") || ch).textContent.split(" +")[0].trim() + " +" + ch.dataset.valor); });
+    const html = buffs.length ? '<span class="chip-buff" title="Buff ativo nesta arma">' + escapeHtml(buffs.join(" · ")) + '</span>' : "";
+    if(info.innerHTML !== html) info.innerHTML = html;
+  });
+}
+/* clicar em qualquer parte do cabeçalho do card usa o jutsu / ataca com a arma */
+document.addEventListener("click", (e) => {
+  const cab = e.target.closest(".tabela-cartoes td.c-nome"); if(!cab || e.target.closest("input")) return;
+  const inp = cab.querySelector("input.usar-nome"); if(inp) inp.click();
+});
+/* clicar no texto "Dano?" marca a caixa */
+document.addEventListener("click", (e) => {
+  const td = e.target.closest(".cartoes-jutsu td.c-dano"); if(!td || e.target.closest("input")) return;
+  const chk = td.querySelector("input[type=checkbox]"); if(!chk) return;
+  chk.checked = !chk.checked; chk.dispatchEvent(new Event("change", { bubbles: true })); chk.dispatchEvent(new Event("input", { bubbles: true }));
+});
 /* medidores de vida e chakra na barra de status */
 function atualizarMedidores(){
   const par = [[".campo-vida", "st_vida_total", "med_vida"], [".campo-chakra", "st_chakra_total", "med_chakra"]];
@@ -4861,8 +5052,11 @@ function abrirUsarModal(tr, tipo, info){
   if(tipo === "jutsu"){
     grpNv.style.display = "";
     const maxNv = nivelMaxDoPoderRow(tr);
+    const _card = tr.dataset.jid ? document.querySelector('#jutsu_grid .jutsu-card[data-jid="' + tr.dataset.jid + '"]') : null;
+    const minNv = Math.min(maxNv, nivelBaseDoCard(_card) || 1);
+    if(usarState.nivel < minNv) usarState.nivel = minNv;
     let out = "";
-    for(let n = 1; n <= maxNv; n++){ out += '<button type="button" class="rl-seg' + (n===usarState.nivel?' active':'') + '" data-nivel="' + n + '">' + n + '</button>'; }
+    for(let n = minNv; n <= maxNv; n++){ out += '<button type="button" class="rl-seg' + (n===usarState.nivel?' active':'') + '" data-nivel="' + n + '">' + n + '</button>'; }
     document.getElementById("usar_niveis").innerHTML = out;
   } else { grpNv.style.display = "none"; }
   if(info.modos.length > 1){
@@ -4940,7 +5134,27 @@ function executarUso(){
     if(usarState._rj.qtd) linhas.push("Qtd <b>" + usarState._rj.qtd + "</b>");
   }
   const titulo = nome + (tipo === "jutsu" ? " — Nv " + usarState.nivel : (usarState.modos.length>1 ? " — " + usarState.modo : ""));
-  emitirResultado({ dados:[a,b], titulo:titulo, badge:badge, linhas:linhas }, false);
+  /* detalhes estruturados para a carta da mesa */
+  const _cardU = (tipo === "jutsu" && tr.dataset.jid) ? document.querySelector('#jutsu_grid .jutsu-card[data-jid="' + tr.dataset.jid + '"]') : null;
+  const detalhe = {
+    tipo: tipo === "jutsu" ? "jutsu" : "arma", nome: nome,
+    acerto: usarState.pessoal ? null : { dados: [a, b], soma: soma, hab: usarState.modo, valor: habTotal(usarState.modo), total: soma + habTotal(usarState.modo) },
+    grau: g, critico: soma >= 15,
+    dano: { base: total, final: total * g, formula: (tipo === "jutsu" && usarState._rj && !usarState._rj.legado) ? usarState._rj.formula : null,
+            qtd: (tipo === "jutsu" && usarState._rj) ? (usarState._rj.qtd || 0) : 0 }
+  };
+  if(tipo === "jutsu"){
+    detalhe.poder = _cardU ? poderBaseKey((_cardU.querySelector(".jutsu-poder") || {}).value || "") : (tr.dataset.poder || "");
+    detalhe.efeito = _cardU ? (((_cardU.querySelector(".jf-efeitos") || {}).value) || "") : "";
+    detalhe.nvBase = nivelBaseDoCard(_cardU);
+    detalhe.nvUsado = usarState.nivel;
+    detalhe.chakra = custoDoJutsu(tr, usarState.nivel);
+    detalhe.acao = _cardU ? (((_cardU.querySelector(".jf-acao") || {}).value) || "") : "";
+  } else {
+    detalhe.modo = usarState.modo;
+    detalhe.classe = tr.dataset.classe || "";
+  }
+  emitirResultado({ dados:[a,b], titulo:titulo, badge:badge, linhas:linhas }, false, { grupo: _novoGrupo(), arma: nome, etapa: "uso", detalhe: detalhe });
   if(tipo === "jutsu"){
     const custo = custoDoJutsu(tr, usarState.nivel);
     if(custo > 0 && typeof ajustarChakra === "function") ajustarChakra(-custo);
@@ -5037,6 +5251,7 @@ async function enviarRolagemParaMesa(cfg, meta){
     resultado.grupo = meta.grupo || null;
     resultado.arma = meta.arma || null;
     resultado.etapa = meta.etapa || null;
+    if(meta.detalhe) resultado.detalhe = meta.detalhe;
   }
   try{
     const { error } = await sb.from("rolagens").insert({
