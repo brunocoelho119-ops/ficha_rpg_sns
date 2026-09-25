@@ -384,6 +384,37 @@
   .item-mapa .ativar-mapa{ background:var(--aizome) !important; color:#fff !important; border-color:var(--aizome) !important; }
   @media (max-width: 900px){ .aviso-particular{ bottom:124px; max-width:calc(100vw - 28px); flex-wrap:wrap; } }
 
+  /* ---------- notas no mapa ---------- */
+  .nota-pop{
+    position:absolute; z-index:31; width:270px; background:var(--washi); color:var(--sumi); border:1px solid var(--washi-borda);
+    border-radius:var(--raio-g); box-shadow:var(--sombra); display:none; flex-direction:column; overflow:hidden;
+  }
+  .nota-pop.aberto{ display:flex; }
+  .nota-pop .np-cab{ display:flex; align-items:center; gap:8px; padding:10px 12px 8px; border-bottom:1px solid var(--washi-borda); }
+  .nota-pop .np-cab input{
+    flex:1; min-width:0; border:1px solid transparent; background:transparent; font-family:var(--font-display); font-weight:800;
+    font-size:17px; color:var(--sumi); padding:3px 6px; border-radius:var(--raio-p); margin-left:-6px;
+  }
+  .nota-pop .np-cab input:not([readonly]):hover, .nota-pop .np-cab input:not([readonly]):focus{ border-color:var(--washi-borda); background:#fff; outline:none; }
+  .nota-pop .np-cab button{ background:transparent; border:none; color:var(--sumi-2); width:28px; height:28px; border-radius:50%; cursor:pointer; font-size:14px; }
+  .nota-pop .np-cab button:hover{ background:var(--washi-2); }
+  .nota-pop textarea{
+    margin:10px 12px 0; min-height:96px; max-height:260px; resize:vertical; font-family:var(--font-body); font-size:13px; line-height:1.5;
+    color:var(--sumi); background:#fff; border:1px solid var(--washi-borda); border-radius:var(--raio-p); padding:8px 10px;
+  }
+  .nota-pop textarea[readonly]{ background:transparent; border-color:transparent; resize:none; padding:2px 0; margin:10px 12px 0; }
+  .nota-pop .np-opc{ display:flex; align-items:center; gap:7px; font-size:12.5px; padding:8px 12px 0; }
+  .nota-pop .np-opc input{ accent-color:var(--aizome); width:15px; height:15px; margin:0; }
+  .nota-pop .np-rod{ display:flex; gap:6px; padding:10px 12px 12px; }
+  .nota-pop .np-rod button{
+    flex:1; padding:8px 10px; border-radius:var(--raio-p); font-weight:600; font-size:12.5px; cursor:pointer;
+    background:#fff; color:var(--sumi); border:1px solid var(--washi-borda); font-family:var(--font-body);
+  }
+  .nota-pop .np-rod button.primaria{ background:var(--aizome); color:#fff; border-color:var(--aizome); }
+  .nota-pop .np-rod button.perigo{ flex:0 0 38px; color:var(--erro); border-color:#dcb3ab; }
+  .nota-pop .np-autor{ font-size:11px; color:var(--sumi-2); padding:6px 12px 0; }
+  .nota-pop.leitura .np-rod{ display:none; }
+
   /* ---------- pausa ---------- */
   .pausa-overlay{
     position:fixed; inset:0; z-index:13; display:none; align-items:center; justify-content:center;
@@ -578,6 +609,9 @@
     <button type="button" id="btn_medir_toggle" data-dica="Medir área (M)" aria-label="Medir">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"></path><path d="m14.5 12.5 2-2"></path><path d="m11.5 9.5 2-2"></path><path d="m8.5 6.5 2-2"></path><path d="m17.5 15.5 2-2"></path></svg>
     </button>
+    <button type="button" id="btn_nota" data-dica="Nota no mapa: clique onde quer marcar (N)" aria-label="Nota no mapa">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.3-6-11a6 6 0 0 1 12 0c0 5.7-6 11-6 11z"></path><path d="M9.5 9.5h5M9.5 12h3"></path></svg>
+    </button>
     <div class="divisor so-mestre"></div>
     <button type="button" id="btn_add_token" class="so-mestre" data-dica="Novo token (T)" aria-label="Novo token">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
@@ -649,6 +683,20 @@
   </div>
 
   <div class="pausa-overlay" id="pausa_overlay" role="status"><div class="cartao"><div class="selo">忍</div><div class="t">Mesa pausada</div><div class="d">O mestre está preparando a próxima parte. O chat continua aberto.</div></div></div>
+  <div class="nota-pop" id="nota_pop" role="dialog" aria-label="Nota no mapa">
+    <div class="np-cab">
+      <input type="text" id="np_titulo" maxlength="60" placeholder="Título da nota" aria-label="Título">
+      <button type="button" id="np_fechar" aria-label="Fechar">✕</button>
+    </div>
+    <textarea id="np_texto" maxlength="2000" placeholder="O que tem aqui?" aria-label="Texto da nota"></textarea>
+    <label class="np-opc so-mestre" id="np_opc_mestre"><input type="checkbox" id="np_so_mestre"> Só o mestre vê</label>
+    <div class="np-autor" id="np_autor"></div>
+    <div class="np-rod">
+      <button type="button" class="primaria" id="np_salvar">Salvar</button>
+      <button type="button" class="perigo" id="np_apagar" title="Apagar nota" aria-label="Apagar nota">🗑</button>
+    </div>
+  </div>
+
   <div class="menu-token" id="menu_token">
     <div class="cab">
       <input type="text" id="mt_nome" maxlength="40" aria-label="Nome do token" title="Nome do token">
@@ -823,7 +871,7 @@ function avisar(msg, tipo){
   setTimeout(() => { t.style.transition = "opacity .25s"; t.style.opacity = "0"; setTimeout(() => t.remove(), 260); }, /não foi possível|erro/i.test(msg) ? 6500 : 3500);
 }
 /* partes da interface por cima do mapa: cliques nelas não mexem no mapa */
-const SELETOR_UI = "button, input, select, textarea, label, .pausa-overlay, .painel-dados, .icon-bar, .menu-token, .cena-chip, .faixa-ini, .topo-dir, .zoom-cluster, .submenu-formas, .estado-vazio, .toasts";
+const SELETOR_UI = "button, input, select, textarea, label, .nota-pop, .pausa-overlay, .painel-dados, .icon-bar, .menu-token, .cena-chip, .faixa-ini, .topo-dir, .zoom-cluster, .submenu-formas, .estado-vazio, .toasts";
 
 function souMestreDaSala(){
   return !!salaAtual && salaAtual.mestre_id === meuId;
@@ -886,6 +934,7 @@ async function iniciar(){
   atualizarSub();
   atualizarAvisoParticular();
   await carregarAreas();
+  await carregarNotas();
   document.body.classList.toggle("pausada", !!sala.pausada);
   montarDestinos();
   prepararCanvas();
@@ -898,10 +947,12 @@ async function iniciar(){
 /* troca a cena exibida (ou limpa, com null) e refaz tudo que depende dela */
 async function trocarCena(cena){
   cenaAtual = cena || null;
-  if(!cenaAtual){ tokensAtuais = []; fogRevelado = new Set(); areasAtuais = []; }
+  if(!cenaAtual){ tokensAtuais = []; fogRevelado = new Set(); areasAtuais = []; notasAtuais = []; }
+  fecharNota();
   await carregarTokens();
   await carregarFog();
   await carregarAreas();
+  await carregarNotas();
   atualizarSub();
   carregarMapa();
   assinarCena();
@@ -959,11 +1010,21 @@ async function assinarCena(){
   ch.on("postgres_changes",
     { event: "DELETE", schema: "public", table: "areas" },
     (payload) => { const id = payload.old && payload.old.id; if(!id) return; const n = areasAtuais.length; areasAtuais = areasAtuais.filter(a => a.id !== id); if(n !== areasAtuais.length) desenhar(); });
+  ch.on("postgres_changes",
+    { event: "INSERT", schema: "public", table: "notas", filter: "cena_id=eq." + idCena },
+    (payload) => { if(!ehDaCena()) return; if(!notasAtuais.some(n => n.id === payload.new.id)) notasAtuais.push(payload.new); desenhar(); });
+  ch.on("postgres_changes",
+    { event: "UPDATE", schema: "public", table: "notas", filter: "cena_id=eq." + idCena },
+    (payload) => { if(!ehDaCena()) return; const n = notasAtuais.find(x => x.id === payload.new.id); if(n) Object.assign(n, payload.new); else notasAtuais.push(payload.new); desenhar(); });
+  ch.on("postgres_changes",
+    { event: "DELETE", schema: "public", table: "notas" },
+    (payload) => { const id = payload.old && payload.old.id; if(!id) return; const k = notasAtuais.length; notasAtuais = notasAtuais.filter(n => n.id !== id); if(notaAberta && notaAberta.id === id) fecharNota(); if(k !== notasAtuais.length) desenhar(); });
   ch.subscribe(async (status) => {
     if(status === "SUBSCRIBED" && ehDaCena()){
       await carregarTokens();
       await carregarFog();
       await carregarAreas();
+      await carregarNotas();
       desenhar();
     }
   });
@@ -1052,6 +1113,22 @@ function prepararCanvas(){
       return;
     }
 
+    /* modo nota: clicar num ponto vazio cria uma nota ali */
+    const notaSob = encontrarNotaEm(cx, cy);
+    if(notaAberta && !notaSob) fecharNota();
+    if(modoNota && !notaSob){
+      const mx = (cx - cam.x) / cam.escala, my = (cy - cam.y) / cam.escala;
+      abrirNota({ nova: true, x: mx, y: my, titulo: "", texto: "", so_mestre: false }, cx, cy);
+      alternarModoNota();
+      return;
+    }
+    /* alfinete: clique abre, arrasto move (quem criou ou o mestre) */
+    if(notaSob){
+      notaArrasto = { n: notaSob, x0: Number(notaSob.x), y0: Number(notaSob.y), sx: cx, sy: cy, moveu: false };
+      palco.setPointerCapture(e.pointerId);
+      return;
+    }
+
     const alvo = encontrarTokenEm(cx, cy);
 
     if(alvo && podeArrastarToken(alvo)){
@@ -1096,6 +1173,16 @@ function prepararCanvas(){
       enviarMedida(false);
       return;
     }
+    if(notaArrasto){
+      const d = Math.hypot(cx0 - notaArrasto.sx, cy0 - notaArrasto.sy);
+      if(d > 5 && podeEditarNota(notaArrasto.n)) notaArrasto.moveu = true;
+      if(notaArrasto.moveu){
+        notaArrasto.n.x = notaArrasto.x0 + (cx0 - notaArrasto.sx) / cam.escala;
+        notaArrasto.n.y = notaArrasto.y0 + (cy0 - notaArrasto.sy) / cam.escala;
+        desenhar();
+      }
+      return;
+    }
     if(tokenArrastando){
       const cx = cx0, cy = cy0;
       let nx = (cx - cam.x) / cam.escala, ny = (cy - cam.y) / cam.escala;
@@ -1120,6 +1207,18 @@ function prepararCanvas(){
   });
 
   function soltar(e){
+    if(notaArrasto){
+      const na = notaArrasto; notaArrasto = null;
+      if(na.moveu){
+        sb.from("notas").update({ x: na.n.x, y: na.n.y }).eq("id", na.n.id).then(({ error }) => {
+          if(error){ na.n.x = na.x0; na.n.y = na.y0; desenhar(); avisar("Não foi possível mover a nota: " + error.message); }
+        });
+      } else {
+        const r = palco.getBoundingClientRect();
+        abrirNota(na.n, e.clientX - r.left, e.clientY - r.top);
+      }
+      return;
+    }
     if(formaAtiva){
       const f = formaAtiva;
       formaAtiva = null;
@@ -1268,6 +1367,7 @@ function desenhar(){
   desenharAuras();
   desenharTokens();
   if(cenaAtual) desenharFog();
+  desenharNotas();
   desenharSelecaoFog();
   desenharPings();
   desenharCursorMestre();
@@ -1341,6 +1441,126 @@ function mostrarDicaToken(t, px, py){
   el.style.left = Math.min(px + 14, window.innerWidth - 250) + "px";
   el.style.top = (py + 16) + "px";
 }
+
+/* ===== notas no mapa ===== */
+let notasAtuais = [];
+let modoNota = false;
+let notaAberta = null;      // nota exibida na janelinha (ou {nova:true, x, y})
+let notaArrasto = null;     // { n, x0, y0, sx, sy, moveu }
+async function carregarNotas(){
+  if(!cenaAtual){ notasAtuais = []; return; }
+  const { data, error } = await sb.from("notas").select("*").eq("cena_id", cenaAtual.id);
+  notasAtuais = error ? [] : (data || []);
+}
+function notaVisivel(n){ return !n.so_mestre || souMestreDaSala(); }
+function podeEditarNota(n){ return souMestreDaSala() || n.criado_por === meuId; }
+function posTelaNota(n){ return [cam.x + Number(n.x) * cam.escala, cam.y + Number(n.y) * cam.escala]; }
+function encontrarNotaEm(px, py){
+  for(let i = notasAtuais.length - 1; i >= 0; i--){
+    const n = notasAtuais[i]; if(!notaVisivel(n)) continue;
+    const [sx, sy] = posTelaNota(n);
+    if(Math.hypot(px - sx, py - (sy - 14)) <= 14) return n;   // o alfinete fica acima do ponto
+  }
+  return null;
+}
+function desenharNotas(){
+  notasAtuais.forEach(n => {
+    if(!notaVisivel(n)) return;
+    const [sx, sy] = posTelaNota(n);
+    const cor = n.so_mestre ? "#d9b872" : (n.cor || "#b3372b");
+    ctx.save();
+    if(n.so_mestre) ctx.globalAlpha = 0.85;
+    /* alfinete: gota com um ponto claro no meio */
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.bezierCurveTo(sx - 4, sy - 7, sx - 11, sy - 11, sx - 11, sy - 18);
+    ctx.arc(sx, sy - 18, 11, Math.PI, 0);
+    ctx.bezierCurveTo(sx + 11, sy - 11, sx + 4, sy - 7, sx, sy);
+    ctx.fillStyle = cor; ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = "rgba(20,26,38,0.85)"; ctx.stroke();
+    ctx.beginPath(); ctx.arc(sx, sy - 18, 4, 0, Math.PI * 2); ctx.fillStyle = "#f3ecdc"; ctx.fill();
+    if(n.titulo && cam.escala > 0.35){
+      ctx.font = "700 11px Inter, Arial, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      const w = ctx.measureText(n.titulo).width + 12;
+      ctx.fillStyle = "rgba(243,236,220,0.95)";
+      if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(sx - w / 2, sy + 4, w, 18, 9); ctx.fill(); } else ctx.fillRect(sx - w / 2, sy + 4, w, 18);
+      ctx.fillStyle = "#24201c"; ctx.fillText(n.titulo, sx, sy + 13.5);
+    }
+    ctx.restore();
+  });
+}
+function posicionarNotaPop(px, py){
+  const pop = document.getElementById("nota_pop");
+  const w = pop.offsetWidth || 270, h = pop.offsetHeight || 260;
+  pop.style.left = Math.max(70, Math.min(px + 16, palco.clientWidth - w - 10)) + "px";
+  pop.style.top = Math.max(10, Math.min(py - 40, palco.clientHeight - h - 10)) + "px";
+}
+async function abrirNota(n, px, py){
+  const pop = document.getElementById("nota_pop");
+  notaAberta = n;
+  const edita = n.nova || podeEditarNota(n);
+  pop.classList.toggle("leitura", !edita);
+  const tit = document.getElementById("np_titulo"), txt = document.getElementById("np_texto");
+  tit.value = n.titulo || ""; txt.value = n.texto || "";
+  tit.readOnly = !edita; txt.readOnly = !edita;
+  document.getElementById("np_so_mestre").checked = !!n.so_mestre;
+  document.getElementById("np_apagar").style.display = n.nova ? "none" : "";
+  const autor = document.getElementById("np_autor");
+  autor.textContent = n.nova ? "" : ("Por " + (await nomeDoUsuario(n.criado_por) || "alguém") + (n.so_mestre ? " · só o mestre vê" : ""));
+  pop.classList.add("aberto");
+  posicionarNotaPop(px, py);
+  if(edita) setTimeout(() => (n.nova ? tit : txt).focus(), 30);
+}
+function fecharNota(){ notaAberta = null; document.getElementById("nota_pop").classList.remove("aberto"); }
+document.getElementById("np_fechar").addEventListener("click", fecharNota);
+document.addEventListener("keydown", (e) => { if(e.key === "Escape" && notaAberta) fecharNota(); });
+document.addEventListener("pointerdown", (e) => {
+  if(notaAberta && !e.target.closest("#nota_pop") && !e.target.closest("#palco canvas")) fecharNota();
+});
+document.getElementById("np_salvar").addEventListener("click", async () => {
+  const n = notaAberta; if(!n || !cenaAtual) return;
+  const dados = {
+    titulo: document.getElementById("np_titulo").value.trim(),
+    texto: document.getElementById("np_texto").value.trim()
+  };
+  if(souMestreDaSala()) dados.so_mestre = document.getElementById("np_so_mestre").checked;
+  if(!dados.titulo && !dados.texto){ avisar("Escreva um título ou um texto para a nota."); return; }
+  if(n.nova){
+    const nova = Object.assign({ cena_id: cenaAtual.id, x: n.x, y: n.y, cor: meuCor, criado_por: meuId }, dados);
+    const { data, error } = await sb.from("notas").insert(nova).select().single();
+    if(error){ avisar("Não foi possível criar a nota: " + error.message + (/relation|does not exist/i.test(error.message) ? " (rode o mesa_notas.sql)" : "")); return; }
+    if(data && !notasAtuais.some(x => x.id === data.id)) notasAtuais.push(data);
+  } else {
+    const { error } = await sb.from("notas").update(dados).eq("id", n.id);
+    if(error){ avisar("Não foi possível salvar a nota: " + error.message); return; }
+    Object.assign(n, dados);
+  }
+  fecharNota(); desenhar();
+});
+document.getElementById("np_apagar").addEventListener("click", async () => {
+  const n = notaAberta; if(!n || n.nova) return;
+  if(!confirm('Apagar a nota "' + (n.titulo || "sem título") + '"?')) return;
+  const { error } = await sb.from("notas").delete().eq("id", n.id);
+  if(error){ avisar("Não foi possível apagar a nota: " + error.message); return; }
+  notasAtuais = notasAtuais.filter(x => x.id !== n.id);
+  fecharNota(); desenhar();
+});
+function alternarModoNota(){
+  modoNota = !modoNota;
+  if(modoNota){
+    if(modoPing){ modoPing = false; document.getElementById("btn_ping_toggle").classList.remove("ativo"); }
+    if(modoMedir){ modoMedir = false; document.getElementById("btn_medir_toggle").classList.remove("ativo"); document.getElementById("submenu_formas").style.display = "none"; }
+    if(modoFog) setModoFog(modoFog);
+  }
+  document.getElementById("btn_nota").classList.toggle("ativo", modoNota);
+  palco.style.cursor = modoNota ? "copy" : "";
+  if(typeof atualizarDoca === "function") atualizarDoca();
+}
+document.getElementById("btn_nota").addEventListener("click", alternarModoNota);
+/* ligar outra ferramenta desliga o modo nota */
+["btn_ping_toggle", "btn_medir_toggle", "btn_fog_revelar", "btn_fog_esconder", "btn_navegar"].forEach(id => {
+  const b = document.getElementById(id); if(b) b.addEventListener("click", () => { if(modoNota && id !== "btn_navegar") alternarModoNota(); });
+});
 
 /* ===== tokens ocultos, auras e áreas fixas ===== */
 function tokenVisivel(t){ return !t.oculto || souMestreDaSala(); }
@@ -2866,10 +3086,11 @@ function levarCameraPara(mx, my, escala){
 
 /* ===== Interface: doca, faixa, cena, zoom e atalhos de teclado ===== */
 function atualizarDoca(){
-  const livre = !modoPing && !modoMedir && !modoFog;
+  const livre = !modoPing && !modoMedir && !modoFog && !modoNota;
   document.getElementById("btn_navegar").classList.toggle("ativo", livre);
 }
 function modoNavegar(){
+  if(modoNota) alternarModoNota();
   if(modoPing){ modoPing = false; document.getElementById("btn_ping_toggle").classList.remove("ativo"); }
   if(modoMedir){ modoMedir = false; document.getElementById("btn_medir_toggle").classList.remove("ativo"); document.getElementById("submenu_formas").style.display = "none"; }
   if(modoFog) setModoFog(modoFog);
@@ -2930,6 +3151,7 @@ document.addEventListener("keydown", (e) => {
   const clicar = id => { const b = document.getElementById(id); if(b && b.offsetParent !== null) b.click(); };
   if(k === "v" || k === "escape") modoNavegar();
   else if(k === "p") clicar("btn_ping_toggle");
+  else if(k === "n") clicar("btn_nota");
   else if(k === "m") clicar("btn_medir_toggle");
   else if(k === "t") clicar("btn_add_token");
   else if(k === "r") clicar("btn_fog_revelar");
