@@ -1395,11 +1395,24 @@ async function enviarStatusParaTokens(forcar){
   const vitEl = document.getElementById("in_vit_atual"), chaEl = document.getElementById("in_chakra_atual");
   const vit = (vitEl && vitEl.value.trim() !== "") ? n(vitEl.value) : vitMax;
   const cha = (chaEl && chaEl.value.trim() !== "") ? n(chaEl.value) : chaMax;
-  const assinatura = [vit, vitMax, cha, chaMax].join("|");
+  /* deslocamento (Básico p.262) e condições marcadas, mais o estado vital pela Vitalidade */
+  const desloc = n((document.getElementById("in_deslocamento") || {}).value);
+  const conds = [];
+  document.querySelectorAll(".cond-check").forEach(c => { if(c.checked) conds.push(c.dataset.cond); });
+  if(vitEl && vitEl.value.trim() !== ""){
+    const v = n(vitEl.value);
+    if(v === 0) conds.push("fora");
+    else if(v < 0 && v >= -10){ if(conds.indexOf("inconsciente") < 0) conds.push("inconsciente"); }
+    else if(v < -10 && v >= -20){ if(conds.indexOf("morrendo") < 0) conds.push("morrendo"); }
+    else if(v < -20) conds.push("morto");
+  }
+  const assinatura = [vit, vitMax, cha, chaMax, desloc, conds.join(",")].join("|");
   if(!forcar && assinatura === _statusEnviado) return;
   try{
     const { error } = await sb.rpc("atualizar_status_ficha", { p_ficha: FICHA_ID, p_vit: vit, p_vit_max: vitMax, p_chakra: cha, p_chakra_max: chaMax });
     if(error){ if(!_statusAvisou){ console.warn("Status para tokens indisponível:", error.message); _statusAvisou = true; } return; }
+    const { error: e2 } = await sb.rpc("publicar_extra_ficha", { p_ficha: FICHA_ID, p_desloc: desloc, p_condicoes: conds });
+    if(e2 && !_statusAvisou){ console.warn("Deslocamento/condições para tokens indisponíveis:", e2.message); _statusAvisou = true; }
     _statusEnviado = assinatura;
   }catch(e){}
 }

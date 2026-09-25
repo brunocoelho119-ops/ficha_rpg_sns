@@ -257,6 +257,49 @@
   .item-mapa .tag-ativo{ font-size:11.5px; font-weight:700; color:var(--sumi-2); }
   .item-mapa .apagar-mapa{ background:transparent; border:none; color:var(--erro); cursor:pointer; font-size:14px; padding:2px 4px; }
 
+  /* ---------- ações do turno (padrão / movimento / parcial) ---------- */
+  .acoes-turno{ display:inline-flex; gap:3px; }
+  .acao-pill{
+    border:1.5px solid var(--washi-borda); background:#fff; color:var(--sumi-2); border-radius:999px; font-size:10.5px;
+    font-weight:700; padding:2px 7px; cursor:pointer; line-height:1.3; font-family:var(--font-body);
+  }
+  .acao-pill.usada{ background:var(--sumi); color:var(--washi); border-color:var(--sumi); text-decoration:line-through; }
+  .acao-pill:disabled{ cursor:default; opacity:.85; }
+  .ini-card .acoes-turno .acao-pill{ font-size:10px; padding:1px 6px; }
+  .ini-card:not(.atual) .acoes-turno{ display:none; }
+  .ini-card.atrasando{ opacity:.55; }
+  .ini-card.atrasando .marca{ background:transparent; border:1.5px dashed var(--nezumi); }
+  .item-iniciativa{ flex-wrap:wrap; }
+  .item-iniciativa .linha2{ display:flex; gap:6px; align-items:center; width:100%; padding-left:30px; }
+  .item-iniciativa.atrasando .nome{ opacity:.6; }
+  .item-iniciativa .tag-atraso{ font-size:11px; font-weight:700; color:var(--sumi-2); }
+  .item-iniciativa .agir-agora{
+    border:none; background:var(--shu); color:#fff; border-radius:var(--raio-p); font-size:11.5px; font-weight:700;
+    padding:4px 9px; cursor:pointer;
+  }
+  .faixa-ini .atrasar{
+    flex-shrink:0; border:1px solid rgba(255,255,255,0.18); border-radius:var(--raio-m); background:transparent; color:var(--claro);
+    font-weight:600; font-size:12px; padding:0 12px; cursor:pointer; display:none;
+  }
+  .faixa-ini .atrasar.visivel{ display:block; }
+  .faixa-ini .atrasar:hover{ background:rgba(255,255,255,0.08); }
+  /* dica sobre o token */
+  .dica-token{
+    position:fixed; z-index:25; pointer-events:none; background:var(--sumi); color:#fff; border-radius:var(--raio-p);
+    padding:7px 10px; font-size:12px; line-height:1.45; box-shadow:var(--sombra); display:none; max-width:240px;
+  }
+  .dica-token b{ font-family:var(--font-display); font-size:13.5px; }
+  .dica-token .c{ color:#ffd9a8; }
+  /* condições no menu do token */
+  .mt-conds{ display:flex; flex-wrap:wrap; gap:4px; }
+  .mt-conds label{
+    flex-direction:row !important; align-items:center; gap:4px !important; font-size:11.5px !important; font-weight:500 !important;
+    color:var(--sumi) !important; background:#fff; border:1px solid var(--washi-borda); border-radius:999px; padding:3px 8px; cursor:pointer;
+  }
+  .mt-conds label:has(input:checked){ background:var(--aizome); color:#fff !important; border-color:var(--aizome); }
+  .mt-conds label.da-ficha{ opacity:.7; cursor:default; }
+  .mt-conds input{ display:none; }
+
   /* ---------- estilo dos tokens da cena ---------- */
   .estilo-cena{ display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:4px 14px 12px; border-bottom:1px solid var(--washi-borda); }
   .estilo-cena label{
@@ -433,6 +476,7 @@
   <div class="faixa-ini vidro" id="faixa_ini" aria-label="Ordem de iniciativa">
     <div class="rodada" id="faixa_rodada" title="Abrir iniciativa"><span class="n" id="faixa_rodada_n">1</span><span class="l">rodada</span></div>
     <div class="fila" id="faixa_fila"></div>
+    <button type="button" class="atrasar" id="faixa_atrasar" title="Atrasar iniciativa: esperar e agir mais tarde nesta rodada (Básico p.262)">Atrasar</button>
     <button type="button" class="proxima so-mestre" id="faixa_proxima" title="Passar a vez">
       Próxima
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
@@ -558,6 +602,9 @@
       </label>
       <label>Ficha vinculada<select id="mt_ficha"></select></label>
       <label class="linha so-mestre"><input type="checkbox" id="mt_barras"> Jogadores veem as barras de Vida e Chakra</label>
+      <label>Deslocamento (m)<input type="text" id="mt_desloc" inputmode="decimal" placeholder="da ficha"></label>
+      <label style="margin-bottom:0;">Condições</label>
+      <div class="mt-conds" id="mt_conds"></div>
       <div class="nota" id="mt_nota"></div>
     </div>
     <div class="acoes">
@@ -616,6 +663,7 @@
 </div>
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="dica-token" id="dica_token"></div>
 
 <script>
 const params = new URLSearchParams(location.search);
@@ -836,7 +884,7 @@ function prepararCanvas(){
     if(toques.size === 2){
       /* segundo dedo: cancela o que o primeiro começou */
       arrastandoMapa = false; palco.classList.remove("arrastando");
-      if(tokenArrastando){ tokenArrastando = null; carregarTokens(); }
+      if(tokenArrastando){ tokenArrastando = null; arrasto = null; carregarTokens(); }
       formaAtiva = null; selecaoFog = null;
       pinca = distMeio();
       desenhar();
@@ -891,6 +939,14 @@ function prepararCanvas(){
 
     if(alvo && podeArrastarToken(alvo)){
       tokenArrastando = alvo;
+      /* em combate, com deslocamento conhecido, o JOGADOR fica travado no que resta da rodada;
+         o mestre move qualquer token livremente (só vê a régua) */
+      const trava = emCombate() && deslocDoToken(alvo) > 0 && !souMestreDaSala();
+      arrasto = { t: alvo, x0: alvo.x, y0: alvo.y, trava, restante: restanteDoToken(alvo) };
+      if(trava && arrasto.restante <= 0){
+        avisar(alvo.nome + " já se deslocou nesta rodada (limite de deslocamento, Básico p.262).");
+        tokenArrastando = null; arrasto = null; return;
+      }
       palco.setPointerCapture(e.pointerId);
       return;
     }
@@ -905,6 +961,7 @@ function prepararCanvas(){
     const rect = palco.getBoundingClientRect();
     const cx0 = e.clientX - rect.left, cy0 = e.clientY - rect.top;
     tokenSobMouse = encontrarTokenEm(cx0, cy0);
+    mostrarDicaToken(tokenArrastando ? null : tokenSobMouse, e.clientX, e.clientY);
     if(souMestreDaSala() && compartilharCursor){
       enviarCursorMestre((cx0 - cam.x) / cam.escala, (cy0 - cam.y) / cam.escala);
     }
@@ -924,8 +981,16 @@ function prepararCanvas(){
     }
     if(tokenArrastando){
       const cx = cx0, cy = cy0;
-      tokenArrastando.x = (cx - cam.x) / cam.escala;
-      tokenArrastando.y = (cy - cam.y) / cam.escala;
+      let nx = (cx - cam.x) / cam.escala, ny = (cy - cam.y) / cam.escala;
+      if(arrasto && arrasto.trava){
+        const d = distM(arrasto.x0, arrasto.y0, nx, ny);
+        if(d > arrasto.restante){
+          const f = arrasto.restante / d;
+          nx = arrasto.x0 + (nx - arrasto.x0) * f; ny = arrasto.y0 + (ny - arrasto.y0) * f;
+        }
+      }
+      tokenArrastando.x = nx;
+      tokenArrastando.y = ny;
       desenhar();
       enviarMovimentoToken(tokenArrastando);
       return;
@@ -951,12 +1016,27 @@ function prepararCanvas(){
       return;
     }
     if(tokenArrastando){
-      const gridPx = cenaAtual.grid_px || 70;
-      tokenArrastando.x = encaixarNoGrid(tokenArrastando.x, tokenArrastando.tam, gridPx);
-      tokenArrastando.y = encaixarNoGrid(tokenArrastando.y, tokenArrastando.tam, gridPx);
+      const t = tokenArrastando, gridPx = cenaAtual.grid_px || 70;
+      if(arrasto && arrasto.trava){
+        [t.x, t.y] = encaixarDentroDoLimite(t, arrasto.x0, arrasto.y0, arrasto.restante);
+      } else {
+        t.x = encaixarNoGrid(t.x, t.tam, gridPx);
+        t.y = encaixarNoGrid(t.y, t.tam, gridPx);
+      }
+      const andou = arrasto ? distM(arrasto.x0, arrasto.y0, t.x, t.y) : 0;
+      const ctxArrasto = arrasto;
+      tokenArrastando = null; arrasto = null;
       desenhar();
-      salvarPosicaoToken(tokenArrastando);
-      tokenArrastando = null;
+      if(ctxArrasto && ctxArrasto.trava && andou > 0.01){
+        t.mov_m = Math.round(((Number(t.mov_m) || 0) + andou) * 10) / 10;
+        salvarPosicaoToken(t, { mov_m: t.mov_m });
+        /* deslocar gasta a ação de movimento de quem está no combate */
+        const idx = itemIniciativaDoToken(t);
+        const item = iniciativaOrdem[idx];
+        if(item && podeControlarItem(item) && !(item.acoes && item.acoes.movimento)) acaoIniciativa(idx, "movimento", true);
+      } else {
+        salvarPosicaoToken(t);
+      }
       return;
     }
     arrastandoMapa = false;
@@ -1109,6 +1189,135 @@ function recorteDaFichaExiste(t){ const u = urlRecorteDaFicha(t); return !!(u &&
 function urlRecorte(t){ return t.imagem_url ? urlPublica(t.imagem_url) : urlRecorteDaFicha(t); }
 function estiloDaCena(){ return (cenaAtual && cenaAtual.estilo_token === "recorte") ? "recorte" : "moeda"; }
 
+function mostrarDicaToken(t, px, py){
+  const el = document.getElementById("dica_token"); if(!el) return;
+  if(!t){ el.style.display = "none"; return; }
+  const conds = condicoesDoToken(t);
+  const desl = deslocDoToken(t);
+  let html = "<b>" + escapeHtml(t.nome || "Token") + "</b>";
+  if(conds.length) html += '<div class="c">' + conds.map(k => CONDS[k].s + " " + CONDS[k].n).join("<br>") + "</div>";
+  if(desl) html += "<div>Deslocamento: " + fmtM(desl) + (emCombate() ? " · resta " + fmtM(restanteDoToken(t)) + " nesta rodada" : "") + "</div>";
+  if(!conds.length && !desl){ el.style.display = "none"; return; }
+  el.innerHTML = html;
+  el.style.display = "block";
+  el.style.left = Math.min(px + 14, window.innerWidth - 250) + "px";
+  el.style.top = (py + 16) + "px";
+}
+
+/* ===== condições nos tokens (símbolos) ===== */
+const CONDS = {
+  morto:{n:"Morto", s:"✖"}, fora:{n:"Fora de combate", s:"🏳️"}, inconsciente:{n:"Inconsciente", s:"💤"},
+  morrendo:{n:"Morrendo", s:"💔"}, sangrando:{n:"Sangrando", s:"🩸"}, estavel:{n:"Estável", s:"🩹"},
+  caido:{n:"Caído", s:"⬇️"}, desprevenido:{n:"Desprevenido", s:"❗"}, atordoado:{n:"Atordoado", s:"💫"},
+  agarrado:{n:"Agarrado", s:"✊"}, impedido:{n:"Impedido", s:"⛓️"}, indefeso:{n:"Indefeso / Paralisado", s:"🧊"},
+  lento:{n:"Lento", s:"🐌"}, cego:{n:"Cego", s:"🙈"}, surdo:{n:"Surdo", s:"🔇"}, fascinado:{n:"Fascinado", s:"✨"},
+  confuso:{n:"Confuso", s:"❓"}, assustado:{n:"Assustado", s:"😨"}, amedrontado:{n:"Amedrontado", s:"😰"},
+  aterrorizado:{n:"Aterrorizado", s:"😱"}, fatigado:{n:"Fatigado", s:"😓"}, exausto:{n:"Exausto", s:"🥵"},
+  debilitado:{n:"Debilitado", s:"🤕"}, fintado:{n:"Fintado", s:"🎭"}, flanqueado:{n:"Flanqueado", s:"⚔️"},
+  ofuscado:{n:"Ofuscado", s:"🔆"}, sufocamento:{n:"Sufocamento", s:"🫧"}, tonto:{n:"Tonto", s:"🌀"}, amputado:{n:"Amputado", s:"🦾"}
+};
+function condicoesDoToken(t){
+  const lista = [];
+  [t.condicoes, t.cond_manuais].forEach(a => { if(Array.isArray(a)) a.forEach(k => { if(CONDS[k] && lista.indexOf(k) < 0) lista.push(k); }); });
+  /* ordem: estado vital primeiro */
+  const pri = ["morto","morrendo","inconsciente","fora","sangrando"];
+  return lista.sort((a, b) => (pri.indexOf(a) < 0 ? 99 : pri.indexOf(a)) - (pri.indexOf(b) < 0 ? 99 : pri.indexOf(b)));
+}
+function desenharCondicoesToken(t, sx, sy, raio){
+  const conds = condicoesDoToken(t); if(!conds.length) return;
+  if(conds.indexOf("morto") >= 0){
+    /* morto: token escurecido e um X vermelho por cima */
+    ctx.save();
+    ctx.beginPath(); ctx.arc(sx, sy, raio, 0, Math.PI * 2); ctx.fillStyle = "rgba(10,12,18,0.55)"; ctx.fill();
+    ctx.strokeStyle = "#d12b1f"; ctx.lineWidth = Math.max(4, raio * 0.22); ctx.lineCap = "round";
+    const d = raio * 0.72;
+    ctx.beginPath(); ctx.moveTo(sx - d, sy - d); ctx.lineTo(sx + d, sy + d); ctx.moveTo(sx + d, sy - d); ctx.lineTo(sx - d, sy + d); ctx.stroke();
+    ctx.restore();
+  }
+  const outros = conds.filter(k => k !== "morto");
+  if(!outros.length) return;
+  const tam = Math.max(15, Math.min(24, raio * 0.55));
+  const max = 4, mostrar = outros.slice(0, outros.length > max ? max - 1 : max);
+  const extra = outros.length - mostrar.length;
+  const itens = mostrar.map(k => CONDS[k].s).concat(extra > 0 ? ["+" + extra] : []);
+  const total = itens.length * (tam + 2) - 2;
+  let x = sx - total / 2 + tam / 2;
+  const y = sy - raio - tam * 0.35;
+  itens.forEach(txt => {
+    ctx.save();
+    ctx.beginPath(); ctx.arc(x, y, tam / 2, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(243,236,220,0.96)"; ctx.fill();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = "rgba(29,39,56,0.9)"; ctx.stroke();
+    ctx.font = (txt[0] === "+" ? "700 " + Math.round(tam * 0.5) + "px Inter, Arial" : Math.round(tam * 0.62) + "px 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif");
+    ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#24201c";
+    ctx.fillText(txt, x, y + 1);
+    ctx.restore();
+    x += tam + 2;
+  });
+}
+
+/* ===== deslocamento em combate (Básico p.262): 10m + ½ Agilidade por ação de movimento,
+   e só um deslocamento por rodada. Em combate, o token não passa do que resta. ===== */
+function emCombate(){ return iniciativaOrdem.length > 0; }
+function deslocDoToken(t){ const v = Number(t.desloc); return v > 0 ? v : 0; }
+function restanteDoToken(t){ return Math.max(0, deslocDoToken(t) - (Number(t.mov_m) || 0)); }
+let arrasto = null;   // { t, x0, y0, trava, restante }
+function distM(x0, y0, x1, y1){ return Math.hypot(x1 - x0, y1 - y0) / pxPorMetro(); }
+function desenharReguaArrasto(){
+  if(!arrasto) return;
+  const t = arrasto.t;
+  const d = distM(arrasto.x0, arrasto.y0, t.x, t.y);
+  const [ax, ay] = [cam.x + arrasto.x0 * cam.escala, cam.y + arrasto.y0 * cam.escala];
+  const [bx, by] = [cam.x + t.x * cam.escala, cam.y + t.y * cam.escala];
+  const limite = arrasto.trava ? arrasto.restante : deslocDoToken(t);
+  const passou = limite > 0 && d > limite + 0.01;
+  const cor = !limite ? "#eef1f6" : (passou ? "#d12b1f" : (d > limite * 0.999 ? "#d9b872" : "#3fb46a"));
+  ctx.save();
+  if(limite > 0){
+    /* alcance que ainda resta, em volta do ponto de partida */
+    ctx.beginPath(); ctx.arc(ax, ay, limite * pxPorMetro() * cam.escala, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(63,180,106,0.07)"; ctx.fill();
+    ctx.setLineDash([6, 6]); ctx.strokeStyle = "rgba(63,180,106,0.55)"; ctx.lineWidth = 1.5; ctx.stroke(); ctx.setLineDash([]);
+  }
+  ctx.setLineDash([7, 5]); ctx.strokeStyle = cor; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke(); ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(ax, ay, 4, 0, Math.PI * 2); ctx.fillStyle = cor; ctx.fill();
+  const rot = fmtM(d) + (limite > 0 ? " de " + fmtM(limite) : "") + (arrasto.trava ? "" : (emCombate() ? " (livre)" : ""));
+  ctx.font = "700 12px Inter, Arial, sans-serif";
+  const w = ctx.measureText(rot).width + 14, lx = (ax + bx) / 2, ly = (ay + by) / 2 - 16;
+  ctx.fillStyle = "rgba(29,39,56,0.92)";
+  if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(lx - w / 2, ly - 11, w, 22, 11); ctx.fill(); } else ctx.fillRect(lx - w / 2, ly - 11, w, 22);
+  ctx.fillStyle = cor === "#eef1f6" ? "#eef1f6" : cor; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(rot, lx, ly + 0.5);
+  ctx.restore();
+}
+/* encaixa no grid sem passar do limite: procura a casa mais próxima que ainda cabe */
+function encaixarDentroDoLimite(t, x0, y0, limiteM){
+  const g = cenaAtual.grid_px || 70;
+  const sx = encaixarNoGrid(t.x, t.tam, g), sy = encaixarNoGrid(t.y, t.tam, g);
+  if(distM(x0, y0, sx, sy) <= limiteM + 0.01) return [sx, sy];
+  let melhor = [x0, y0], melhorD = Infinity;
+  for(let i = -3; i <= 3; i++) for(let j = -3; j <= 3; j++){
+    const cx = sx + i * g, cy = sy + j * g;
+    if(distM(x0, y0, cx, cy) > limiteM + 0.01) continue;
+    const d = Math.hypot(cx - t.x, cy - t.y);
+    if(d < melhorD){ melhorD = d; melhor = [cx, cy]; }
+  }
+  return melhor;
+}
+/* acha o item da iniciativa de um token (mesmo nome, ou começo do nome) */
+function itemIniciativaDoToken(t){
+  const k = nomeNorm(t.nome); if(!k) return -1;
+  let i = iniciativaOrdem.findIndex(it => nomeNorm(it.nome) === k);
+  if(i < 0) i = iniciativaOrdem.findIndex(it => { const n = nomeNorm(it.nome); return n && (n.indexOf(k) === 0 || k.indexOf(n) === 0); });
+  return i;
+}
+function podeControlarItem(item){ return souMestreDaSala() || (item && item.user_id && item.user_id === meuId); }
+async function acaoIniciativa(idx, op, valor){
+  const { error } = await sb.rpc("iniciativa_acao", { p_sala: salaId, p_idx: idx, p_op: op, p_valor: valor == null ? null : valor });
+  if(error) avisar("Não foi possível atualizar a iniciativa: " + error.message + (/function|does not exist/i.test(error.message) ? " (rode o mesa_combate.sql)" : ""));
+}
+
 /* o token da vez é o que tem o mesmo nome de quem está na vez da iniciativa */
 function nomeNorm(s){ return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase(); }
 function tokenDaVezId(){
@@ -1118,6 +1327,7 @@ function tokenDaVezId(){
   return t ? t.id : null;
 }
 function desenharTokens(){
+  desenharReguaArrasto();
   const gridPx = cenaAtual ? (cenaAtual.grid_px || 70) : 70;
   const daVez = tokenDaVezId();
   const estilo = estiloDaCena();
@@ -1178,6 +1388,7 @@ function desenharTokens(){
       ctx.stroke();
     }
 
+    desenharCondicoesToken(t, sx, sy, Math.max(raio, base));
     const altBarras = desenharBarrasToken(t, sx, sy + base + 4, raio);
 
     /* nome numa etiqueta índigo, legível sobre qualquer mapa */
@@ -1286,8 +1497,8 @@ function enviarMovimentoToken(t){
   if(canal) canal.send({ type: "broadcast", event: "mover_token", payload: { id: t.id, x: t.x, y: t.y, cena: cenaAtual && cenaAtual.id } });
 }
 
-async function salvarPosicaoToken(t){
-  const { error } = await sb.from("tokens").update({ x: t.x, y: t.y }).eq("id", t.id);
+async function salvarPosicaoToken(t, extra){
+  const { error } = await sb.from("tokens").update(Object.assign({ x: t.x, y: t.y }, extra || {})).eq("id", t.id);
   if(error) avisar("Não foi possível salvar a posição do token: " + error.message);
 }
 
@@ -1425,6 +1636,17 @@ async function abrirMenuToken(t, px, py){
   const tamSel = document.getElementById("mt_tam");
   tamSel.value = String(t.tam || 1); if(!tamSel.value) tamSel.value = "1";
   document.getElementById("mt_barras").checked = t.mostrar_barras !== false;
+  const inDesl = document.getElementById("mt_desloc");
+  inDesl.value = (!t.ficha_id && Number(t.desloc) > 0) ? String(t.desloc).replace(".", ",") : "";
+  inDesl.placeholder = t.ficha_id ? (Number(t.desloc) > 0 ? fmtM(t.desloc) + " (da ficha)" : "vem da ficha") : "ex.: 13";
+  inDesl.disabled = !!t.ficha_id;
+  const daFicha = Array.isArray(t.condicoes) ? t.condicoes : [];
+  const manuais = Array.isArray(t.cond_manuais) ? t.cond_manuais : [];
+  document.getElementById("mt_conds").innerHTML = Object.keys(CONDS).map(k => {
+    const ficha = daFicha.indexOf(k) >= 0;
+    return '<label' + (ficha ? ' class="da-ficha" title="Marcada na ficha"' : '') + '><input type="checkbox" value="' + k + '"' +
+      ((ficha || manuais.indexOf(k) >= 0) ? " checked" : "") + (ficha ? " disabled" : "") + '>' + CONDS[k].s + " " + CONDS[k].n + '</label>';
+  }).join("");
   menuImagemPendente = undefined;
   mostrarPreviaRecorte(t.imagem_url ? urlRecorte(t) : null, recorteDaFichaExiste(t) ? urlRecorteDaFicha(t) : null);
   const rot = ((Number(t.rotacao) || 0) % 360 + 360) % 360;
@@ -1476,6 +1698,12 @@ document.getElementById("mt_salvar").addEventListener("click", async () => {
     rotacao: Number(rotEl().value) || 0
   };
   if(menuImagemPendente !== undefined) payload.imagem_url = menuImagemPendente;
+  /* condições marcadas na mesa (as da ficha continuam vindo da ficha) */
+  payload.cond_manuais = Array.from(document.querySelectorAll('#mt_conds input:checked:not(:disabled)')).map(i => i.value);
+  if(!fichaId){
+    const dv = parseFloat(String(document.getElementById("mt_desloc").value).replace(",", "."));
+    payload.desloc = dv > 0 ? dv : null;
+  }
   if(mudouFicha){ payload.foto_v = null; payload.recorte_v = null; payload.vit = null; payload.vit_max = null; payload.chakra = null; payload.chakra_max = null; }
   if(mestre){
     payload.tam = Number(document.getElementById("mt_tam").value) || 1;
@@ -1863,6 +2091,22 @@ async function salvarIniciativa(){
   if(error) avisar("Não foi possível salvar a iniciativa: " + error.message);
 }
 
+/* pílulas das ações do turno; clicáveis por quem controla o personagem */
+function htmlAcoes(item, idx){
+  const a = item.acoes || {}, pode = podeControlarItem(item);
+  const pill = (k, rot, dica) => '<button type="button" class="acao-pill' + (a[k] ? " usada" : "") + '" data-idx="' + idx + '" data-acao="' + k + '" title="' + dica + (a[k] ? " (usada)" : "") + '"' + (pode ? "" : " disabled") + '>' + rot + '</button>';
+  return '<span class="acoes-turno">' + pill("padrao", "Padrão", "Ação padrão") + pill("movimento", "Mov.", "Ação de movimento") + pill("parcial", "Parcial", "Ação parcial") + '</span>';
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest(".acao-pill"); if(!b || b.disabled) return;
+  e.stopPropagation();
+  const idx = parseInt(b.dataset.idx, 10), item = iniciativaOrdem[idx];
+  if(!item || !podeControlarItem(item)) return;
+  const nova = !(item.acoes && item.acoes[b.dataset.acao]);
+  item.acoes = Object.assign({}, item.acoes, { [b.dataset.acao]: nova });   // resposta imediata; o banco confirma
+  renderizarIniciativa();
+  acaoIniciativa(idx, b.dataset.acao, nova);
+}, true);
 function renderizarFaixaIniciativa(){
   const faixa = document.getElementById("faixa_ini"); if(!faixa) return;
   faixa.classList.toggle("visivel", iniciativaOrdem.length > 0);
@@ -1870,11 +2114,14 @@ function renderizarFaixaIniciativa(){
   const fila = document.getElementById("faixa_fila");
   fila.innerHTML = iniciativaOrdem.map((item, i) => {
     const atual = i === iniciativaAtual;
-    return '<div class="ini-card' + (atual ? " atual" : "") + '" data-idx="' + i + '" title="' + escapeHtml(item.nome) + ': ' + item.valor + '">' +
-      '<span class="marca">' + escapeHtml(atual ? "番" : iniciais(item.nome)) + '</span>' +
+    return '<div class="ini-card' + (atual ? " atual" : "") + (item.atrasando ? " atrasando" : "") + '" data-idx="' + i + '" title="' + escapeHtml(item.nome) + ': ' + item.valor + (item.atrasando ? " (atrasando)" : "") + '">' +
+      '<span class="marca">' + escapeHtml(atual ? "番" : (item.atrasando ? "⏸" : iniciais(item.nome))) + '</span>' +
       '<span class="nome">' + escapeHtml(item.nome) + '</span>' +
-      '<span class="valor">' + item.valor + '</span></div>';
+      '<span class="valor">' + item.valor + '</span>' +
+      (atual ? htmlAcoes(item, i) : '') + '</div>';
   }).join("");
+  const itemVez = iniciativaOrdem[iniciativaAtual];
+  document.getElementById("faixa_atrasar").classList.toggle("visivel", !!itemVez && podeControlarItem(itemVez));
   const atualEl = fila.querySelector(".ini-card.atual");
   if(atualEl && atualEl.scrollIntoView) atualEl.scrollIntoView({ block:"nearest", inline:"center" });
 }
@@ -1888,13 +2135,18 @@ function renderizarIniciativa(){
   if(!iniciativaOrdem.length){ area.innerHTML = '<div class="log-vazio">Ninguém na ordem ainda. Quem rolar iniciativa pela ficha entra aqui.</div>'; return; }
   area.innerHTML = iniciativaOrdem.map((item, i) => {
     const ehAtual = i === iniciativaAtual;
-    return '<div class="item-iniciativa' + (ehAtual ? " atual" : "") + '" data-idx="' + i + '">' +
+    return '<div class="item-iniciativa' + (ehAtual ? " atual" : "") + (item.atrasando ? " atrasando" : "") + '" data-idx="' + i + '">' +
       '<span class="pos">' + (i + 1) + 'º</span>' +
       '<span class="nome">' + escapeHtml(item.nome) + '</span>' +
       '<span class="valor">' + item.valor + '</span>' +
       (souMestreDaSala() ? '<button type="button" class="remover-iniciativa" data-idx="' + i + '">✕</button>' : '') +
+      '<div class="linha2">' + htmlAcoes(item, i) +
+        (item.atrasando ? '<span class="tag-atraso">⏸ atrasando</span>' +
+          (podeControlarItem(item) ? '<button type="button" class="agir-agora" data-idx="' + i + '">Agir agora</button>' : '') : '') +
+      '</div>' +
     '</div>';
   }).join("");
+  area.querySelectorAll(".agir-agora").forEach(btn => btn.addEventListener("click", () => acaoIniciativa(parseInt(btn.dataset.idx, 10), "agir")));
 
   if(souMestreDaSala()){
     area.querySelectorAll(".remover-iniciativa").forEach(btn => {
@@ -1919,7 +2171,7 @@ document.getElementById("btn_add_iniciativa").addEventListener("click", async ()
   const valor = parseInt(inValor.value, 10);
   if(!nome || isNaN(valor)) return;
 
-  iniciativaOrdem.push({ nome, valor });
+  iniciativaOrdem.push({ nome, valor, acoes: {} });
   ordenarIniciativa();
   renderizarIniciativa();
   await salvarIniciativa();
@@ -1936,12 +2188,36 @@ async function removerIniciativa(idx){
   await salvarIniciativa();
 }
 
+/* nova rodada: todos recebem as ações de novo, quem atrasou e não agiu perde a vez,
+   e o deslocamento da rodada zera (Básico p.254-255 e p.262) */
+async function novaRodada(){
+  iniciativaRodada++;
+  const perderam = iniciativaOrdem.filter(it => it.atrasando).map(it => it.nome);
+  iniciativaOrdem.forEach(it => { delete it.atrasando; it.acoes = {}; });
+  if(perderam.length) avisar(perderam.join(", ") + " atrasou e não agiu: perdeu a vez nesta rodada.");
+  await zerarDeslocamentos();
+}
+async function zerarDeslocamentos(){
+  tokensAtuais.forEach(t => { t.mov_m = 0; });
+  if(cenaAtual){
+    const { error } = await sb.from("tokens").update({ mov_m: 0 }).eq("cena_id", cenaAtual.id);
+    if(error && !/mov_m/.test(error.message)) console.warn(error);
+  }
+}
 document.getElementById("btn_iniciativa_avancar").addEventListener("click", async () => {
   if(!iniciativaOrdem.length) return;
-  iniciativaAtual = (iniciativaAtual + 1) % iniciativaOrdem.length;
-  if(iniciativaAtual === 0) iniciativaRodada++;        // deu a volta: nova rodada
+  const n = iniciativaOrdem.length;
+  for(let k = 0; k < n; k++){
+    iniciativaAtual = (iniciativaAtual + 1) % n;
+    if(iniciativaAtual === 0) await novaRodada();        // deu a volta: nova rodada
+    if(!iniciativaOrdem[iniciativaAtual].atrasando) break;   // pula quem está atrasando
+  }
   renderizarIniciativa();
   await salvarIniciativa();
+});
+document.getElementById("faixa_atrasar").addEventListener("click", () => {
+  const item = iniciativaOrdem[iniciativaAtual]; if(!item || !podeControlarItem(item)) return;
+  acaoIniciativa(iniciativaAtual, "atrasar");
 });
 
 document.getElementById("btn_iniciativa_limpar").addEventListener("click", async () => {
@@ -1951,6 +2227,7 @@ document.getElementById("btn_iniciativa_limpar").addEventListener("click", async
   iniciativaRodada = 1;
   renderizarIniciativa();
   await salvarIniciativa();
+  await zerarDeslocamentos();
 });
 
 /* ===== Dados (rolagens) + Chat (mensagens), num feed único ===== */
