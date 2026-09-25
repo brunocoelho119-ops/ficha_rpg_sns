@@ -827,6 +827,8 @@
   .ficha-topbar .ft-nome{ font-family:var(--font-display); font-weight:800; font-size:16px; background:rgba(255,255,255,0.07); border-color:rgba(255,255,255,0.14); }
   .ficha-topbar .ft-sala{ background:rgba(255,255,255,0.07); border-color:rgba(255,255,255,0.14); font-weight:600; }
   .ficha-topbar .ft-status{ color:var(--nezumi); }
+  .ficha-topbar .ft-secreto{ display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:var(--claro); cursor:pointer; white-space:nowrap; }
+  .ficha-topbar .ft-secreto input{ accent-color:var(--kinari); width:15px; height:15px; margin:0; }
   .ft-modo{ background:var(--bg); color:var(--ink); font-weight:600; padding:6px 13px; }
   .ft-modo.ativo{ background:rgba(255,255,255,0.1); color:var(--claro); }
 
@@ -967,6 +969,7 @@
   <a href="home.html" class="ft-voltar" title="Voltar para as salas e fichas"><span class="ft-selo">忍</span><span>Minhas fichas</span></a>
   <input type="text" id="ft_nome_ficha" class="ft-nome" placeholder="Nome da ficha" spellcheck="false">
   <select id="ft_sala" class="ft-sala" title="Sala vinculada — rolagens de 🎲 também aparecem no log da mesa"></select>
+  <label class="ft-secreto" id="ft_secreto_wrap" style="display:none;" title="As rolagens desta ficha aparecem na mesa só para você (mestre)"><input type="checkbox" id="ft_secreto"> Rolagens secretas</label>
   <span class="ft-status" id="ft_status"></span>
   <button type="button" class="ft-sair" id="ft_sair">Sair</button>
 </div>
@@ -5254,12 +5257,11 @@ async function enviarRolagemParaMesa(cfg, meta){
     if(meta.detalhe) resultado.detalhe = meta.detalhe;
   }
   try{
-    const { error } = await sb.from("rolagens").insert({
-      sala_id: _salaVinculada,
-      user_id: _meuUserId,
-      formula: formula,
-      resultado: resultado
-    });
+    const linha = { sala_id: _salaVinculada, user_id: _meuUserId, formula: formula, resultado: resultado };
+    /* mestre com "Rolagens secretas" marcado: só ele vê na mesa */
+    const sec = document.getElementById("ft_secreto");
+    if(_souMestre && sec && sec.checked) linha.para = _meuUserId;
+    const { error } = await sb.from("rolagens").insert(linha);
     if(error) console.error(error);
   }catch(e){ console.error(e); }
 }
@@ -6178,6 +6180,13 @@ montarControlesMestre();
     await carregarCompendio();   // banco compartilhado (cai no embutido se a tabela não existir)
   }
   iniciarFicha();
+  (function(){
+    const w = document.getElementById("ft_secreto_wrap"), c = document.getElementById("ft_secreto");
+    if(!w || !c || !NUVEM_ATIVA || !_souMestre) return;
+    w.style.display = "flex";
+    try{ c.checked = localStorage.getItem("sns_rolagem_secreta_" + FICHA_ID) === "1"; }catch(e){}
+    c.addEventListener("change", () => { try{ localStorage.setItem("sns_rolagem_secreta_" + FICHA_ID, c.checked ? "1" : "0"); }catch(e){} });
+  })();
   setTimeout(() => { enviarStatusParaTokens(true); enviarFotoParaTokens(); }, 1500);   // barras e foto da mesa em dia ao abrir
   iniciarRecorteFicha();
 })();

@@ -384,6 +384,40 @@
   .item-mapa .ativar-mapa{ background:var(--aizome) !important; color:#fff !important; border-color:var(--aizome) !important; }
   @media (max-width: 900px){ .aviso-particular{ bottom:124px; max-width:calc(100vw - 28px); flex-wrap:wrap; } }
 
+  /* ---------- pausa ---------- */
+  .pausa-overlay{
+    position:fixed; inset:0; z-index:13; display:none; align-items:center; justify-content:center;
+    background:rgba(10,14,22,0.55); backdrop-filter:blur(2px); pointer-events:auto;
+  }
+  body.pausada:not(.sou-mestre) .pausa-overlay{ display:flex; }
+  .pausa-overlay .cartao{
+    background:var(--washi); color:var(--sumi); border-radius:var(--raio-g); padding:22px 28px; text-align:center; box-shadow:var(--sombra); max-width:320px;
+  }
+  .pausa-overlay .selo{ width:48px; height:48px; border-radius:50%; margin:0 auto 10px; background:var(--shu); color:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:800; font-size:20px; }
+  .pausa-overlay .t{ font-family:var(--font-display); font-weight:800; font-size:21px; }
+  .pausa-overlay .d{ font-size:13px; color:var(--sumi-2); margin-top:4px; line-height:1.45; }
+  body.pausada.sou-mestre #btn_pausar{ color:var(--sumi); background:var(--kinari); }
+  .aviso-pausa-mestre{ display:none; }
+  body.pausada.sou-mestre .aviso-pausa-mestre{
+    display:block; position:fixed; top:74px; left:50%; transform:translateX(-50%); z-index:12; background:var(--kinari); color:var(--sumi);
+    font-size:12px; font-weight:700; padding:6px 14px; border-radius:999px; box-shadow:var(--sombra);
+  }
+  /* ---------- sussurros e rolagens secretas ---------- */
+  .form-rolagem select#in_para{
+    flex:0 0 auto; max-width:112px; padding:9px 6px; font-size:12px; font-family:var(--font-body); border-radius:var(--raio-p);
+    border:1px solid var(--washi-borda); background:var(--input-bg); color:var(--sumi);
+  }
+  .form-rolagem.privado select#in_para{ background:#f1e3bd; border-color:#d9b872; font-weight:700; }
+  .tag-privado{ display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700; color:#6b5210; background:#f1e3bd; border-radius:999px; padding:1px 8px; margin-bottom:4px; }
+  .log-item.mensagem.privada, .carta-rolagem.privada{ border-style:dashed; border-color:#d9b872; background:#fffaf0; }
+  /* ---------- menu do token: duração das condições ---------- */
+  .mt-duracoes{ display:flex; flex-direction:column; gap:5px; margin-top:8px; }
+  .mt-duracoes:empty{ display:none; }
+  .mt-duracoes .linha{ display:flex; align-items:center; gap:7px; font-size:12px; }
+  .mt-duracoes .linha span{ flex:1; }
+  .mt-duracoes select{ font-size:11.5px; padding:4px 6px; border:1px solid var(--washi-borda); border-radius:7px; background:#fff; color:var(--sumi); font-family:var(--font-body); }
+  .submenu-formas .forma-btn.fixar.ativo{ color:var(--sumi); background:var(--kinari); }
+
   /* ---------- zoom (canto inferior direito) ---------- */
   .zoom-cluster{ position:fixed; right:14px; bottom:14px; z-index:11; border-radius:999px; display:flex; align-items:center; padding:4px; gap:2px; }
   .zoom-cluster button{
@@ -557,6 +591,12 @@
     <button type="button" id="btn_cursor_toggle" class="so-mestre" data-dica="Mostrar meu cursor aos jogadores" aria-label="Cursor do mestre">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51z"></path></svg>
     </button>
+    <button type="button" id="btn_pausar" class="so-mestre" data-dica="Pausar a mesa para os jogadores" aria-label="Pausar a mesa">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg>
+    </button>
+    <button type="button" id="btn_chamar" class="so-mestre" data-dica="Olhem aqui: leva a visão de todos para a sua" aria-label="Levar a visão de todos para a sua">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v4M12 18v4M2 12h4M18 12h4"></path></svg>
+    </button>
     <button type="button" class="btn-painel so-mestre" id="btn_mapas_toggle" data-dica="Cenas e mapas" aria-label="Cenas e mapas">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 L3 6 L3 20 L9 18 L15 20 L21 18 L21 4 L15 6 L9 4 Z"></path><line x1="9" y1="4" x2="9" y2="18"></line><line x1="15" y1="6" x2="15" y2="20"></line></svg>
     </button>
@@ -586,6 +626,12 @@
       <button type="button" class="forma-btn" data-forma="onda" title="Onda (largura = comprimento)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 4 L20 4 L20 20 L4 20 Z"></path><path d="M7 12 Q10 8 12 12 T17 12"></path></svg>
       </button>
+      <button type="button" class="forma-btn fixar" id="btn_fixar_area" title="Fixar a próxima área no mapa (fica até alguém apagar com o botão direito)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6l-1 6 3 3H7l3-3z"></path><path d="M12 13v8"></path></svg>
+      </button>
+      <button type="button" class="forma-btn so-mestre" id="btn_limpar_areas" title="Apagar todas as áreas fixas desta cena">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg>
+      </button>
       <label class="tam-fixo" title="Tamanho fixo em metros (o tamanho do poder). Vazio: o arrasto define o tamanho.">
         <input type="number" id="in_tam_fixo" min="0" step="0.5" placeholder="—">
         <span>metros</span>
@@ -602,6 +648,7 @@
     </button>
   </div>
 
+  <div class="pausa-overlay" id="pausa_overlay" role="status"><div class="cartao"><div class="selo">忍</div><div class="t">Mesa pausada</div><div class="d">O mestre está preparando a próxima parte. O chat continua aberto.</div></div></div>
   <div class="menu-token" id="menu_token">
     <div class="cab">
       <input type="text" id="mt_nome" maxlength="40" aria-label="Nome do token" title="Nome do token">
@@ -620,6 +667,7 @@
         <label class="so-mestre" style="flex-direction:column;">Jogador dono<select id="mt_dono"></select></label>
         <label>Deslocamento (m)<input type="text" id="mt_desloc" inputmode="decimal" placeholder="da ficha"></label>
         <label class="linha so-mestre"><input type="checkbox" id="mt_barras"> Jogadores veem Vida e Chakra</label>
+        <label class="linha so-mestre"><input type="checkbox" id="mt_oculto"> Oculto: só o mestre vê (tecla H)</label>
         <div class="nota" id="mt_nota"></div>
       </div>
       <!-- visual -->
@@ -646,6 +694,7 @@
         </div>
         <input type="file" id="mt_img_arquivo" accept="image/png,image/webp,image/*" style="display:none;">
         <div class="nota" id="mt_img_origem"></div>
+        <label>Aura de alcance (m)<input type="text" id="mt_aura" inputmode="decimal" placeholder="nenhuma (ex.: 13)"></label>
         <label>Rotação
           <div class="mt-rotacao">
             <button type="button" id="mt_rot_menos" aria-label="Girar para a esquerda">⟲</button>
@@ -659,6 +708,7 @@
       <div class="mt-aba" data-aba="conds" hidden>
         <div class="mt-conds" id="mt_conds"></div>
         <div class="nota" id="mt_conds_ativas"></div>
+        <div class="mt-duracoes" id="mt_duracoes"></div>
       </div>
     </div>
     <div class="acoes">
@@ -678,6 +728,7 @@
     </div>
     <div class="log-rolagens" id="log_rolagens"><div class="log-vazio">Nada rolado ainda. Use os atalhos acima ou escreva /r 2d8.</div></div>
     <div class="form-rolagem">
+      <select id="in_para" aria-label="Para quem" title="Quem vê a mensagem ou a rolagem"><option value="">Todos</option></select>
       <input type="text" id="in_mensagem" placeholder="Mensagem, ou /r 2d8" maxlength="500">
       <button type="button" id="btn_enviar_msg">Enviar</button>
     </div>
@@ -717,6 +768,7 @@
 </div>
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="aviso-pausa-mestre">Mesa pausada para os jogadores</div>
 <div class="dica-token" id="dica_token"></div>
 
 <script>
@@ -771,7 +823,7 @@ function avisar(msg, tipo){
   setTimeout(() => { t.style.transition = "opacity .25s"; t.style.opacity = "0"; setTimeout(() => t.remove(), 260); }, /não foi possível|erro/i.test(msg) ? 6500 : 3500);
 }
 /* partes da interface por cima do mapa: cliques nelas não mexem no mapa */
-const SELETOR_UI = "button, input, select, textarea, label, .painel-dados, .icon-bar, .menu-token, .cena-chip, .faixa-ini, .topo-dir, .zoom-cluster, .submenu-formas, .estado-vazio, .toasts";
+const SELETOR_UI = "button, input, select, textarea, label, .pausa-overlay, .painel-dados, .icon-bar, .menu-token, .cena-chip, .faixa-ini, .topo-dir, .zoom-cluster, .submenu-formas, .estado-vazio, .toasts";
 
 function souMestreDaSala(){
   return !!salaAtual && salaAtual.mestre_id === meuId;
@@ -833,6 +885,9 @@ async function iniciar(){
   await carregarFeed();
   atualizarSub();
   atualizarAvisoParticular();
+  await carregarAreas();
+  document.body.classList.toggle("pausada", !!sala.pausada);
+  montarDestinos();
   prepararCanvas();
   carregarMapa();
 
@@ -843,9 +898,10 @@ async function iniciar(){
 /* troca a cena exibida (ou limpa, com null) e refaz tudo que depende dela */
 async function trocarCena(cena){
   cenaAtual = cena || null;
-  if(!cenaAtual){ tokensAtuais = []; fogRevelado = new Set(); }
+  if(!cenaAtual){ tokensAtuais = []; fogRevelado = new Set(); areasAtuais = []; }
   await carregarTokens();
   await carregarFog();
+  await carregarAreas();
   atualizarSub();
   carregarMapa();
   assinarCena();
@@ -897,10 +953,17 @@ async function assinarCena(){
         desenhar();
       }
     });
+  ch.on("postgres_changes",
+    { event: "INSERT", schema: "public", table: "areas", filter: "cena_id=eq." + idCena },
+    (payload) => { if(!ehDaCena()) return; if(!areasAtuais.some(a => a.id === payload.new.id)) areasAtuais.push(payload.new); desenhar(); });
+  ch.on("postgres_changes",
+    { event: "DELETE", schema: "public", table: "areas" },
+    (payload) => { const id = payload.old && payload.old.id; if(!id) return; const n = areasAtuais.length; areasAtuais = areasAtuais.filter(a => a.id !== id); if(n !== areasAtuais.length) desenhar(); });
   ch.subscribe(async (status) => {
     if(status === "SUBSCRIBED" && ehDaCena()){
       await carregarTokens();
       await carregarFog();
+      await carregarAreas();
       desenhar();
     }
   });
@@ -1058,9 +1121,14 @@ function prepararCanvas(){
 
   function soltar(e){
     if(formaAtiva){
+      const f = formaAtiva;
       formaAtiva = null;
       enviarMedida(true);
       desenhar();
+      if(fixarArea && cenaAtual && formaSelecionada !== "regua" && (Math.hypot(f.x1 - f.x0, f.y1 - f.y0) > 2 || tamanhoFixoM())){
+        sb.from("areas").insert({ cena_id: cenaAtual.id, forma: formaSelecionada, x0: f.x0, y0: f.y0, x1: f.x1, y1: f.y1, tam: tamanhoFixoM(), cor: meuCor, criado_por: meuId })
+          .then(({ error }) => { if(error) avisar("Não foi possível fixar a área: " + error.message + (/relation|does not exist/i.test(error.message) ? " (rode o mesa_prioridade1.sql)" : "")); });
+      }
       return;
     }
     if(selecaoFog){
@@ -1105,7 +1173,20 @@ function prepararCanvas(){
     if(e.target.closest(SELETOR_UI)) return;
     const rect = palco.getBoundingClientRect();
     const alvo = encontrarTokenEm(e.clientX - rect.left, e.clientY - rect.top);
-    if(!alvo) return;
+    if(!alvo){
+      const px = e.clientX - rect.left, py = e.clientY - rect.top;
+      const area = areasAtuais.slice().reverse().find(a => a._rot && px >= a._rot.x && px <= a._rot.x + a._rot.w && py >= a._rot.y && py <= a._rot.y + a._rot.h);
+      if(area){
+        e.preventDefault();
+        if(!(souMestreDaSala() || area.criado_por === meuId)){ avisar("Só quem fixou a área ou o mestre podem apagá-la."); return; }
+        if(!confirm("Apagar esta área fixa?")) return;
+        sb.from("areas").delete().eq("id", area.id).then(({ error }) => {
+          if(error){ avisar("Não foi possível apagar a área: " + error.message); return; }
+          areasAtuais = areasAtuais.filter(a => a.id !== area.id); desenhar();
+        });
+      }
+      return;
+    }
     e.preventDefault();
     if(podeArrastarToken(alvo)) abrirMenuToken(alvo, e.clientX - rect.left, e.clientY - rect.top);
   });
@@ -1183,6 +1264,8 @@ function desenhar(){
     ctx.drawImage(mapaImg, cam.x, cam.y, mapaImg.width * cam.escala, mapaImg.height * cam.escala);
   }
   if(cenaAtual) desenharGrid();
+  desenharAreasFixas();
+  desenharAuras();
   desenharTokens();
   if(cenaAtual) desenharFog();
   desenharSelecaoFog();
@@ -1250,13 +1333,65 @@ function mostrarDicaToken(t, px, py){
   const conds = condicoesDoToken(t);
   const desl = deslocDoToken(t);
   let html = "<b>" + escapeHtml(t.nome || "Token") + "</b>";
-  if(conds.length) html += '<div class="c">' + conds.map(k => '<span class="dc">' + svgCond(k, 13).replace('var(--shu)', '#ff9b8f') + " " + CONDS[k].n + "</span>").join("") + "</div>";
+  if(conds.length) html += '<div class="c">' + conds.map(k => { const r = rodadasRestantes(t, k); return '<span class="dc">' + svgCond(k, 13).replace('var(--shu)', '#ff9b8f') + " " + CONDS[k].n + (r != null ? " · " + (r <= 1 ? "termina nesta rodada" : "mais " + r + " rodadas") : "") + "</span>"; }).join("") + "</div>";
   if(desl) html += "<div>Deslocamento: " + fmtM(desl) + (emCombate() ? " · resta " + fmtM(restanteDoToken(t)) + " nesta rodada" : "") + "</div>";
   if(!conds.length && !desl){ el.style.display = "none"; return; }
   el.innerHTML = html;
   el.style.display = "block";
   el.style.left = Math.min(px + 14, window.innerWidth - 250) + "px";
   el.style.top = (py + 16) + "px";
+}
+
+/* ===== tokens ocultos, auras e áreas fixas ===== */
+function tokenVisivel(t){ return !t.oculto || souMestreDaSala(); }
+let areasAtuais = [];
+let fixarArea = false;
+async function carregarAreas(){
+  if(!cenaAtual){ areasAtuais = []; return; }
+  const { data, error } = await sb.from("areas").select("*").eq("cena_id", cenaAtual.id);
+  areasAtuais = error ? [] : (data || []);
+}
+function desenharAreasFixas(){
+  areasAtuais.forEach(a => {
+    const r = desenharForma({ forma: a.forma, x0: +a.x0, y0: +a.y0, x1: +a.x1, y1: +a.y1, tam: a.tam ? +a.tam : null }, a.cor || "#2e86de", "Fixa");
+    a._rot = r;
+  });
+}
+function desenharAuras(){
+  tokensAtuais.forEach(t => {
+    if(!tokenVisivel(t) || !t.aura || !(Number(t.aura.m) > 0)) return;
+    const sx = cam.x + t.x * cam.escala, sy = cam.y + t.y * cam.escala;
+    const r = Number(t.aura.m) * pxPorMetro() * cam.escala;
+    const cor = t.aura.cor || t.cor || "#2e86de";
+    ctx.save();
+    ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2);
+    ctx.fillStyle = hexParaRgba(cor, 0.08); ctx.fill();
+    ctx.setLineDash([8, 6]); ctx.lineWidth = 2; ctx.strokeStyle = hexParaRgba(cor, 0.7); ctx.stroke(); ctx.setLineDash([]);
+    const txt = fmtM(Number(t.aura.m));
+    ctx.font = "700 11px Inter, Arial, sans-serif"; const w = ctx.measureText(txt).width + 10;
+    ctx.fillStyle = hexParaRgba(cor, 0.9); ctx.fillRect(sx - w / 2, sy - r - 9, w, 17);
+    ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(txt, sx, sy - r - 0.5);
+    ctx.restore();
+  });
+}
+/* condições com duração: somem quando a rodada indicada começa */
+async function expirarCondicoes(){
+  if(!souMestreDaSala() || !cenaAtual) return;
+  for(const t of tokensAtuais){
+    const exp = t.cond_expira; if(!exp || typeof exp !== "object") continue;
+    const acabaram = Object.keys(exp).filter(k => Number(exp[k]) > 0 && Number(exp[k]) <= iniciativaRodada);
+    if(!acabaram.length) continue;
+    const novoExp = Object.assign({}, exp); acabaram.forEach(k => delete novoExp[k]);
+    const novasManuais = (Array.isArray(t.cond_manuais) ? t.cond_manuais : []).filter(k => acabaram.indexOf(k) < 0);
+    t.cond_expira = novoExp; t.cond_manuais = novasManuais;
+    const { error } = await sb.from("tokens").update({ cond_expira: novoExp, cond_manuais: novasManuais }).eq("id", t.id);
+    if(!error) avisar((t.nome || "Token") + ": " + acabaram.map(k => CONDS[k] ? CONDS[k].n : k).join(", ") + " terminou.", "ok");
+  }
+  desenhar();
+}
+function rodadasRestantes(t, k){
+  const e = t.cond_expira && Number(t.cond_expira[k]);
+  return e > 0 ? Math.max(0, e - iniciativaRodada) : null;
 }
 
 /* ===== condições nos tokens (símbolos) ===== */
@@ -1424,10 +1559,13 @@ function desenharTokens(){
   const daVez = tokenDaVezId();
   const estilo = estiloDaCena();
   tokensAtuais.forEach(t => {
+    if(!tokenVisivel(t)) return;
     const sx = cam.x + t.x * cam.escala;
     const sy = cam.y + t.y * cam.escala;
     const raio = (gridPx / 2) * 0.8 * cam.escala * (t.tam || 1);
     const ehVez = t.id === daVez;
+    ctx.save();
+    if(t.oculto) ctx.globalAlpha = 0.45;
     const recorte = estilo === "recorte"
       ? (t.imagem_url ? imagemPronta(urlPublica(t.imagem_url)) : imagemPronta(urlRecorteDaFicha(t)))
       : null;
@@ -1494,6 +1632,17 @@ function desenharTokens(){
       else ctx.fillRect(sx - lw / 2, ty, lw, 17);
       ctx.fillStyle = "#eef1f6";
       ctx.fillText(texto, sx, ty + 12);
+    }
+    ctx.restore();
+    if(t.oculto){
+      /* marca de oculto para o mestre */
+      ctx.save();
+      const bx = sx + raio * 0.72, by = sy - raio * 0.72, br = Math.max(8, raio * 0.28);
+      ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fillStyle = "#1d2738"; ctx.fill();
+      const k = (br * 1.3) / 24; ctx.translate(bx - 12 * k, by - 12 * k); ctx.scale(k, k);
+      ctx.strokeStyle = "#d9b872"; ctx.lineWidth = 2.4; ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.stroke(new Path2D("M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6zM4 4l16 16"));
+      ctx.restore();
     }
   });
 }
@@ -1569,6 +1718,7 @@ function encontrarTokenEm(clickX, clickY){
   const gridPx = cenaAtual ? (cenaAtual.grid_px || 70) : 70;
   for(let i = tokensAtuais.length - 1; i >= 0; i--){
     const t = tokensAtuais[i];
+    if(!tokenVisivel(t)) continue;
     const sx = cam.x + t.x * cam.escala;
     const sy = cam.y + t.y * cam.escala;
     const raio = (gridPx / 2) * 0.8 * cam.escala * (t.tam || 1);
@@ -1715,7 +1865,20 @@ function abaMenuToken(qual){
   document.querySelectorAll("#menu_token .mt-aba").forEach(a => { a.hidden = a.dataset.aba !== qual; });
 }
 document.querySelectorAll("#menu_token .mt-abas button").forEach(b => b.addEventListener("click", () => abaMenuToken(b.dataset.aba)));
+function montarDuracoesMenu(){
+  const box = document.getElementById("mt_duracoes"); const t = menuTokenAlvo; if(!box || !t) return;
+  const manuais = Array.from(document.querySelectorAll("#mt_conds input:checked:not(:disabled)")).map(i => i.value);
+  const antes = {}; box.querySelectorAll("select").forEach(sel => { antes[sel.dataset.cond] = sel.value; });
+  box.innerHTML = manuais.map(k => {
+    const r = rodadasRestantes(t, k);
+    const atual = antes[k] != null ? antes[k] : (r != null ? String(Math.max(1, r)) : "0");
+    const opts = [["0","sem limite"],["1","até o fim desta rodada"],["2","2 rodadas"],["3","3 rodadas"],["4","4 rodadas"],["5","5 rodadas"]]
+      .map(o => '<option value="' + o[0] + '"' + (o[0] === atual ? " selected" : "") + '>' + o[1] + '</option>').join("");
+    return '<div class="linha">' + svgCond(k, 15) + '<span>' + CONDS[k].n + '</span><select data-cond="' + k + '" aria-label="Duração de ' + CONDS[k].n + '">' + opts + '</select></div>';
+  }).join("");
+}
 function resumoCondsMenu(){
+  montarDuracoesMenu();
   const marcadas = Array.from(document.querySelectorAll("#mt_conds input:checked")).map(i => i.value);
   document.getElementById("mt_cont_conds").textContent = marcadas.length ? marcadas.length : "";
   document.getElementById("mt_conds_ativas").textContent = marcadas.length
@@ -1742,6 +1905,8 @@ async function abrirMenuToken(t, px, py){
   const tamSel = document.getElementById("mt_tam");
   tamSel.value = String(t.tam || 1); if(!tamSel.value) tamSel.value = "1";
   document.getElementById("mt_barras").checked = t.mostrar_barras !== false;
+  document.getElementById("mt_oculto").checked = !!t.oculto;
+  document.getElementById("mt_aura").value = (t.aura && Number(t.aura.m) > 0) ? String(t.aura.m).replace(".", ",") : "";
   const inDesl = document.getElementById("mt_desloc");
   inDesl.value = (!t.ficha_id && Number(t.desloc) > 0) ? String(t.desloc).replace(".", ",") : "";
   inDesl.placeholder = t.ficha_id ? (Number(t.desloc) > 0 ? fmtM(t.desloc) + " (da ficha)" : "vem da ficha") : "ex.: 13";
@@ -1807,8 +1972,16 @@ document.getElementById("mt_salvar").addEventListener("click", async () => {
     rotacao: Number(rotEl().value) || 0
   };
   if(menuImagemPendente !== undefined) payload.imagem_url = menuImagemPendente;
-  /* condições marcadas na mesa (as da ficha continuam vindo da ficha) */
+  /* condições marcadas na mesa (as da ficha continuam vindo da ficha), com duração em rodadas */
   payload.cond_manuais = Array.from(document.querySelectorAll('#mt_conds input:checked:not(:disabled)')).map(i => i.value);
+  const _exp = {};
+  document.querySelectorAll("#mt_duracoes select").forEach(sel => {
+    const n = parseInt(sel.value, 10);
+    if(n > 0 && payload.cond_manuais.indexOf(sel.dataset.cond) >= 0) _exp[sel.dataset.cond] = iniciativaRodada + n;
+  });
+  payload.cond_expira = _exp;
+  const _av = parseFloat(String(document.getElementById("mt_aura").value).replace(",", "."));
+  payload.aura = _av > 0 ? { m: _av, cor: payload.cor } : null;
   if(!fichaId){
     const dv = parseFloat(String(document.getElementById("mt_desloc").value).replace(",", "."));
     payload.desloc = dv > 0 ? dv : null;
@@ -1818,12 +1991,16 @@ document.getElementById("mt_salvar").addEventListener("click", async () => {
     payload.tam = Number(document.getElementById("mt_tam").value) || 1;
     payload.dono_id = document.getElementById("mt_dono").value || null;
     payload.mostrar_barras = document.getElementById("mt_barras").checked;
+    payload.oculto = document.getElementById("mt_oculto").checked;
   }
+  const eraOculto = !!t.oculto;   // antes de salvar: o tempo real pode atualizar o token antes da resposta
   const { error } = await sb.from("tokens").update(payload).eq("id", t.id);
   if(error){ avisar("Não foi possível salvar o token: " + error.message); return; }
   const imagemAntiga = t.imagem_url;
+  const ficouOculto = payload.oculto === true && !eraOculto;
   delete t._rotPrevia;
   Object.assign(t, payload);
+  if(ficouOculto && canal) canal.send({ type: "broadcast", event: "token_oculto", payload: { id: t.id } });
   /* imagem trocada ou removida: apaga a antiga do armazenamento */
   if(menuImagemPendente !== undefined && imagemAntiga && imagemAntiga !== payload.imagem_url){
     try{ await sb.storage.from("tokens").remove([imagemAntiga]); }catch(e){}
@@ -2052,6 +2229,18 @@ function desenharCursorMestre(){
   ctx.fillText("Mestre", sx, sy - 11);
 }
 
+document.getElementById("btn_fixar_area").addEventListener("click", () => {
+  fixarArea = !fixarArea;
+  document.getElementById("btn_fixar_area").classList.toggle("ativo", fixarArea);
+  avisar(fixarArea ? "As próximas áreas ficam fixas no mapa. Botão direito no rótulo apaga." : "Áreas voltam a ser só medição.", "ok");
+});
+document.getElementById("btn_limpar_areas").addEventListener("click", async () => {
+  if(!cenaAtual || !areasAtuais.length){ avisar("Não há áreas fixas nesta cena.", "ok"); return; }
+  if(!confirm("Apagar todas as " + areasAtuais.length + " áreas fixas desta cena?")) return;
+  const { error } = await sb.from("areas").delete().eq("cena_id", cenaAtual.id);
+  if(error){ avisar("Não foi possível apagar as áreas: " + error.message); return; }
+  areasAtuais = []; desenhar();
+});
 /* tamanho fixo digitado (metros) ou nulo */
 function tamanhoFixoM(){
   const el = document.getElementById("in_tam_fixo");
@@ -2119,6 +2308,7 @@ function desenharForma(f, cor, quem){
   ctx.fillStyle = "#fff";
   ctx.textAlign = "center";
   ctx.fillText(rotulo, lx, ly - 8);
+  return { x: lx - largura / 2 - 6, y: ly - 22, w: largura + 12, h: 20 };
 }
 function desenharFormaMedicao(){
   const agora = Date.now();
@@ -2301,6 +2491,7 @@ async function removerIniciativa(idx){
    e o deslocamento da rodada zera (Básico p.254-255 e p.262) */
 async function novaRodada(){
   iniciativaRodada++;
+  setTimeout(expirarCondicoes, 0);
   const perderam = iniciativaOrdem.filter(it => it.atrasando).map(it => it.nome);
   iniciativaOrdem.forEach(it => { delete it.atrasando; it.acoes = {}; });
   if(perderam.length) avisar(perderam.join(", ") + " atrasou e não agiu: perdeu a vez nesta rodada.");
@@ -2379,13 +2570,14 @@ async function carregarFeed(){
   const porGrupo = {};
   const rolagensEventos = [];
   (rolagens || []).slice().reverse().forEach(row => {
+    if(!podeVer(row)) return;
     const grupo = (row.resultado || {}).grupo || null;
     if(grupo && porGrupo[grupo]){
       porGrupo[grupo].partes.push(parteDeLinha(row));
       return;
     }
     const entrada = {
-      tipo: "rolagem", user_id: row.user_id, criado_em: row.criado_em,
+      tipo: "rolagem", user_id: row.user_id, criado_em: row.criado_em, para: row.para || null,
       grupo: grupo, arma: (row.resultado || {}).arma || null,
       partes: [parteDeLinha(row)]
     };
@@ -2395,7 +2587,7 @@ async function carregarFeed(){
 
   const eventos = [
     ...rolagensEventos,
-    ...((mensagens || []).slice().reverse().map(m => ({ tipo:"mensagem", ...m })))
+    ...((mensagens || []).slice().reverse().filter(podeVer).map(m => ({ tipo:"mensagem", ...m })))
   ];
   eventos.sort((a, b) => new Date(a.criado_em) - new Date(b.criado_em));
   feedEventos = eventos.slice(-40);
@@ -2411,6 +2603,7 @@ function empilharEvento(ev){
 }
 
 function empilharRolagem(row){
+  if(!podeVer(row)) return;
   const grupo = (row.resultado || {}).grupo || null;
   const parte = parteDeLinha(row);
   if(grupo){
@@ -2422,7 +2615,7 @@ function empilharRolagem(row){
     }
   }
   empilharEvento({
-    tipo: "rolagem", user_id: row.user_id, criado_em: row.criado_em,
+    tipo: "rolagem", user_id: row.user_id, criado_em: row.criado_em, para: row.para || null,
     grupo: grupo, arma: (row.resultado || {}).arma || null,
     partes: [parte]
   });
@@ -2512,16 +2705,60 @@ function renderizarFeed(){
   if(!feedEventos.length){ area.innerHTML = '<div class="log-vazio">Nada rolado ainda. Use os atalhos acima ou escreva /r 2d8.</div>'; return; }
   area.innerHTML = feedEventos.map(ev => {
     const nome = nomesCache[ev.user_id] || "Jogador";
-    if(ev.tipo === "rolagem") return cartaRolagemHtml(ev, nome);
-    return '<div class="log-item mensagem"><span class="quem">' + escapeHtml(nome) + ':</span> ' +
+    const tagPriv = ev.para ? '<div class="tag-privado">' + (ev.para === ev.user_id ? "Secreto" : "Para " + escapeHtml(ev.para === meuId ? "você" : (nomesCache[ev.para] || (salaAtual && ev.para === salaAtual.mestre_id ? "o mestre" : "…")))) + '</div>' : "";
+    if(ev.tipo === "rolagem"){
+      const html = cartaRolagemHtml(ev, nome);
+      return ev.para ? html.replace('class="carta-rolagem', 'class="carta-rolagem privada').replace('>', '>' + tagPriv) : html;
+    }
+    return '<div class="log-item mensagem' + (ev.para ? " privada" : "") + '">' + tagPriv + '<span class="quem">' + escapeHtml(nome) + ':</span> ' +
       '<span class="texto">' + escapeHtml(ev.texto) + '</span></div>';
   }).join("");
   area.scrollTop = area.scrollHeight;
 }
 
+/* destinatário escolhido no chat: "" = todos */
+function destinoChat(){ const s = document.getElementById("in_para"); return (s && s.value) || null; }
+async function montarDestinos(){
+  const sel = document.getElementById("in_para"); if(!sel) return;
+  const mestre = souMestreDaSala();
+  let html = '<option value="">Todos</option>';
+  if(mestre) html += '<option value="' + meuId + '">Só eu (secreto)</option>';
+  else if(salaAtual && salaAtual.mestre_id) html += '<option value="' + salaAtual.mestre_id + '">Só o mestre</option>';
+  try{
+    const { data: membros } = await sb.from("sala_membros").select("user_id").eq("sala_id", salaId);
+    const ids = (membros || []).map(m => m.user_id).filter(id => id !== meuId && id !== (salaAtual && salaAtual.mestre_id));
+    for(const id of ids){ const n = await nomeDoUsuario(id); html += '<option value="' + id + '">Sussurrar: ' + escapeHtml(n) + '</option>'; }
+  }catch(e){}
+  sel.innerHTML = html;
+}
+/* rolagem feita aqui mesmo (usada nas rolagens secretas e sussurradas) */
+function rolarLocal(formula){
+  const f = String(formula).replace(/\s+/g, "").toLowerCase();
+  if(!/^[+-]?(\d*d\d+|\d+)([+-](\d*d\d+|\d+))*$/.test(f)) return null;
+  const dados = []; let mod = 0;
+  f.replace(/([+-]?)(\d*d\d+|\d+)/g, (m, sinal, termo) => {
+    const neg = sinal === "-";
+    if(termo.indexOf("d") >= 0){
+      const [q, lados] = termo.split("d"); const n = Math.min(50, parseInt(q || "1", 10)), l = Math.min(1000, parseInt(lados, 10));
+      for(let i = 0; i < n; i++){ const v = 1 + Math.floor(Math.random() * l); dados.push(neg ? -v : v); }
+    } else mod += (neg ? -1 : 1) * parseInt(termo, 10);
+    return m;
+  });
+  const total = dados.reduce((a, b) => a + b, 0) + mod;
+  return { dados: dados.map(Math.abs), modificador: mod, total };
+}
+function podeVer(row){ return !row.para || row.para === meuId || row.user_id === meuId || souMestreDaSala(); }
 async function rolarFormula(formula){
   const f = (formula || "").trim();
   if(!f) return;
+  const para = destinoChat();
+  if(para){
+    const r = rolarLocal(f);
+    if(!r){ avisar("Fórmula não reconhecida: use algo como 2d8, 1d8+3 ou 3d6-1."); return; }
+    const { error } = await sb.from("rolagens").insert({ sala_id: salaId, user_id: meuId, formula: f, resultado: r, para: para });
+    if(error) avisar("Não foi possível fazer a rolagem secreta: " + error.message + (/para/.test(error.message) ? " (rode o mesa_prioridade1.sql)" : ""));
+    return;
+  }
   const { error } = await sb.rpc("rolar_dados", { p_sala: salaId, p_formula: f });
   if(error) avisar("Não foi possível rolar: " + error.message);
 }
@@ -2536,7 +2773,10 @@ async function enviarMensagem(texto){
     return;
   }
 
-  const { error } = await sb.from("mensagens").insert({ sala_id: salaId, user_id: meuId, texto: t });
+  const para = destinoChat();
+  const linha = { sala_id: salaId, user_id: meuId, texto: t };
+  if(para) linha.para = para;
+  const { error } = await sb.from("mensagens").insert(linha);
   if(error) avisar("Não foi possível enviar a mensagem: " + error.message);
 }
 
@@ -2583,12 +2823,46 @@ document.getElementById("btn_enviar_msg").addEventListener("click", () => {
   enviarMensagem(input.value);
   input.value = "";
 });
+document.getElementById("in_para").addEventListener("change", (e) => {
+  e.target.closest(".form-rolagem").classList.toggle("privado", !!e.target.value);
+});
 document.getElementById("in_mensagem").addEventListener("keydown", (e) => {
   if(e.key === "Enter") document.getElementById("btn_enviar_msg").click();
 });
 document.querySelectorAll(".atalhos button").forEach(btn => {
   btn.addEventListener("click", () => rolarFormula(btn.dataset.f));
 });
+
+/* ===== pausa e "olhem aqui" (mestre) ===== */
+document.getElementById("btn_pausar").addEventListener("click", async () => {
+  const nova = !(salaAtual && salaAtual.pausada);
+  const { error } = await sb.from("salas").update({ pausada: nova }).eq("id", salaId);
+  if(error){ avisar("Não foi possível pausar: " + error.message + (/pausada/.test(error.message) ? " (rode o mesa_prioridade1.sql)" : "")); return; }
+  salaAtual.pausada = nova; document.body.classList.toggle("pausada", nova);
+  avisar(nova ? "Mesa pausada para os jogadores." : "Mesa liberada.", "ok");
+});
+document.getElementById("btn_chamar").addEventListener("click", () => {
+  if(!canal || !cenaAtual) return;
+  const r = palco.getBoundingClientRect();
+  const mx = (r.width / 2 - cam.x) / cam.escala, my = (r.height / 2 - cam.y) / cam.escala;
+  canal.send({ type: "broadcast", event: "camera", payload: { x: mx, y: my, escala: cam.escala, cena: cenaAtual.id } });
+  adicionarPing(mx, my, meuCor);
+  avisar("Visão dos jogadores levada para a sua.", "ok");
+});
+/* anima a câmera até centralizar um ponto do mapa */
+function levarCameraPara(mx, my, escala){
+  const r = palco.getBoundingClientRect();
+  const alvoE = Math.max(0.1, Math.min(6, escala || cam.escala));
+  const alvoX = r.width / 2 - mx * alvoE, alvoY = r.height / 2 - my * alvoE;
+  const ini = { x: cam.x, y: cam.y, e: cam.escala }, t0 = performance.now(), dur = 450;
+  const passo = (agora) => {
+    const f = Math.min(1, (agora - t0) / dur), k = 1 - Math.pow(1 - f, 3);
+    cam.x = ini.x + (alvoX - ini.x) * k; cam.y = ini.y + (alvoY - ini.y) * k; cam.escala = ini.e + (alvoE - ini.e) * k;
+    desenhar(); mostrarZoomInfo();
+    if(f < 1) requestAnimationFrame(passo);
+  };
+  requestAnimationFrame(passo);
+}
 
 /* ===== Interface: doca, faixa, cena, zoom e atalhos de teclado ===== */
 function atualizarDoca(){
@@ -2662,6 +2936,14 @@ document.addEventListener("keydown", (e) => {
   else if(k === "e") clicar("btn_fog_esconder");
   else if(k === "i") clicar("btn_iniciativa_toggle");
   else if(k === "c") clicar("btn_dados_toggle");
+  else if(k === "h" && tokenSobMouse && souMestreDaSala()){
+    const t = tokenSobMouse; t.oculto = !t.oculto; desenhar();
+    sb.from("tokens").update({ oculto: t.oculto }).eq("id", t.id).then(({ error }) => {
+      if(error){ t.oculto = !t.oculto; desenhar(); avisar("Não foi possível ocultar o token: " + error.message); return; }
+      if(t.oculto && canal) canal.send({ type: "broadcast", event: "token_oculto", payload: { id: t.id } });
+      avisar((t.nome || "Token") + (t.oculto ? " oculto para os jogadores." : " visível para os jogadores."), "ok");
+    });
+  }
   else if((k === "[" || k === "]") && tokenSobMouse && podeArrastarToken(tokenSobMouse)){
     const t = tokenSobMouse;
     t.rotacao = (((Number(t.rotacao) || 0) + (k === "]" ? 45 : -45)) % 360 + 360) % 360;
@@ -2901,6 +3183,7 @@ function conectarPresenca(){
     { event: "UPDATE", schema: "public", table: "salas", filter: "id=eq." + salaId },
     async (payload) => {
       salaAtual = payload.new;
+      document.body.classList.toggle("pausada", !!salaAtual.pausada);
       if(cenaParticular){
         if(salaAtual.cena_ativa === cenaParticular) definirParticular(null);   // a cena em edição foi mostrada
         atualizarAvisoParticular();
@@ -2950,7 +3233,11 @@ function conectarPresenca(){
       if(payload.new){
         iniciativaOrdem = Array.isArray(payload.new.ordem) ? payload.new.ordem : [];
         iniciativaAtual = typeof payload.new.atual === "number" ? payload.new.atual : 0;
-        if(Number(payload.new.rodada) > 0) iniciativaRodada = Number(payload.new.rodada);
+        if(Number(payload.new.rodada) > 0){
+          const subiu = Number(payload.new.rodada) > iniciativaRodada;
+          iniciativaRodada = Number(payload.new.rodada);
+          if(subiu) expirarCondicoes();
+        }
       } else {
         iniciativaOrdem = [];
         iniciativaAtual = 0;
@@ -2972,6 +3259,7 @@ function conectarPresenca(){
   canal.on("postgres_changes",
     { event: "INSERT", schema: "public", table: "mensagens", filter: "sala_id=eq." + salaId },
     async (payload) => {
+      if(!podeVer(payload.new)) return;
       await nomeDoUsuario(payload.new.user_id);
       empilharEvento({ tipo: "mensagem", ...payload.new });
     }
@@ -2982,6 +3270,18 @@ function conectarPresenca(){
   canal.on("broadcast", { event: "ping" }, (msg) => {
     if(outraCena(msg.payload)) return;
     adicionarPing(msg.payload.x, msg.payload.y, msg.payload.cor);
+  });
+
+  /* mestre levou a visão de todos para um ponto */
+  canal.on("broadcast", { event: "camera" }, (msg) => {
+    const p = msg.payload || {}; if(outraCena(p) || souMestreDaSala()) return;
+    levarCameraPara(Number(p.x), Number(p.y), Number(p.escala));
+    adicionarPing(Number(p.x), Number(p.y), "#d9b872");
+  });
+  /* token ficou oculto: some da tela dos jogadores na hora */
+  canal.on("broadcast", { event: "token_oculto" }, (msg) => {
+    const id = msg.payload && msg.payload.id; if(!id || souMestreDaSala()) return;
+    tokensAtuais = tokensAtuais.filter(t => t.id !== id); desenhar();
   });
 
   /* medições dos outros (efêmero) */
