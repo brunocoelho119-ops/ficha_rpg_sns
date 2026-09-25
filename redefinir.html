@@ -6,77 +6,99 @@
 <title>Nova senha · Shinobi no Sho</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  /* Tinta e papel: a mesma identidade da mesa e da ficha */
   :root{
-    --ink:#1a1a1a; --bar-bg:#1c1c1e; --bg:#ffffff; --page-bg:#eef0f3;
-    --gray-light:#f6f7f8; --gray-text:#8b8d92; --border:#e3e4e7; --border-strong:#d3d5d9;
-    --input-bg:#f5f6f7; --input-border:#e2e3e6;
-    --shadow: 0 1px 3px rgba(20,20,25,0.06), 0 8px 20px rgba(20,20,25,0.05);
-    --radius:14px; --font-display:'Barlow Condensed', Arial, sans-serif; --font-body:'Inter', Arial, sans-serif;
+    --aizome:#1d2738; --aizome-2:#2a3850; --fundo:#141b27;
+    --washi:#f3ecdc; --washi-2:#e8dfca; --washi-borda:#d9ccb0;
+    --sumi:#24201c; --sumi-2:#5e554b; --shu:#b3372b; --kinari:#d9b872; --nezumi:#9aa6b8; --claro:#eef1f6;
+    --ok:#2f7a4a; --erro:#a83226;
+    --raio:16px; --sombra:0 18px 50px rgba(4,8,16,0.5), 0 2px 8px rgba(4,8,16,0.35);
+    --font-display:'Shippori Mincho B1', Georgia, serif; --font-body:'Inter', Arial, sans-serif;
+    /* compatibilidade */
+    --ink:var(--sumi); --gray-text:var(--sumi-2); --bar-bg:var(--aizome);
   }
   *{ box-sizing:border-box; }
   html,body{ height:100%; margin:0; }
   body{
-    font-family:var(--font-body); background:var(--page-bg); color:var(--ink);
-    display:flex; align-items:center; justify-content:center; padding:18px;
+    font-family:var(--font-body); background:var(--fundo); color:var(--sumi); -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px 18px;
   }
-  /* imagem de fundo sutil (Konoha) — baixa opacidade, atrás de todo o conteúdo */
   body::before{
-    content:""; position:fixed; top:0; right:0; bottom:0; left:0; z-index:-1; pointer-events:none;
-    background:url('konoha-bg.jpg') center center / cover no-repeat;
-    opacity:0.14;
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:url('konoha-bg.jpg') center center / cover no-repeat; opacity:0.1;
   }
+  body::after{
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:radial-gradient(900px 500px at 50% 0%, rgba(58,74,102,0.6), transparent 70%);
+  }
+  :focus-visible{ outline:2px solid var(--kinari); outline-offset:2px; }
+  .marca{ display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:22px; color:var(--claro); text-align:center; }
+  .marca .selo{
+    width:62px; height:62px; border-radius:50%; background:var(--shu); color:#fff; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-weight:800; font-size:28px; box-shadow:0 0 0 3px var(--fundo), 0 0 0 5px var(--shu);
+  }
+  .marca .nome{ font-family:var(--font-display); font-weight:800; font-size:28px; letter-spacing:0.2px; }
+  .marca .lema{ font-size:13px; color:var(--nezumi); }
   .card{
-    width:100%; max-width:400px; background:var(--bg); border-radius:var(--radius);
-    box-shadow:var(--shadow); overflow:hidden;
+    width:100%; max-width:400px; background:var(--washi); border-radius:var(--raio); box-shadow:var(--sombra);
+    overflow:hidden; border:1px solid rgba(255,255,255,0.06);
   }
-  .head{
-    background:var(--bar-bg); color:#fff; padding:22px 24px 18px;
-    font-family:var(--font-display); text-transform:uppercase; letter-spacing:0.5px;
-  }
-  .head .t1{ font-size:13px; opacity:0.75; font-weight:600; }
-  .head .t2{ font-size:24px; font-weight:800; }
-  .body{ padding:22px 24px 24px; }
-  .tabs{ display:flex; gap:6px; margin-bottom:18px; }
+  .head{ padding:20px 24px 4px; }
+  .head .t1{ display:none; }
+  .head .t2{ font-family:var(--font-display); font-size:24px; font-weight:800; color:var(--sumi); }
+  .body{ padding:14px 24px 24px; }
+  .tabs{ display:flex; gap:4px; margin-bottom:18px; background:var(--washi-2); border-radius:12px; padding:4px; }
   .tab{
-    flex:1; padding:9px 10px; text-align:center; border:1px solid var(--border); border-radius:8px;
-    background:var(--input-bg); font-weight:700; font-size:13px; cursor:pointer; font-family:var(--font-body);
+    flex:1; padding:9px 10px; text-align:center; border:none; border-radius:9px; background:transparent;
+    font-weight:600; font-size:13px; cursor:pointer; font-family:var(--font-body); color:var(--sumi-2);
   }
-  .tab.active{ background:var(--bar-bg); color:#fff; border-color:var(--bar-bg); }
-  label{ display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--gray-text); margin:12px 0 6px; }
+  .tab.active{ background:#fff; color:var(--sumi); box-shadow:0 1px 3px rgba(36,32,28,0.12); }
+  label{ display:block; font-size:12px; font-weight:600; color:var(--sumi-2); margin:14px 0 6px; }
+  .campo-senha{ position:relative; }
   input[type=text], input[type=email], input[type=password]{
     width:100%; padding:11px 12px; font-size:14px; font-family:var(--font-body);
-    background:var(--input-bg); border:1px solid var(--input-border); border-radius:8px; color:var(--ink);
+    background:#fff; border:1px solid var(--washi-borda); border-radius:10px; color:var(--sumi);
   }
-  input:focus{ outline:2px solid var(--bar-bg); outline-offset:-1px; }
+  .campo-senha input{ padding-right:74px; }
+  input:focus{ outline:2px solid var(--aizome); outline-offset:-1px; border-color:transparent; }
+  .ver-senha{
+    position:absolute; right:6px; top:50%; transform:translateY(-50%); border:none; background:transparent;
+    font-size:12px; font-weight:600; color:var(--sumi-2); cursor:pointer; padding:6px 8px; border-radius:7px; font-family:var(--font-body);
+  }
+  .ver-senha:hover{ background:var(--washi-2); color:var(--sumi); }
   .btn{
-    width:100%; margin-top:18px; padding:12px; border:none; border-radius:999px;
-    background:var(--bar-bg); color:#fff; font-weight:700; font-size:14px; cursor:pointer;
-    font-family:var(--font-body);
+    width:100%; margin-top:20px; padding:12px; border:none; border-radius:10px;
+    background:var(--aizome); color:#fff; font-weight:600; font-size:14px; cursor:pointer; font-family:var(--font-body);
   }
-  .btn:disabled{ opacity:0.5; cursor:not-allowed; }
-  .btn:hover:not(:disabled){ filter:brightness(1.1); }
-  .msg{ margin-top:14px; font-size:12.5px; line-height:1.5; padding:10px 12px; border-radius:8px; display:none; }
+  .btn:disabled{ opacity:0.55; cursor:progress; }
+  .btn:hover:not(:disabled){ background:var(--aizome-2); }
+  .link-esqueci{ display:block; margin:12px auto 0; background:none; border:none; padding:4px; font-size:12.5px; color:var(--sumi-2); cursor:pointer; text-decoration:underline; font-family:var(--font-body); }
+  .link-esqueci:hover{ color:var(--sumi); }
+  .msg{ margin-top:14px; font-size:12.5px; line-height:1.5; padding:10px 12px; border-radius:10px; display:none; border-left:3px solid transparent; }
   .msg.show{ display:block; }
-  .msg.erro{ background:#fdecec; color:#a32020; }
-  .msg.ok{ background:#e9f8ef; color:#0f7a3d; }
-  .link-esqueci{ display:block; margin-top:10px; background:none; border:none; padding:0; font-size:12.5px; color:var(--gray-text); cursor:pointer; text-decoration:underline; font-family:var(--font-body); }
-  .link-esqueci:hover{ color:var(--ink); }
-  .rodape{ margin-top:16px; font-size:11.5px; color:var(--gray-text); text-align:center; }
+  .msg.erro{ background:#f7ddd8; color:var(--erro); border-left-color:var(--shu); }
+  .msg.ok{ background:#dcefe1; color:var(--ok); border-left-color:var(--ok); }
+  .rodape{ margin-top:16px; font-size:12px; color:var(--sumi-2); text-align:center; line-height:1.5; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 </head>
 <body>
+<div class="marca">
+  <div class="selo">忍</div>
+  <div class="nome">Shinobi no Sho</div>
+  <div class="lema">Fichas, mesa e compêndio da sua campanha</div>
+</div>
 <div class="card">
   <div class="head"><div class="t1">Shinobi no Sho</div><div class="t2">Nova senha</div></div>
   <div class="body">
     <form id="form_nova">
       <label style="margin-top:0;">Senha nova</label>
-      <input type="password" id="in_senha1" required minlength="6" autocomplete="new-password">
+      <div class="campo-senha"><input type="password" id="in_senha1" required minlength="6" autocomplete="new-password"><button type="button" class="ver-senha" data-alvo="in_senha1" aria-label="Mostrar senha">Mostrar</button></div>
       <label>Repita a senha</label>
-      <input type="password" id="in_senha2" required minlength="6" autocomplete="new-password">
+      <div class="campo-senha"><input type="password" id="in_senha2" required minlength="6" autocomplete="new-password"><button type="button" class="ver-senha" data-alvo="in_senha2" aria-label="Mostrar senha">Mostrar</button></div>
       <button type="submit" class="btn" id="btn_salvar" disabled>Aguardando o link…</button>
     </form>
     <div class="msg" id="msg"></div>
@@ -104,6 +126,13 @@ document.getElementById("form_nova").addEventListener("submit", async (e) => {
   mostrarMsg("Senha alterada. Entrando…", "ok");
   setTimeout(() => { location.href = "home.html"; }, 1200);
 });
+
+/* mostrar/ocultar senha */
+document.querySelectorAll(".ver-senha").forEach(b => b.addEventListener("click", () => {
+  const i = document.getElementById(b.dataset.alvo); const mostrar = i.type === "password";
+  i.type = mostrar ? "text" : "password"; b.textContent = mostrar ? "Ocultar" : "Mostrar";
+  b.setAttribute("aria-label", mostrar ? "Ocultar senha" : "Mostrar senha");
+}));
 </script>
 </body>
 </html>

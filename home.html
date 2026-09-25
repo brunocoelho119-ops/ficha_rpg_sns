@@ -6,101 +6,124 @@
 <title>Minhas Fichas — Shinobi no Sho</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  /* Tinta e papel: a mesma identidade da mesa e da ficha */
   :root{
-    --ink:#1a1a1a; --bar-bg:#1c1c1e; --bg:#ffffff; --page-bg:#eef0f3;
-    --gray-light:#f6f7f8; --gray-text:#8b8d92; --border:#e3e4e7; --border-strong:#d3d5d9;
-    --input-bg:#f5f6f7; --input-border:#e2e3e6;
-    --shadow: 0 1px 3px rgba(20,20,25,0.06), 0 8px 20px rgba(20,20,25,0.05);
-    --radius:14px; --font-display:'Barlow Condensed', Arial, sans-serif; --font-body:'Inter', Arial, sans-serif;
+    --aizome:#1d2738; --aizome-2:#2a3850; --aizome-3:#3a4a66; --fundo:#141b27; --vidro:rgba(29,39,56,0.92);
+    --washi:#f3ecdc; --washi-2:#e8dfca; --washi-borda:#d9ccb0;
+    --sumi:#24201c; --sumi-2:#5e554b; --shu:#b3372b; --kinari:#d9b872; --nezumi:#9aa6b8; --claro:#eef1f6;
+    --erro:#a83226; --raio:16px; --raio-p:9px;
+    --sombra:0 12px 32px rgba(4,8,16,0.4), 0 2px 6px rgba(4,8,16,0.25);
+    --font-display:'Shippori Mincho B1', Georgia, serif; --font-body:'Inter', Arial, sans-serif;
+    /* compatibilidade */
+    --ink:var(--sumi); --bg:var(--washi); --gray-light:var(--washi-2); --gray-text:var(--sumi-2);
+    --border:var(--washi-borda); --border-strong:#c9b995; --bar-bg:var(--aizome); --shadow:var(--sombra); --radius:var(--raio);
   }
   *{ box-sizing:border-box; }
   html,body{ margin:0; min-height:100%; }
-  body{ font-family:var(--font-body); background:var(--page-bg); color:var(--ink); }
-  /* imagem de fundo sutil (Konoha) — baixa opacidade, atrás de todo o conteúdo */
+  body{ font-family:var(--font-body); background:var(--fundo); color:var(--claro); -webkit-font-smoothing:antialiased; }
   body::before{
-    content:""; position:fixed; top:0; right:0; bottom:0; left:0; z-index:-1; pointer-events:none;
-    background:url('konoha-bg.jpg') center center / cover no-repeat;
-    opacity:0.14;
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:url('konoha-bg.jpg') center center / cover no-repeat; opacity:0.08;
   }
-  .topbar{
-    background:var(--bar-bg); color:#fff; padding:16px 20px; display:flex; align-items:center;
-    justify-content:space-between; flex-wrap:wrap; gap:10px;
+  body::after{
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:radial-gradient(1100px 520px at 50% -8%, rgba(58,74,102,0.6), transparent 70%);
   }
-  .topbar .tt{ font-family:var(--font-display); font-size:20px; font-weight:800; text-transform:uppercase; letter-spacing:0.4px; }
-  .topbar .sub{ font-size:12px; opacity:0.7; font-weight:600; }
-  .sair{
-    background:transparent; border:1px solid rgba(255,255,255,0.35); color:#fff; border-radius:999px;
-    padding:7px 16px; font-size:12.5px; font-weight:700; cursor:pointer; font-family:var(--font-body);
-  }
-  .sair:hover{ background:rgba(255,255,255,0.12); }
-  .wrap{ max-width:920px; margin:0 auto; padding:22px 18px 60px; }
-  .barra-acoes{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
-  .badge-role{
-    display:inline-block; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.4px;
-    padding:4px 11px; border-radius:999px; background:var(--gray-light); border:1px solid var(--border-strong); color:var(--ink);
-  }
-  .badge-role.mestre{ background:#0f4c9c; color:#fff; border-color:#0f4c9c; }
-  .btn-nova{
-    border:none; border-radius:999px; background:var(--bar-bg); color:#fff; font-weight:700; font-size:13.5px;
-    padding:11px 20px; cursor:pointer; font-family:var(--font-body);
-  }
-  .btn-nova:hover{ filter:brightness(1.1); }
-  .secao-titulo{
-    font-family:var(--font-display); text-transform:uppercase; letter-spacing:0.4px; font-size:16px;
-    font-weight:800; margin:0 0 12px; display:flex; align-items:center; justify-content:space-between; gap:10px;
-  }
-  .grupo-titulo{
-    font-family:var(--font-display); text-transform:uppercase; letter-spacing:0.4px; font-size:14px;
-    color:var(--gray-text); font-weight:700; margin:22px 0 10px;
-  }
-  .grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:14px; }
-  .card{
-    background:var(--bg); border:1px solid var(--border); border-radius:var(--radius); padding:16px;
-    box-shadow:var(--shadow); display:flex; flex-direction:column; gap:8px; cursor:pointer;
-  }
-  .card:hover{ border-color:var(--border-strong); }
-  .card .nome{ font-family:var(--font-display); font-size:18px; font-weight:700; text-transform:uppercase; }
-  .card .meta{ font-size:11.5px; color:var(--gray-text); font-weight:600; }
-  .card .acoes{ display:flex; gap:8px; margin-top:6px; flex-wrap:wrap; }
-  .card .acoes button{
-    font-size:11.5px; font-weight:700; border-radius:999px; padding:6px 12px; cursor:pointer;
-    border:1px solid var(--border-strong); background:var(--gray-light); color:var(--ink); font-family:var(--font-body);
-  }
-  .card .acoes button.primaria{ background:#0f4c9c; color:#fff; border-color:#0f4c9c; }
-  .card .acoes button.apagar{ color:#a32020; }
-  .card .meta .sala-tag{ display:inline-block; margin-top:3px; padding:2px 8px; border-radius:999px; background:var(--gray-light, #f6f7f8); color:var(--ink, #1a1a1a); font-weight:600; }
-  .card .meta .sala-tag.sem{ color:var(--gray-text, #8b8d92); }
-  .card .acoes button:hover{ filter:brightness(0.97); }
-  .vazio{ padding:40px 20px; text-align:center; color:var(--gray-text); font-size:13.5px; }
-  .carregando{ padding:40px 20px; text-align:center; color:var(--gray-text); font-size:13.5px; }
-  .bloco-salas{ margin-bottom:30px; }
+  :focus-visible{ outline:2px solid var(--kinari); outline-offset:2px; }
 
+  /* topo */
+  .topbar{
+    position:sticky; top:0; z-index:20; background:var(--vidro); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(255,255,255,0.08); padding:12px 22px; display:flex; align-items:center;
+    justify-content:space-between; gap:12px; flex-wrap:wrap;
+  }
+  .topbar .marca{ display:flex; align-items:center; gap:12px; }
+  .topbar .selo{
+    width:38px; height:38px; border-radius:50%; background:var(--shu); color:#fff; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-weight:800; font-size:17px; flex-shrink:0;
+  }
+  .topbar .tt{ font-family:var(--font-display); font-size:19px; font-weight:800; color:var(--claro); line-height:1.1; }
+  .topbar .sub{ font-size:12.5px; color:var(--nezumi); font-weight:500; }
+  .topbar .dir{ display:flex; align-items:center; gap:10px; }
+  .sair{
+    background:transparent; border:1px solid rgba(255,255,255,0.18); color:var(--claro); border-radius:999px;
+    padding:8px 16px; font-size:12.5px; font-weight:600; cursor:pointer; font-family:var(--font-body);
+  }
+  .sair:hover{ background:rgba(255,255,255,0.08); }
+  .badge-role{
+    display:inline-block; font-size:11.5px; font-weight:700; padding:5px 11px; border-radius:999px;
+    background:rgba(255,255,255,0.08); color:var(--claro); border:1px solid rgba(255,255,255,0.14);
+  }
+  .badge-role.mestre{ background:var(--kinari); color:var(--sumi); border-color:var(--kinari); }
+
+  /* conteúdo */
+  .wrap{ max-width:1000px; margin:0 auto; padding:28px 20px 70px; }
+  .barra-acoes{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin:34px 0 14px; flex-wrap:wrap; }
+  .secao-titulo{
+    font-family:var(--font-display); font-size:24px; font-weight:800; color:var(--claro); margin:0 0 14px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .barra-acoes .secao-titulo{ margin:0; }
+  .btn-nova{
+    border:none; border-radius:10px; background:var(--washi); color:var(--sumi); font-weight:600; font-size:13.5px;
+    padding:10px 16px; cursor:pointer; font-family:var(--font-body); box-shadow:0 2px 8px rgba(0,0,0,0.25);
+  }
+  .btn-nova:hover{ background:#fff; }
+  .grupo-titulo{ font-size:13px; color:var(--nezumi); font-weight:600; margin:22px 0 10px; }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:14px; }
+  .card{
+    background:var(--washi); color:var(--sumi); border:1px solid var(--washi-borda); border-radius:var(--raio); padding:16px 16px 14px;
+    box-shadow:var(--sombra); display:flex; flex-direction:column; gap:8px; cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .card:hover{ transform:translateY(-2px); box-shadow:0 18px 40px rgba(4,8,16,0.5); }
+  .card .nome{ font-family:var(--font-display); font-size:19px; font-weight:800; color:var(--sumi); line-height:1.2; }
+  .card .meta{ font-size:12px; color:var(--sumi-2); font-weight:500; line-height:1.5; }
+  .card .acoes{ display:flex; gap:6px; margin-top:auto; padding-top:6px; flex-wrap:wrap; }
+  .card .acoes button{
+    font-size:12px; font-weight:600; border-radius:var(--raio-p); padding:7px 12px; cursor:pointer;
+    border:1px solid var(--washi-borda); background:#fff; color:var(--sumi); font-family:var(--font-body);
+  }
+  .card .acoes button:hover{ border-color:var(--sumi-2); }
+  .card .acoes button.primaria, .card .acoes button.abrir{ background:var(--aizome); color:#fff; border-color:var(--aizome); }
+  .card .acoes button.primaria:hover, .card .acoes button.abrir:hover{ background:var(--aizome-2); }
+  .card .acoes button.apagar{ color:var(--erro); margin-left:auto; }
+  .card .acoes button.apagar-sala{ margin-left:0; }
+  .card .meta .sala-tag{ display:inline-block; margin-top:4px; padding:2px 9px; border-radius:999px; background:#e1e7f1; color:var(--aizome); font-weight:600; }
+  .card .meta .sala-tag.sem{ background:var(--washi-2); color:var(--sumi-2); }
+  .vazio, .carregando{
+    padding:34px 22px; text-align:center; color:var(--nezumi); font-size:13.5px; line-height:1.55;
+    border:1.5px dashed rgba(255,255,255,0.14); border-radius:var(--raio);
+  }
+  .bloco-salas{ margin-bottom:10px; }
+
+  /* janela de jogadores */
   .overlay{
-    position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center;
+    position:fixed; inset:0; background:rgba(8,12,20,0.6); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center;
     z-index:50; padding:16px;
   }
   .modal{
-    background:var(--bg); border-radius:var(--radius); max-width:420px; width:100%; max-height:82vh;
-    overflow-y:auto; box-shadow:var(--shadow); display:flex; flex-direction:column;
+    background:var(--washi); color:var(--sumi); border-radius:var(--raio); max-width:440px; width:100%; max-height:82vh;
+    overflow:hidden; box-shadow:var(--sombra); display:flex; flex-direction:column;
   }
   .modal .cab{
-    background:var(--bar-bg); color:#fff; padding:14px 18px; display:flex; justify-content:space-between; align-items:center;
-    font-family:var(--font-display); text-transform:uppercase; font-weight:700; font-size:15px; flex-shrink:0;
+    padding:16px 18px 10px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--washi-borda);
+    font-family:var(--font-display); font-weight:800; font-size:19px; flex-shrink:0; color:var(--sumi);
   }
-  .modal .cab button{ background:transparent; border:none; color:#fff; font-size:18px; cursor:pointer; line-height:1; }
-  .modal .corpo{ padding:14px 18px; overflow-y:auto; }
-  .linha-membro{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); font-size:13.5px; }
+  .modal .cab button{ background:transparent; border:none; color:var(--sumi-2); font-size:15px; cursor:pointer; width:30px; height:30px; border-radius:50%; }
+  .modal .cab button:hover{ background:var(--washi-2); }
+  .modal .corpo{ padding:8px 18px; overflow-y:auto; }
+  .linha-membro{ display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--washi-borda); font-size:13.5px; }
   .linha-membro:last-child{ border-bottom:none; }
-  .linha-membro input{ width:16px; height:16px; }
-  .linha-membro .papel{ margin-left:auto; font-size:11px; color:var(--gray-text); font-weight:700; text-transform:uppercase; }
-  .modal .rodape{ padding:14px 18px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px; flex-shrink:0; }
-  .modal .rodape button{
-    border:none; border-radius:999px; padding:9px 18px; font-weight:700; font-size:13px; cursor:pointer; font-family:var(--font-body);
-  }
-  .modal .rodape .salvar{ background:#0f4c9c; color:#fff; }
-  .modal .rodape .cancelar{ background:var(--gray-light); color:var(--ink); border:1px solid var(--border-strong); }
+  .linha-membro input{ width:16px; height:16px; accent-color:var(--aizome); }
+  .linha-membro .papel{ margin-left:auto; font-size:11.5px; color:var(--sumi-2); font-weight:600; }
+  .modal .rodape{ padding:12px 18px; border-top:1px solid var(--washi-borda); display:flex; justify-content:flex-end; gap:8px; flex-shrink:0; }
+  .modal .rodape button{ border:none; border-radius:var(--raio-p); padding:9px 16px; font-weight:600; font-size:13px; cursor:pointer; font-family:var(--font-body); }
+  .modal .rodape .salvar{ background:var(--aizome); color:#fff; }
+  .modal .rodape .cancelar{ background:#fff; color:var(--sumi); border:1px solid var(--washi-borda); }
+  @media (max-width: 600px){ .topbar .sub{ display:none; } .secao-titulo{ font-size:21px; } }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
@@ -108,25 +131,31 @@
 <body>
 
 <div class="topbar">
-  <div>
-    <div class="tt">Shinobi no Sho</div>
-    <div class="sub" id="saudacao">Carregando…</div>
+  <div class="marca">
+    <div class="selo">忍</div>
+    <div>
+      <div class="tt">Shinobi no Sho</div>
+      <div class="sub" id="saudacao">Carregando…</div>
+    </div>
   </div>
-  <button class="sair" id="btn_sair">Sair</button>
+  <div class="dir">
+    <span class="badge-role" id="badge_role">—</span>
+    <button class="sair" id="btn_sair">Sair</button>
+  </div>
 </div>
 
 <div class="wrap">
   <div class="bloco-salas">
     <div class="secao-titulo">
       <span>Salas</span>
-      <button class="btn-nova" id="btn_nova_sala" style="display:none;">+ Nova Sala</button>
+      <button class="btn-nova" id="btn_nova_sala" style="display:none;">+ Nova sala</button>
     </div>
     <div id="area_salas"><div class="carregando">Carregando salas…</div></div>
   </div>
 
   <div class="barra-acoes">
-    <span class="badge-role" id="badge_role">—</span>
-    <button class="btn-nova" id="btn_nova">+ Nova Ficha</button>
+    <div class="secao-titulo" id="titulo_fichas">Fichas</div>
+    <button class="btn-nova" id="btn_nova">+ Nova ficha</button>
   </div>
   <div id="area_listas"><div class="carregando">Carregando suas fichas…</div></div>
 </div>
@@ -189,7 +218,7 @@ async function carregarSalas(){
   if(meuRole === "mestre"){
     html += '<div class="grupo-titulo">Minhas salas (como mestre)</div>';
     if(minhasSalas.length === 0){
-      html += '<div class="vazio">Você ainda não criou nenhuma sala.</div>';
+      html += '<div class="vazio">Você ainda não criou nenhuma sala. Use \"+ Nova sala\" para abrir a primeira mesa da campanha.</div>';
     } else {
       html += '<div class="grid">' + minhasSalas.map(s => cardSalaHtml(s, true)).join("") + '</div>';
     }
@@ -201,7 +230,7 @@ async function carregarSalas(){
   }
 
   if(html === ""){
-    html = '<div class="vazio">Nenhuma sala ainda.</div>';
+    html = '<div class="vazio">Você ainda não está em nenhuma sala. Peça ao mestre para te adicionar como jogador.</div>';
   }
 
   area.innerHTML = html;

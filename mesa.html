@@ -289,15 +289,18 @@
     padding:7px 10px; font-size:12px; line-height:1.45; box-shadow:var(--sombra); display:none; max-width:240px;
   }
   .dica-token b{ font-family:var(--font-display); font-size:13.5px; }
-  .dica-token .c{ color:#ffd9a8; }
+  .dica-token .c{ color:#f3ecdc; margin-top:3px; }
+  .dica-token .dc{ display:flex; align-items:center; gap:6px; }
   /* condições no menu do token */
-  .mt-conds{ display:flex; flex-wrap:wrap; gap:4px; }
+  .mt-conds{ display:grid; grid-template-columns:repeat(6, 1fr); gap:5px; }
   .mt-conds label{
-    flex-direction:row !important; align-items:center; gap:4px !important; font-size:11.5px !important; font-weight:500 !important;
-    color:var(--sumi) !important; background:#fff; border:1px solid var(--washi-borda); border-radius:999px; padding:3px 8px; cursor:pointer;
+    display:flex !important; align-items:center; justify-content:center; aspect-ratio:1; color:var(--sumi) !important;
+    background:#fff; border:1.5px solid var(--washi-borda); border-radius:10px; cursor:pointer; padding:0 !important; position:relative;
   }
-  .mt-conds label:has(input:checked){ background:var(--aizome); color:#fff !important; border-color:var(--aizome); }
-  .mt-conds label.da-ficha{ opacity:.7; cursor:default; }
+  .mt-conds label:hover{ border-color:var(--sumi-2); }
+  .mt-conds label:has(input:checked){ background:#e1e7f1; border-color:var(--aizome); box-shadow:inset 0 0 0 1px var(--aizome); }
+  .mt-conds label.da-ficha{ cursor:default; }
+  .mt-conds label.da-ficha::after{ content:""; position:absolute; right:3px; top:3px; width:6px; height:6px; border-radius:50%; background:var(--kinari); }
   .mt-conds input{ display:none; }
 
   /* ---------- estilo dos tokens da cena ---------- */
@@ -394,17 +397,35 @@
 
   /* ---------- menu do token ---------- */
   .menu-token{
-    position:absolute; z-index:30; width:270px; background:var(--washi); color:var(--sumi); border:1px solid var(--washi-borda);
+    position:absolute; z-index:30; width:280px; max-height:min(560px, calc(100vh - 40px)); flex-direction:column; background:var(--washi); color:var(--sumi); border:1px solid var(--washi-borda);
     border-radius:var(--raio-g); box-shadow:var(--sombra); overflow:hidden; display:none; font-size:12.5px;
   }
-  .menu-token.aberto{ display:block; }
+  .menu-token.aberto{ display:flex; }
+  .menu-token .cab input[type=text]{
+    flex:1; min-width:0; border:1px solid transparent; background:transparent; font-family:var(--font-display);
+    font-weight:800; font-size:17px; color:var(--sumi); padding:4px 6px; border-radius:var(--raio-p); margin-left:-6px;
+  }
+  .menu-token .cab input[type=text]:hover{ border-color:var(--washi-borda); }
+  .menu-token .cab input[type=text]:focus{ background:#fff; border-color:var(--washi-borda); outline:none; }
+  .mt-abas{ display:flex; gap:2px; padding:6px 10px 0; border-bottom:1px solid var(--washi-borda); }
+  .mt-abas button{
+    flex:1; border:none; background:transparent; padding:7px 4px 8px; font-size:12.5px; font-weight:600; color:var(--sumi-2);
+    cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; font-family:var(--font-body); white-space:nowrap;
+  }
+  .mt-abas button.ativa{ color:var(--sumi); border-bottom-color:var(--aizome); }
+  .mt-cont{ display:inline-block; margin-left:3px; vertical-align:1px; min-width:16px; padding:0 4px; border-radius:999px; background:var(--shu); color:#fff; font-size:10px; line-height:16px; }
+  .mt-cont:empty{ display:none; }
+  .menu-token .corpo{ overflow-y:auto; flex:1; min-height:0; }
+  .mt-aba{ display:flex; flex-direction:column; gap:9px; }
+  .mt-aba[hidden]{ display:none; }
+  .menu-token .acoes button.icone{ flex:0 0 38px; padding:8px 0; }
   .menu-token .cab{
     padding:12px 14px 8px; display:flex; align-items:center; justify-content:space-between;
     font-family:var(--font-display); font-weight:800; font-size:17px; border-bottom:1px solid var(--washi-borda);
   }
   .menu-token .cab button{ background:transparent; border:none; color:var(--sumi-2); font-size:14px; cursor:pointer; width:28px; height:28px; border-radius:50%; }
   .menu-token .cab button:hover{ background:var(--washi-2); }
-  .menu-token .corpo{ padding:10px 14px; display:flex; flex-direction:column; gap:9px; }
+  .menu-token .corpo{ padding:10px 14px; }
   .menu-token label{ display:flex; flex-direction:column; gap:4px; font-size:11.5px; font-weight:600; color:var(--sumi-2); }
   .menu-token label.linha{ flex-direction:row; align-items:center; gap:7px; font-size:12.5px; color:var(--sumi); font-weight:500; }
   .menu-token input[type=text], .menu-token select{
@@ -414,7 +435,7 @@
   .menu-token .duas{ display:flex; gap:8px; }
   .menu-token .duas > label{ flex:1; }
   .menu-token input[type=color]{ width:100%; height:35px; border:1px solid var(--washi-borda); border-radius:var(--raio-p); padding:2px; background:#fff; cursor:pointer; }
-  .menu-token .acoes{ display:flex; gap:6px; padding:0 14px 14px; flex-wrap:wrap; }
+  .menu-token .acoes{ display:flex; gap:6px; padding:10px 14px 12px; border-top:1px solid var(--washi-borda); flex-shrink:0; }
   .menu-token .acoes button{
     flex:1; padding:9px 10px; border-radius:var(--raio-p); font-weight:600; font-size:12.5px; cursor:pointer;
     background:#fff; color:var(--sumi); border:1px solid var(--washi-borda);
@@ -564,53 +585,68 @@
   </div>
 
   <div class="menu-token" id="menu_token">
-    <div class="cab"><span id="mt_titulo">Token</span><button type="button" id="mt_fechar">✕</button></div>
+    <div class="cab">
+      <input type="text" id="mt_nome" maxlength="40" aria-label="Nome do token" title="Nome do token">
+      <button type="button" id="mt_fechar" aria-label="Fechar">✕</button>
+      <span id="mt_titulo" hidden></span>
+    </div>
+    <div class="mt-abas" role="tablist">
+      <button type="button" class="ativa" data-aba="geral" role="tab">Geral</button>
+      <button type="button" data-aba="visual" role="tab">Visual</button>
+      <button type="button" data-aba="conds" role="tab">Condições <span class="mt-cont" id="mt_cont_conds"></span></button>
+    </div>
     <div class="corpo">
-      <label>Nome<input type="text" id="mt_nome" maxlength="40"></label>
-      <div class="duas">
-        <label>Cor<input type="color" id="mt_cor"></label>
-        <label class="so-mestre" style="flex-direction:column;">Tamanho
-          <select id="mt_tam">
-            <option value="0.5">Miúdo (½ casa)</option>
-            <option value="1">1 casa</option>
-            <option value="2">2 × 2</option>
-            <option value="3">3 × 3</option>
-            <option value="4">4 × 4</option>
-          </select>
-        </label>
+      <!-- geral -->
+      <div class="mt-aba" data-aba="geral">
+        <label>Ficha vinculada<select id="mt_ficha"></select></label>
+        <label class="so-mestre" style="flex-direction:column;">Jogador dono<select id="mt_dono"></select></label>
+        <label>Deslocamento (m)<input type="text" id="mt_desloc" inputmode="decimal" placeholder="da ficha"></label>
+        <label class="linha so-mestre"><input type="checkbox" id="mt_barras"> Jogadores veem Vida e Chakra</label>
+        <div class="nota" id="mt_nota"></div>
       </div>
-      <label class="so-mestre" style="flex-direction:column;">Jogador dono<select id="mt_dono"></select></label>
-      <div class="mt-bloco">
-        <label style="margin-bottom:4px;">Imagem de recorte (PNG com fundo transparente)</label>
+      <!-- visual -->
+      <div class="mt-aba" data-aba="visual" hidden>
+        <div class="duas">
+          <label>Cor<input type="color" id="mt_cor"></label>
+          <label class="so-mestre" style="flex-direction:column;">Tamanho
+            <select id="mt_tam">
+              <option value="0.5">½ casa</option>
+              <option value="1">1 casa</option>
+              <option value="2">2 × 2</option>
+              <option value="3">3 × 3</option>
+              <option value="4">4 × 4</option>
+            </select>
+          </label>
+        </div>
+        <label style="margin-bottom:-2px;">Imagem de recorte</label>
         <div class="mt-imagem">
           <div class="previa" id="mt_previa"></div>
           <div class="botoes">
             <button type="button" id="mt_img_escolher">Carregar imagem</button>
-            <button type="button" id="mt_img_remover" class="perigo">Remover imagem</button>
+            <button type="button" id="mt_img_remover" class="perigo">Remover</button>
           </div>
         </div>
         <input type="file" id="mt_img_arquivo" accept="image/png,image/webp,image/*" style="display:none;">
-        <div class="nota" id="mt_img_origem" style="margin-top:5px;"></div>
+        <div class="nota" id="mt_img_origem"></div>
+        <label>Rotação
+          <div class="mt-rotacao">
+            <button type="button" id="mt_rot_menos" aria-label="Girar para a esquerda">⟲</button>
+            <input type="range" id="mt_rotacao" min="0" max="345" step="15" value="0">
+            <button type="button" id="mt_rot_mais" aria-label="Girar para a direita">⟳</button>
+            <span id="mt_rot_valor">0°</span>
+          </div>
+        </label>
       </div>
-      <label>Rotação (recorte)
-        <div class="mt-rotacao">
-          <button type="button" id="mt_rot_menos" aria-label="Girar para a esquerda">⟲</button>
-          <input type="range" id="mt_rotacao" min="0" max="345" step="15" value="0">
-          <button type="button" id="mt_rot_mais" aria-label="Girar para a direita">⟳</button>
-          <span id="mt_rot_valor">0°</span>
-        </div>
-      </label>
-      <label>Ficha vinculada<select id="mt_ficha"></select></label>
-      <label class="linha so-mestre"><input type="checkbox" id="mt_barras"> Jogadores veem as barras de Vida e Chakra</label>
-      <label>Deslocamento (m)<input type="text" id="mt_desloc" inputmode="decimal" placeholder="da ficha"></label>
-      <label style="margin-bottom:0;">Condições</label>
-      <div class="mt-conds" id="mt_conds"></div>
-      <div class="nota" id="mt_nota"></div>
+      <!-- condições -->
+      <div class="mt-aba" data-aba="conds" hidden>
+        <div class="mt-conds" id="mt_conds"></div>
+        <div class="nota" id="mt_conds_ativas"></div>
+      </div>
     </div>
     <div class="acoes">
       <button type="button" class="primaria" id="mt_salvar">Salvar</button>
       <button type="button" id="mt_abrir_ficha">Abrir ficha</button>
-      <button type="button" class="perigo" id="mt_apagar">Apagar</button>
+      <button type="button" class="perigo icone" id="mt_apagar" title="Apagar token" aria-label="Apagar token">🗑</button>
     </div>
   </div>
 
@@ -1191,11 +1227,12 @@ function estiloDaCena(){ return (cenaAtual && cenaAtual.estilo_token === "recort
 
 function mostrarDicaToken(t, px, py){
   const el = document.getElementById("dica_token"); if(!el) return;
+  if(document.getElementById("menu_token").classList.contains("aberto")) t = null;   // menu aberto: sem dica por cima
   if(!t){ el.style.display = "none"; return; }
   const conds = condicoesDoToken(t);
   const desl = deslocDoToken(t);
   let html = "<b>" + escapeHtml(t.nome || "Token") + "</b>";
-  if(conds.length) html += '<div class="c">' + conds.map(k => CONDS[k].s + " " + CONDS[k].n).join("<br>") + "</div>";
+  if(conds.length) html += '<div class="c">' + conds.map(k => '<span class="dc">' + svgCond(k, 13).replace('var(--shu)', '#ff9b8f') + " " + CONDS[k].n + "</span>").join("") + "</div>";
   if(desl) html += "<div>Deslocamento: " + fmtM(desl) + (emCombate() ? " · resta " + fmtM(restanteDoToken(t)) + " nesta rodada" : "") + "</div>";
   if(!conds.length && !desl){ el.style.display = "none"; return; }
   el.innerHTML = html;
@@ -1205,17 +1242,45 @@ function mostrarDicaToken(t, px, py){
 }
 
 /* ===== condições nos tokens (símbolos) ===== */
+/* símbolos de traço único (24×24), iguais no mapa e no menu; v = estado vital (em vermelho) */
 const CONDS = {
-  morto:{n:"Morto", s:"✖"}, fora:{n:"Fora de combate", s:"🏳️"}, inconsciente:{n:"Inconsciente", s:"💤"},
-  morrendo:{n:"Morrendo", s:"💔"}, sangrando:{n:"Sangrando", s:"🩸"}, estavel:{n:"Estável", s:"🩹"},
-  caido:{n:"Caído", s:"⬇️"}, desprevenido:{n:"Desprevenido", s:"❗"}, atordoado:{n:"Atordoado", s:"💫"},
-  agarrado:{n:"Agarrado", s:"✊"}, impedido:{n:"Impedido", s:"⛓️"}, indefeso:{n:"Indefeso / Paralisado", s:"🧊"},
-  lento:{n:"Lento", s:"🐌"}, cego:{n:"Cego", s:"🙈"}, surdo:{n:"Surdo", s:"🔇"}, fascinado:{n:"Fascinado", s:"✨"},
-  confuso:{n:"Confuso", s:"❓"}, assustado:{n:"Assustado", s:"😨"}, amedrontado:{n:"Amedrontado", s:"😰"},
-  aterrorizado:{n:"Aterrorizado", s:"😱"}, fatigado:{n:"Fatigado", s:"😓"}, exausto:{n:"Exausto", s:"🥵"},
-  debilitado:{n:"Debilitado", s:"🤕"}, fintado:{n:"Fintado", s:"🎭"}, flanqueado:{n:"Flanqueado", s:"⚔️"},
-  ofuscado:{n:"Ofuscado", s:"🔆"}, sufocamento:{n:"Sufocamento", s:"🫧"}, tonto:{n:"Tonto", s:"🌀"}, amputado:{n:"Amputado", s:"🦾"}
+  morto:       {n:"Morto", v:1, p:"M6 6l12 12M18 6L6 18"},
+  fora:        {n:"Fora de combate", v:1, p:"M6 21V4M6 4h11l-2.5 4L17 12H6"},
+  inconsciente:{n:"Inconsciente", v:1, p:"M4 9h6l-6 7h6M14 5h6l-6 7h6"},
+  morrendo:    {n:"Morrendo", v:1, p:"M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10zM12 7.4l-1.6 3.1 3.2 2.2-1.6 3.1"},
+  sangrando:   {n:"Sangrando", v:1, p:"M12 3s6 6.8 6 11a6 6 0 0 1-12 0c0-4.2 6-11 6-11z"},
+  estavel:     {n:"Estável", v:1, p:"M12 5v14M5 12h14"},
+  caido:       {n:"Caído", p:"M12 4v11M7.5 10.5L12 15l4.5-4.5M5 20h14"},
+  desprevenido:{n:"Desprevenido", p:"M12 4v10M12 19v0.5"},
+  atordoado:   {n:"Atordoado", p:"M12 3l2.2 4.6 5 .7-3.6 3.5.9 5L12 14.4l-4.5 2.4.9-5L4.8 8.3l5-.7z"},
+  agarrado:    {n:"Agarrado", p:"M7 11h10v4a5 5 0 0 1-10 0zM9 11V7.5M12 11V6.5M15 11V7.5"},
+  impedido:    {n:"Impedido", p:"M10 14a4 4 0 0 1 0-5.6l2-2a4 4 0 0 1 5.6 5.6l-1 1M14 10a4 4 0 0 1 0 5.6l-2 2a4 4 0 0 1-5.6-5.6l1-1"},
+  indefeso:    {n:"Indefeso / Paralisado", p:"M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3"},
+  lento:       {n:"Lento", p:"M7 3h10M7 21h10M8 3c0 5 8 5 8 9s-8 4-8 9M16 3c0 5-8 5-8 9s8 4 8 9"},
+  cego:        {n:"Cego", p:"M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6zM4 4l16 16"},
+  surdo:       {n:"Surdo", p:"M4 9h4l5-4v14l-5-4H4zM16 9.5l5 5M21 9.5l-5 5"},
+  fascinado:   {n:"Fascinado", p:"M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.4 2.4M15.3 15.3l2.4 2.4M6.3 17.7l2.4-2.4M15.3 8.7l2.4-2.4"},
+  confuso:     {n:"Confuso", p:"M9 9a3 3 0 1 1 4.4 2.7c-.9.5-1.4 1.1-1.4 2.3M12 18v0.5"},
+  assustado:   {n:"Assustado", p:"M12 4l9 16H3zM12 10v4.5M12 17.5v0.5"},
+  amedrontado: {n:"Amedrontado", p:"M6 20V10a6 6 0 0 1 12 0v10l-2-2-2 2-2-2-2 2-2-2zM10 11v0.5M14 11v0.5"},
+  aterrorizado:{n:"Aterrorizado", p:"M12 3a7 7 0 0 0-7 7c0 2.6 1.3 4.2 3 5.2V18h8v-2.8c1.7-1 3-2.6 3-5.2a7 7 0 0 0-7-7zM9.5 10.5v0.5M14.5 10.5v0.5M10.5 18v2.5M13.5 18v2.5"},
+  fatigado:    {n:"Fatigado", p:"M3 8h15v8H3zM21 11v2M6 10.5v3M9 10.5v3"},
+  exausto:     {n:"Exausto", p:"M3 8h15v8H3zM21 11v2M8.5 10l3 4M11.5 10l-3 4"},
+  debilitado:  {n:"Debilitado", p:"M3 7l6.5 6.5 4-4L21 17M21 11.5V17h-5.5"},
+  fintado:     {n:"Fintado", p:"M3 8c3-2 6-2 9 0 3-2 6-2 9 0 0 6-3 9-6 9-1.5 0-2.5-1-3-2-.5 1-1.5 2-3 2-3 0-6-3-6-9zM7.5 11.5h2.5M14 11.5h2.5"},
+  flanqueado:  {n:"Flanqueado", p:"M2 12h7M6 8.5L9.5 12 6 15.5M22 12h-7M18 8.5L14.5 12l3.5 3.5"},
+  ofuscado:    {n:"Ofuscado", p:"M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"},
+  sufocamento: {n:"Sufocamento", p:"M5 15.5a3 3 0 1 0 6 0 3 3 0 1 0-6 0zM12 8.5a3.5 3.5 0 1 0 7 0 3.5 3.5 0 1 0-7 0zM15 18.5a1.5 1.5 0 1 0 3 0 1.5 1.5 0 1 0-3 0z"},
+  tonto:       {n:"Tonto", p:"M12 12.5a1 1 0 1 1 1-1 2.5 2.5 0 0 1-2.5 2.5A4 4 0 0 1 6.5 10 5.5 5.5 0 0 1 12 4.5a7.5 7.5 0 0 1 7.5 7.5 9 9 0 0 1-9 9"},
+  amputado:    {n:"Amputado", p:"M5 19L19 5M4 9V4h5M15 20h5v-5"}
 };
+const _pathCache = {};
+function pathCond(k){ return _pathCache[k] || (_pathCache[k] = new Path2D(CONDS[k].p)); }
+function svgCond(k, tam){
+  const c = CONDS[k];
+  return '<svg viewBox="0 0 24 24" width="' + tam + '" height="' + tam + '" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"' +
+    (c.v ? ' style="color:var(--shu)"' : '') + '><path d="' + c.p + '"/></svg>';
+}
 function condicoesDoToken(t){
   const lista = [];
   [t.condicoes, t.cond_manuais].forEach(a => { if(Array.isArray(a)) a.forEach(k => { if(CONDS[k] && lista.indexOf(k) < 0) lista.push(k); }); });
@@ -1239,18 +1304,27 @@ function desenharCondicoesToken(t, sx, sy, raio){
   const tam = Math.max(15, Math.min(24, raio * 0.55));
   const max = 4, mostrar = outros.slice(0, outros.length > max ? max - 1 : max);
   const extra = outros.length - mostrar.length;
-  const itens = mostrar.map(k => CONDS[k].s).concat(extra > 0 ? ["+" + extra] : []);
+  const itens = mostrar.concat(extra > 0 ? ["+" + extra] : []);
   const total = itens.length * (tam + 2) - 2;
   let x = sx - total / 2 + tam / 2;
   const y = sy - raio - tam * 0.35;
-  itens.forEach(txt => {
+  itens.forEach(item => {
+    const vital = CONDS[item] && CONDS[item].v;
     ctx.save();
     ctx.beginPath(); ctx.arc(x, y, tam / 2, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(243,236,220,0.96)"; ctx.fill();
-    ctx.lineWidth = 1.5; ctx.strokeStyle = "rgba(29,39,56,0.9)"; ctx.stroke();
-    ctx.font = (txt[0] === "+" ? "700 " + Math.round(tam * 0.5) + "px Inter, Arial" : Math.round(tam * 0.62) + "px 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif");
-    ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#24201c";
-    ctx.fillText(txt, x, y + 1);
+    ctx.fillStyle = "rgba(243,236,220,0.97)"; ctx.fill();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = vital ? "#b3372b" : "rgba(29,39,56,0.9)"; ctx.stroke();
+    if(CONDS[item]){
+      /* símbolo vetorial desenhado dentro do círculo */
+      const k = (tam * 0.62) / 24;
+      ctx.translate(x - 12 * k, y - 12 * k); ctx.scale(k, k);
+      ctx.lineWidth = 2.4; ctx.lineCap = "round"; ctx.lineJoin = "round";
+      ctx.strokeStyle = vital ? "#b3372b" : "#24201c";
+      ctx.stroke(pathCond(item));
+    } else {
+      ctx.font = "700 " + Math.round(tam * 0.5) + "px Inter, Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = "#24201c"; ctx.fillText(item, x, y + 1);
+    }
     ctx.restore();
     x += tam + 2;
   });
@@ -1618,6 +1692,19 @@ async function listaFichasVisiveis(){
   const { data, error } = await sb.from("fichas").select("id, nome, user_id").order("nome", { ascending:true });
   return error ? [] : (data || []);
 }
+function abaMenuToken(qual){
+  document.querySelectorAll("#menu_token .mt-abas button").forEach(b => b.classList.toggle("ativa", b.dataset.aba === qual));
+  document.querySelectorAll("#menu_token .mt-aba").forEach(a => { a.hidden = a.dataset.aba !== qual; });
+}
+document.querySelectorAll("#menu_token .mt-abas button").forEach(b => b.addEventListener("click", () => abaMenuToken(b.dataset.aba)));
+function resumoCondsMenu(){
+  const marcadas = Array.from(document.querySelectorAll("#mt_conds input:checked")).map(i => i.value);
+  document.getElementById("mt_cont_conds").textContent = marcadas.length ? marcadas.length : "";
+  document.getElementById("mt_conds_ativas").textContent = marcadas.length
+    ? marcadas.map(k => CONDS[k].n).join(" · ")
+    : "Nenhuma condição. Passe o mouse num ícone para ver o nome.";
+}
+document.getElementById("mt_conds").addEventListener("change", resumoCondsMenu);
 function fecharMenuToken(){
   if(menuTokenAlvo && menuTokenAlvo._rotPrevia != null){ delete menuTokenAlvo._rotPrevia; desenhar(); }
   if(typeof menuImagemPendente === "string"){ const lixo = menuImagemPendente; sb.storage.from("tokens").remove([lixo]).catch(() => {}); }
@@ -1631,6 +1718,7 @@ async function abrirMenuToken(t, px, py){
   menuTokenAlvo = t;
   menu.classList.toggle("mestre", mestre);
   document.getElementById("mt_titulo").textContent = t.nome || "Token";
+  document.getElementById("mt_nome").placeholder = "Nome do token";
   document.getElementById("mt_nome").value = t.nome || "";
   document.getElementById("mt_cor").value = /^#[0-9a-f]{6}$/i.test(t.cor || "") ? t.cor : "#555555";
   const tamSel = document.getElementById("mt_tam");
@@ -1644,9 +1732,12 @@ async function abrirMenuToken(t, px, py){
   const manuais = Array.isArray(t.cond_manuais) ? t.cond_manuais : [];
   document.getElementById("mt_conds").innerHTML = Object.keys(CONDS).map(k => {
     const ficha = daFicha.indexOf(k) >= 0;
-    return '<label' + (ficha ? ' class="da-ficha" title="Marcada na ficha"' : '') + '><input type="checkbox" value="' + k + '"' +
-      ((ficha || manuais.indexOf(k) >= 0) ? " checked" : "") + (ficha ? " disabled" : "") + '>' + CONDS[k].s + " " + CONDS[k].n + '</label>';
+    return '<label' + (ficha ? ' class="da-ficha"' : '') + ' title="' + CONDS[k].n + (ficha ? " (marcada na ficha)" : "") + '">' +
+      '<input type="checkbox" value="' + k + '"' + ((ficha || manuais.indexOf(k) >= 0) ? " checked" : "") + (ficha ? " disabled" : "") + '>' +
+      svgCond(k, 18) + '</label>';
   }).join("");
+  resumoCondsMenu();
+  abaMenuToken("geral");
   menuImagemPendente = undefined;
   mostrarPreviaRecorte(t.imagem_url ? urlRecorte(t) : null, recorteDaFichaExiste(t) ? urlRecorteDaFicha(t) : null);
   const rot = ((Number(t.rotacao) || 0) % 360 + 360) % 360;

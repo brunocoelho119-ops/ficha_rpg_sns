@@ -2,33 +2,36 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Ficha SnS — Layout Fiel ao PDF</title>
+<title>Ficha · Shinobi no Sho</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Shippori+Mincho+B1:wght@600;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    /* ---- Paleta de PERGAMINHO ANTIGO ---- */
-    --ink:#33281a;            /* tinta sépia escura */
-    --bar-bg:#3b2f20;         /* faixa marrom escuro (cabeçalhos/barras) */
-    --bg:#f5ecd4;             /* papel creme (superfícies de conteúdo) */
-    --page-bg:#c8b68b;        /* pergaminho de fundo (cards se destacam) */
-    --gray-light:#efe3c5;     /* creme quente (headers de tabela, fundos sutis) */
-    --gray-mid:#e2d3ad;
-    --gray-text:#7a6947;      /* sépia mutado (labels/secundário) */
-    --border:#cbb88a;         /* borda tan */
-    --border-strong:#b19a6b;
-    --input-bg:#fbf4de;       /* input creme claro */
-    --input-border:#d8c69c;
-    --accent:#8e3b2a;         /* selo vermelho-tijolo (destaques) */
+    /* ---- Paleta TINTA E PAPEL (a mesma da mesa): índigo aizome, papel washi, selo shu ---- */
+    --ink:#24201c;            /* tinta sumi */
+    --bar-bg:#1d2738;         /* índigo aizome (cabeçalhos/barras) */
+    --bg:#f3ecdc;             /* papel washi (superfícies de conteúdo) */
+    --page-bg:#141b27;        /* fundo índigo profundo (o papel se destaca) */
+    --gray-light:#ebe2cd;     /* washi mais escuro (headers de tabela, fundos sutis) */
+    --gray-mid:#e0d5bb;
+    --gray-text:#5e554b;      /* sumi claro (labels/secundário) */
+    --border:#d9ccb0;         /* borda do papel */
+    --border-strong:#c3b28e;
+    --input-bg:#fbf7ee;       /* input claro */
+    --input-border:#d9ccb0;
+    --accent:#b3372b;         /* selo vermelho (shu) */
+    --aizome-2:#2a3850; --kinari:#d9b872; --nezumi:#9aa6b8; --claro:#eef1f6;
     --bonus:#1f8b3a;          /* verde — bônus */
     --penal:#c62828;          /* vermelho claro — penalidade (distinto do sépia) */
-    --calc-bg:#ecdfb4;        /* campo calculado (tom dourado sutil) */
+    --calc-bg:#efe4c6;        /* campo calculado (kinari suave) */
     --shadow: 0 1px 3px rgba(70,52,24,0.12), 0 8px 20px rgba(70,52,24,0.10);
     --shadow-sm: 0 1px 2px rgba(70,52,24,0.10);
     --radius:14px;
     --radius-sm:8px;
-    --font-display:'Barlow Condensed', Arial, sans-serif;
+    --font-display:'Shippori Mincho B1', Georgia, serif;
+    --font-cond:'Barlow Condensed', Arial, sans-serif;   /* rótulos compactos */
     --font-body:'Inter', Arial, sans-serif;
   }
   * { box-sizing:border-box; }
@@ -760,6 +763,88 @@
   .attr-roll{ position:absolute; top:6px; right:7px; }
   .per-row .test-roll, .hc-row .test-roll{ margin-right:5px; }
   .per-row:hover .test-roll, .hc-row:hover .test-roll{ opacity:0.85; }
+
+  /* =====================================================================
+     TEMA TINTA E PAPEL — mesma identidade da mesa: fundo índigo, páginas
+     de papel washi, títulos em Shippori Mincho e o vermelho de selo (shu)
+     só para o que precisa chamar atenção.
+     ===================================================================== */
+  body{ background:var(--page-bg); }
+  body::before{
+    content:""; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:radial-gradient(1200px 600px at 50% -10%, rgba(58,74,102,0.55), transparent 70%);
+  }
+  :focus-visible{ outline:2px solid var(--kinari); outline-offset:2px; }
+  .page{ border-radius:18px; box-shadow:0 12px 34px rgba(4,8,16,0.45), 0 2px 6px rgba(4,8,16,0.3); border:1px solid rgba(255,255,255,0.04); }
+
+  /* títulos: serifada japonesa, sem caixa alta */
+  .bar{ font-family:var(--font-display); font-weight:800; font-size:16px; letter-spacing:0.2px; text-transform:none; padding:8px 12px; }
+  .title-logo{ font-family:var(--font-display); text-transform:none; font-size:30px; letter-spacing:0; }
+  .title-logo .sub{ letter-spacing:0.2px; }
+  .modal-head{ font-family:var(--font-display); text-transform:none; font-weight:800; font-size:19px; letter-spacing:0; }
+  .nm-head{ font-family:var(--font-display); text-transform:none; letter-spacing:0; font-size:15px; }
+  /* rótulos pequenos continuam compactos */
+  .st-lbl, label.cap{ font-family:var(--font-cond); }
+
+  /* abas: controle segmentado em índigo, a aba ativa vira papel */
+  .tabs-nav{
+    background:rgba(29,39,56,0.92); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:6px;
+    gap:4px; width:max-content; max-width:950px; box-shadow:0 10px 30px rgba(8,12,20,0.35);
+  }
+  .tabs-nav button{
+    font-family:var(--font-body); font-weight:600; font-size:14px; letter-spacing:0; padding:9px 18px;
+    background:transparent; color:var(--nezumi); border:none; border-radius:10px; box-shadow:none; position:relative;
+  }
+  .tabs-nav button:hover:not(.active){ background:rgba(255,255,255,0.07); color:var(--claro); }
+  .tabs-nav button.active{ background:var(--bg); color:var(--ink); }
+  .tabs-nav button.active::after{
+    content:""; position:absolute; left:14px; right:14px; bottom:4px; height:2px; border-radius:2px; background:var(--kinari);
+  }
+
+  /* barra de status: vidro índigo com medidores de vida e chakra */
+  .status-bar{ background:rgba(29,39,56,0.92); border:1px solid rgba(255,255,255,0.08); border-radius:14px; box-shadow:0 10px 30px rgba(8,12,20,0.35); }
+  .st-lbl{ color:var(--nezumi); opacity:1; }
+  .st-num, .st-dano-in{ background:var(--bg) !important; }
+  .st-medidor{ display:inline-block; width:64px; height:6px; border-radius:3px; background:rgba(255,255,255,0.12); overflow:hidden; margin-left:4px; }
+  .st-medidor i{ display:block; height:100%; width:100%; border-radius:3px; transition:width .25s ease; }
+  .st-medidor.vida i{ background:#d63031; }
+  .st-medidor.chakra i{ background:#2e86de; }
+  .st-medidor.baixo i{ background:#7f1d1d; }
+  .st-ok{ background:var(--bg); color:var(--ink); border:1px solid transparent; }
+  .st-ok:hover{ filter:none; background:#fff; }
+  #st_dano_ok{ background:var(--accent); color:#fff; }
+
+  /* barra do topo (nuvem) */
+  .ficha-topbar{
+    background:rgba(29,39,56,0.96); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(255,255,255,0.08); padding:10px 18px; gap:14px;
+  }
+  .ficha-topbar .ft-voltar{ display:flex; align-items:center; gap:9px; font-weight:600; }
+  .ficha-topbar .ft-selo{
+    width:30px; height:30px; border-radius:50%; border:1.5px solid var(--kinari); color:var(--kinari);
+    display:inline-flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:800; font-size:14px;
+  }
+  .ficha-topbar .ft-nome{ font-family:var(--font-display); font-weight:800; font-size:16px; background:rgba(255,255,255,0.07); border-color:rgba(255,255,255,0.14); }
+  .ficha-topbar .ft-sala{ background:rgba(255,255,255,0.07); border-color:rgba(255,255,255,0.14); font-weight:600; }
+  .ficha-topbar .ft-status{ color:var(--nezumi); }
+  .ft-modo{ background:var(--bg); color:var(--ink); font-weight:600; padding:6px 13px; }
+  .ft-modo.ativo{ background:rgba(255,255,255,0.1); color:var(--claro); }
+
+  /* rótulos compactos em caixa alta usam a condensada; títulos usam a serifada sem caixa alta */
+  .attr-badge .attr-name, .stats-combate-cell .sc-name, .social-col-head, .pill-stat .pill-label, .rect-stat .rect-label,
+  .jutsu-desc-bar, .sel-grupo, .cla-grp, .rl-dice-cap, .roll-out .ro-badge{ font-family:var(--font-cond); }
+  .modal-desc .md-title, .rl-resultado .rl-r-top, .roll-out .ro-title, .qroll-head, .footer-logo{ text-transform:none; letter-spacing:0; }
+  .footer-logo{ color:var(--gray-text); }
+
+  /* barra de status mais enxuta para caber numa linha */
+  .status-bar{ gap:8px 14px; }
+  .st-medidor{ width:40px; }
+
+  /* botões e seletores */
+  .btn-add-row, .bd-add{ font-weight:600; }
+  .modal-btn.primary{ background:var(--bar-bg); border-color:var(--bar-bg); }
+  .sel-item:hover{ background:var(--gray-light); }
+  .modal-search:focus, .dtable td select.apt-escolha:focus{ outline:2px solid var(--kinari); }
 </style>
   <!-- ===== NUVEM (Supabase) ===== -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -768,7 +853,7 @@
 <body>
 
 <div class="ficha-topbar" id="ficha_topbar" style="display:none;">
-  <a href="home.html" class="ft-voltar">← Minhas Fichas</a>
+  <a href="home.html" class="ft-voltar" title="Voltar para as salas e fichas"><span class="ft-selo">忍</span><span>Minhas fichas</span></a>
   <input type="text" id="ft_nome_ficha" class="ft-nome" placeholder="Nome da ficha" spellcheck="false">
   <select id="ft_sala" class="ft-sala" title="Sala vinculada — rolagens de 🎲 também aparecem no log da mesa"></select>
   <span class="ft-status" id="ft_status"></span>
@@ -787,8 +872,8 @@
 </div>
 
 <div class="status-bar" id="status_bar">
-  <div class="st-item"><span class="st-lbl">Vida</span><input class="st-num campo-vida" type="text"><span class="st-sep">/</span><span class="st-tot" id="st_vida_total">0</span></div>
-  <div class="st-item"><span class="st-lbl">Chakra</span><input class="st-num campo-chakra" type="text"><span class="st-sep">/</span><span class="st-tot" id="st_chakra_total">0</span></div>
+  <div class="st-item"><span class="st-lbl">Vida</span><input class="st-num campo-vida" type="text"><span class="st-sep">/</span><span class="st-tot" id="st_vida_total">0</span><span class="st-medidor vida" aria-hidden="true"><i id="med_vida"></i></span></div>
+  <div class="st-item"><span class="st-lbl">Chakra</span><input class="st-num campo-chakra" type="text"><span class="st-sep">/</span><span class="st-tot" id="st_chakra_total">0</span><span class="st-medidor chakra" aria-hidden="true"><i id="med_chakra"></i></span></div>
   <div class="st-item st-munic"><span class="st-lbl">Munições</span><span class="st-municoes" id="st_municoes">—</span></div>
   <div class="st-item"><button class="st-ok" id="st_descanso" title="Descanso longo: restaura Vida e Chakra ao máximo">Descanso longo</button></div>
   <div class="st-item st-dano"><span class="st-lbl">Dano recebido</span><input class="st-dano-in" id="st_dano_in" type="text" placeholder="0"><button class="st-ok" id="st_dano_ok">OK</button></div>
@@ -3318,8 +3403,23 @@ function setCounter(id, gasto, total, nota){
 }
 
 function recalc(){
-  try{ _recalcInterno(); } finally { try{ validarRequisitosFicha(); }catch(e){ console.error(e); } }
+  try{ _recalcInterno(); } finally { try{ validarRequisitosFicha(); }catch(e){ console.error(e); } try{ atualizarMedidores(); }catch(e){} }
 }
+/* medidores de vida e chakra na barra de status */
+function atualizarMedidores(){
+  const par = [[".campo-vida", "st_vida_total", "med_vida"], [".campo-chakra", "st_chakra_total", "med_chakra"]];
+  par.forEach(([campo, tot, med]) => {
+    const el = document.getElementById(med); if(!el) return;
+    const max = parseFloat((document.getElementById(tot) || {}).textContent) || 0;
+    const inp = document.querySelector(campo);
+    const atual = inp && String(inp.value).trim() !== "" ? parseFloat(String(inp.value).replace(",", ".")) : max;
+    const frac = max > 0 ? Math.max(0, Math.min(1, atual / max)) : 0;
+    el.style.width = (frac * 100) + "%";
+    el.parentElement.classList.toggle("baixo", max > 0 && frac <= 0.25);
+    el.parentElement.title = (isNaN(atual) ? max : atual) + " de " + max;
+  });
+}
+document.addEventListener("input", (e) => { if(e.target && e.target.matches && e.target.matches(".campo-vida, .campo-chakra, #in_vit_atual, #in_chakra_atual")) atualizarMedidores(); });
 function _recalcInterno(){
   const c = DB.calc;
   const mods = coletarMods();
