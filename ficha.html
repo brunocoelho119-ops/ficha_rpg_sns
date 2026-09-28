@@ -1036,6 +1036,41 @@
   .capanga-view .seg-npc{ display:flex; background:var(--gray-light); border-radius:10px; padding:3px; gap:3px; }
   .capanga-view .seg-npc button{ flex:1; border:none; background:transparent; border-radius:8px; padding:8px; font-weight:600; font-size:13px; color:var(--gray-text); cursor:pointer; font-family:var(--font-body); }
   .capanga-view .seg-npc button.ativo{ background:#fff; color:var(--ink); }
+
+  /* testes sociais: o nome é um botão de rolagem */
+  .social-item > span:first-child{
+    cursor:pointer; border:1px solid var(--border); background:#fff; border-radius:8px; padding:2px 8px; font-weight:600;
+    transition:background 120ms ease, border-color 120ms ease;
+  }
+  .social-item > span:first-child:hover{ background:var(--gray-light); border-color:var(--gray-text); }
+  .social-item > span:first-child:focus-visible{ outline:2px solid var(--kinari); outline-offset:1px; }
+
+  /* ===== Trava da ficha (mestre) ===== */
+  .ficha-topbar .ft-trava{ border:1px solid rgba(255,255,255,0.18); background:transparent; color:var(--claro); border-radius:999px; padding:6px 13px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap; font-family:var(--font-body); position:relative; }
+  .ficha-topbar .ft-trava.travada{ background:var(--kinari); color:var(--ink); border-color:var(--kinari); }
+  .ficha-topbar .ft-trava .alerta{ position:absolute; top:-6px; right:-6px; min-width:18px; height:18px; border-radius:9px; background:var(--accent); color:#fff; font-size:10.5px; line-height:18px; text-align:center; padding:0 4px; }
+  .ficha-topbar .ft-trava-selo{ font-size:12px; font-weight:700; color:var(--ink); background:var(--kinari); border-radius:999px; padding:5px 12px; white-space:nowrap; }
+  body.ficha-evoluindo:not(.eh-mestre) tr.no-piso .del-row-btn{ display:none !important; }
+  /* ficha finalizada: atributos, perícias, poderes e aptidões ficam só para leitura para o jogador */
+  body.ficha-finalizada:not(.eh-mestre) #poderes_rows .del-row-btn, body.ficha-finalizada:not(.eh-mestre) #apt_rows .del-row-btn,
+  body.ficha-finalizada:not(.eh-mestre) .btn-add-row[data-catalogo="poderes"], body.ficha-finalizada:not(.eh-mestre) .btn-add-row[data-catalogo="aptidoes"],
+  body.ficha-finalizada:not(.eh-mestre) .vers-linha select{ display:none !important; }
+  body.ficha-finalizada:not(.eh-mestre) .attr-val, body.ficha-finalizada:not(.eh-mestre) .pr-pontos,
+  body.ficha-finalizada:not(.eh-mestre) .pod-nivel, body.ficha-finalizada:not(.eh-mestre) .soc-attr{ pointer-events:none; opacity:.85; }
+  .trava-modal{ position:fixed; inset:0; z-index:300; background:rgba(8,12,20,0.6); display:flex; align-items:center; justify-content:center; padding:16px; }
+  .trava-modal .caixa{ background:var(--bg); color:var(--ink); border-radius:16px; width:min(560px, 100%); max-height:86vh; display:flex; flex-direction:column; box-shadow:0 18px 50px rgba(4,8,16,0.5); overflow:hidden; }
+  .trava-modal .cab{ padding:14px 18px 10px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; font-family:var(--font-display); font-weight:800; font-size:19px; }
+  .trava-modal .cab button{ border:none; background:transparent; font-size:15px; cursor:pointer; color:var(--gray-text); }
+  .trava-modal .corpo{ padding:12px 18px; overflow-y:auto; font-size:13px; line-height:1.5; display:flex; flex-direction:column; gap:10px; }
+  .trava-modal .grupo b{ display:block; font-size:12px; color:var(--gray-text); margin-bottom:3px; }
+  .trava-modal .mud{ display:flex; gap:8px; align-items:baseline; padding:3px 0; border-bottom:1px dashed var(--border); }
+  .trava-modal .mud.sobe{ color:#2f7a4a; }
+  .trava-modal .mud.desce{ color:#a83226; font-weight:700; }
+  .trava-modal .vazio{ color:var(--gray-text); }
+  .trava-modal .rod{ padding:12px 18px; border-top:1px solid var(--border); display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+  .trava-modal .rod button{ border-radius:9px; padding:9px 14px; font-weight:600; font-size:13px; cursor:pointer; font-family:var(--font-body); border:1px solid var(--border); background:#fff; color:var(--ink); }
+  .trava-modal .rod button.primaria{ background:var(--bar-bg); color:#fff; border-color:var(--bar-bg); }
+  .trava-modal .rod button.perigo{ color:#a83226; }
 </style>
   <!-- ===== NUVEM (Supabase) ===== -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1047,6 +1082,10 @@
   <a href="home.html" class="ft-voltar" title="Voltar para as salas e fichas"><span class="ft-selo">忍</span><span>Minhas fichas</span></a>
   <input type="text" id="ft_nome_ficha" class="ft-nome" placeholder="Nome da ficha" spellcheck="false">
   <select id="ft_sala" class="ft-sala" title="Sala vinculada — rolagens de 🎲 também aparecem no log da mesa"></select>
+  <button type="button" class="ft-trava" id="ft_finalizar" style="display:none;" title="Terminei de montar atributos, perícias e poderes: a ficha trava até o próximo Level Up">Finalizar ficha</button>
+  <span class="ft-trava-selo" id="ft_trava_selo" style="display:none;"></span>
+  <button type="button" class="ft-trava" id="ft_levelup" style="display:none;" title="Sobe o NC em 1 e reabre a ficha para o jogador gastar os pontos novos">Level Up</button>
+  <button type="button" class="ft-trava" id="ft_trava" style="display:none;" title="Antes e depois da última finalização"></button>
   <label class="ft-secreto" id="ft_secreto_wrap" style="display:none;" title="As rolagens desta ficha aparecem na mesa só para você (mestre)"><input type="checkbox" id="ft_secreto"> Rolagens secretas</label>
   <span class="ft-status" id="ft_status"></span>
   <button type="button" class="ft-sair" id="ft_sair">Sair</button>
@@ -1371,14 +1410,12 @@
     <tr><th style="width:20%;">Jutsu</th><th style="width:6%;" title="Desmarque para jutsus que não causam dano (ex: suporte, transformação, invocação) — a rolagem de Ataque vira só teste de acerto.">Dano?</th><th style="width:9%;" title="Tipo de dano escolhido no card do jutsu (Comum / Diferente / Especial / Sem dano). Linhas sem card usam o cálculo antigo.">Tipo Dano</th><th style="width:8%;">Custo</th><th style="width:9%;" title="Nível usado do Poder">Nv. Poder</th><th style="width:8%;">Dureza</th><th style="width:9%;" title="Parte do dano que vem do card: no Dano Comum é o Bônus (elemento / livro). Soma com o Dano Base.">Bônus Poder</th><th style="width:8%;" title="Bônus de Dano (manual)">Bônus</th><th style="width:8%;">Dano Base</th><th style="width:9%;" title="Preencha aqui SÓ se este jutsu causa um valor de dano fixo (não multiplica pelo grau — ex: Amaterasu, sufocamento). Deixe vazio pra usar o cálculo padrão (Dano Base × Grau).">Dano Fixo</th><th class="del-th" style="width:64px;"></th></tr>
     <tbody id="calc_jutsu_rows"></tbody>
   </table>
-  <button class="btn-add-row" data-add="calc_jutsu_rows" data-cols="10">+ Adicionar linha</button>
 
   <div class="bar bar-cartoes" style="margin-top:16px;"><span>Ataques armados e desarmado</span><span class="bar-dica">Clique no nome para atacar</span></div>
   <table class="dtable tabela-cartoes cartoes-armas">
     <tr><th style="width:28%;">Nome</th><th style="width:10%;">Dano</th><th style="width:10%;" title="Bônus de Dano (manual)">Bônus</th><th style="width:12%;">Alcance</th><th style="width:12%;">Crítico</th><th style="width:9%;">Dureza</th><th style="width:11%;">Dano Base</th><th class="del-th" style="width:120px;"></th></tr>
     <tbody id="calc_armado_rows"></tbody>
   </table>
-  <button class="btn-add-row" data-add="calc_armado_rows" data-cols="7">+ Adicionar linha</button>
 
   <div class="legenda-cartoes">
     <span><i class="lg-calc"></i>Calculado pela ficha</span>
@@ -1644,6 +1681,8 @@ let _minhaFichaOwnerId = null, _meuUserId = null;
 let _souMestre = false, _souDono = true, _notasMestre = "", _modoEdicao = true;
 let _salaVinculada = null;
 let FICHA_TIPO = "pj", FICHA_INVOCADOR = null;   // pj | pdm | capanga | invocacao
+let FICHA_TRAVADA = false, FICHA_PISO = null, FICHA_PISO_ANT = null;   // finalizada? + retratos (atual e anterior)
+let _orcAtual = null;                            // orçamento de pontos do último recálculo
 
 async function carregarDaNuvem(){
   try{
@@ -1658,6 +1697,11 @@ async function carregarDaNuvem(){
     }
     if(error){ alert("Erro ao carregar a ficha: " + error.message); location.href = "home.html"; return false; }
     FICHA_TIPO = data.tipo || "pj"; FICHA_INVOCADOR = data.invocador_id || null;
+    try{
+      let { data: tv, error: etv } = await sb.from("fichas").select("travada, piso, piso_anterior").eq("id", FICHA_ID).single();
+      if(etv && /piso_anterior/.test(etv.message || "")) ({ data: tv, error: etv } = await sb.from("fichas").select("travada, piso").eq("id", FICHA_ID).single());
+      if(!etv && tv){ FICHA_TRAVADA = !!tv.travada; FICHA_PISO = tv.piso || null; FICHA_PISO_ANT = tv.piso_anterior || null; }
+    }catch(e){}
     document.body.classList.add("tipo-" + FICHA_TIPO);
 
     _minhaFichaOwnerId = data.user_id;
@@ -3105,6 +3149,7 @@ document.querySelectorAll(".btn-add-row[data-add]:not([data-catalogo])").forEach
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("del-row-btn")){
     const tr = e.target.closest("tr");
+    if(typeof travaBloqueiaRemocao === "function" && travaBloqueiaRemocao(tr)) return;
     const jid = tr.dataset.jid;
     const eraPoder = tr.closest("#poderes_rows");
     tr.remove();
@@ -3475,7 +3520,7 @@ function danoJutsuLinha(tr, nivel){
   }
   if(d.jdano === "comum"){
     const atr = d.jatr || "Espírito", inteiro = d.jmult === "1";
-    const m = inteiro ? attrVal(atr) : metadeCima(attrVal(atr)), bn = num(d.jbonus);
+    const m = inteiro ? attrDano(atr) : metadeCima(attrDano(atr)), bn = num(d.jbonus);
     const base = Math.max(0, nv + m);
     return { base:base, extra:bn, dureza:base, qtd:qtd, formula:"Comum: Nível usado (" + nv + ") + " + (inteiro ? "" : "½ ") + atr + " (" + m + ") + Bônus (" + bn + ")" };
   }
@@ -3849,13 +3894,38 @@ function coletarMods(){
       destinos.forEach(d => { (porChave[d] = porChave[d] || []).push({ valor: p[key], fonte: nome }); });
     }
   });
+  /* venenos ativos: entram na mesma conta das condições (limite de -3 por teste) */
+  _danoAtrPen = {}; _penalSocial = {};
+  const atribPorChave = {};
+  const achaPericia = n => { const k = normNome(String(n).replace(/^\*+/, "")); const r = Array.from(document.querySelectorAll(".per-row")).find(x => normNome(x.dataset.peri.replace(/^\*+/, "")) === k); return r ? normNome(r.dataset.peri) : null; };
+  document.querySelectorAll("#venenos_ativos .veneno-chip").forEach(ch => {
+    const nomeV = ((ch.querySelector(".cond-nome") || ch).childNodes[0] || {}).textContent || "";
+    const ef = VENENO_EFEITOS[normNome(nomeV.trim())]; if(!ef) return;
+    const fonte = nomeV.trim();
+    const push = (k, v) => { (porChave[k] = porChave[k] || []).push({ valor: v, fonte }); };
+    for(const a in (ef.atrib || {})){
+      push("ATRIB_" + a, ef.atrib[a]);
+      if(ef.periciasDoAtrib) PERICIAS.forEach(p => { if(CODE2ATTR[p.attr] === a){ const k = achaPericia(p.nome); if(k) push(k, ef.atrib[a]); } });
+    }
+    for(const pn in (ef.pericias || {})){ const k = achaPericia(pn); if(k) push(k, ef.pericias[pn]); }
+    for(const k in (ef.chaves || {})) push(k, ef.chaves[k]);
+    if(ef.todos){ ["CC","CD","ESQ","LM","iniciativa","ATRIBUTOS"].forEach(k => push(k, ef.todos)); nomesPericias.forEach(k => push(k, ef.todos)); push("SOCIAL", ef.todos); }
+    if(ef.social) push("SOCIAL", ef.social);
+    if(ef.compostura) push("SOCIAL_compostura", ef.compostura);
+    for(const a in (ef.dano || {})) _danoAtrPen[a] = (_danoAtrPen[a] || 0) + ef.dano[a];
+  });
   /* desprevenido: perde qualquer bônus de Esquiva (conta só os bônus de aptidões, antes das penalidades) */
   const _posEsq = (mods.ESQ || []).filter(m => m.valor > 0).reduce((s, m) => s + m.valor, 0);
   for(const d in porChave){
+    if(/^ATRIB_|^SOCIAL/.test(d)) continue;   // testes de atributo e sociais: aplicados na rolagem / no valor social
     const soma = porChave[d].reduce((s, m) => s + m.valor, 0);
     porChave[d].forEach(m => add(d, m.valor, m.fonte));
     if(soma < -3) add(d, -3 - soma, "Limite de -3 por teste (Básico p.276)");
   }
+  const _somaK = k => (porChave[k] || []).reduce((s, m) => s + m.valor, 0);
+  _penalAtribEsp = {};
+  Object.keys(porChave).forEach(k => { if(k.indexOf("ATRIB_") === 0) _penalAtribEsp[k.slice(6)] = _somaK(k); });
+  _penalSocial = { _todos: _somaK("SOCIAL") + _somaK("ATRIBUTOS"), compostura: _somaK("SOCIAL_compostura") };
   _penalAtributosCond = Math.max(-3, (porChave.ATRIBUTOS || []).reduce((s, m) => s + m.valor, 0));
   delete mods.ATRIBUTOS;
   /* desprevenido: perde qualquer bônus de Esquiva */
@@ -4172,7 +4242,9 @@ function _recalcInterno(){
     if(def.meio.tipo === "attr")         meioV = attrVal(def.meio.nome);
     else if(def.meio.tipo === "attrMax") meioV = Math.max.apply(null, def.meio.nomes.map(attrVal));
     else                                 meioV = (periTotais[def.meio.nome]||0);
-    el.value = baseV + metadeCima(meioV);
+    const _pSoc = Math.max(-3, (_penalSocial._todos || 0) + (normNome(el.dataset.social) === "compostura" ? (_penalSocial.compostura || 0) : 0));
+    el.value = baseV + metadeCima(meioV) + _pSoc;
+    el.title = _pSoc ? "Inclui " + _pSoc + " de condições/venenos" : "";
   });
 
   /* ---- Orçamento de pontos por Nível de Campanha (Básico p.27/30) ---- */
@@ -4203,6 +4275,7 @@ function _recalcInterno(){
   setCounter("pt_per", perGasto, orc.per, "máx " + orc.limitePP + "/perícia");
   setCounter("pt_pod", podGasto, orc.pod, "máx " + orc.limitePP + "/poder · " + c.aptidoesGratis + " aptidões grátis");
   setCounter("pt_soc", socGasto, orc.soc, "máx " + orc.limitePP);
+  _orcAtual = { atr: orc.atr, atrGasto, per: orc.per, perGasto, pod: orc.pod, podGasto };
   const pp = document.getElementById("in_pontos_poder"); if(pp) pp.value = orc.pod;
   const ppg = document.getElementById("in_pontos_poder_gastos"); if(ppg) ppg.value = podGasto;
 
@@ -4235,8 +4308,8 @@ function _recalcInterno(){
       marcarMod(dbEl, null, "Tarja explosiva: dano base 4 (5 ou mais tarjas: 1 por tarja). Não soma atributo.");
       return;
     }
-    dbEl.value = Math.max(0, metadeCima(attrVal(atr)) + _danoArma + _buffArma);
-    const _tw = "Dano Base = ½ " + atr + " (" + metadeCima(attrVal(atr)) + ") + Dano da arma (" + _danoArma + ")";
+    dbEl.value = Math.max(0, metadeCima(attrDano(atr)) + _danoArma + _buffArma);
+    const _tw = "Dano Base = ½ " + atr + " (" + metadeCima(attrDano(atr)) + (_danoAtrPen[atr] ? ", com " + _danoAtrPen[atr] + " de veneno" : "") + ") + Dano da arma (" + _danoArma + ")";
     marcarMod(dbEl, _buffArma ? [{ valor:_buffArma, fonte:"Buff em arma" }] : null, _tw);
   });
 
@@ -4247,8 +4320,8 @@ function _recalcInterno(){
     const atr = atributoDanoPorModo(modoPadraoArma(card.dataset.uso));
     card.dataset.atrdano = atr;
     const _danoInv = num(danoEl ? danoEl.value : 0);
-    dbEl.value = Math.max(0, metadeCima(attrVal(atr)) + _danoInv);
-    const _tinv = "Dano Base = ½ " + atr + " (" + metadeCima(attrVal(atr)) + ") + Dano da arma (" + _danoInv + ")";
+    dbEl.value = Math.max(0, metadeCima(attrDano(atr)) + _danoInv);
+    const _tinv = "Dano Base = ½ " + atr + " (" + metadeCima(attrDano(atr)) + (_danoAtrPen[atr] ? ", com " + _danoAtrPen[atr] + " de veneno" : "") + ") + Dano da arma (" + _danoInv + ")";
     dbEl.title = _tinv; dbEl.setAttribute("data-tip", _tinv);
     const ptEl = card.querySelector(".if-peso-total");
     if(ptEl){ const q = num((card.querySelector(".if-qtd")||{}).value), p = num((card.querySelector(".if-peso")||{}).value); ptEl.value = +(q * p).toFixed(2); }
@@ -4361,6 +4434,31 @@ function condicoesEfetivas(){
   return Array.from(ativas).filter(k => !fora.has(k));
 }
 let _penalAtributosCond = 0;   // usado nos testes de atributo
+let _penalAtribEsp = {};        // penalidade de teste por atributo (venenos que debilitam um atributo)
+let _danoAtrPen = {};           // "-N de Força nos cálculos de dano"
+let _penalSocial = {};          // testes sociais (chave "_todos" + por teste)
+/* Efeitos dos venenos (Básico, tabela de venenos). atrib: testes do atributo (e perícias dele, se periciasDoAtrib);
+   pericias: perícias citadas; chaves: CC/CD/ESQ/LM; todos: soma a "qualquer teste"; social/compostura; dano: atributo nos cálculos de dano. */
+const VENENO_EFEITOS = {
+  "veneno de coceira":             { atrib:{ "Agilidade":-1 }, pericias:{ "Acrobacia":-1, "Escapar":-1, "Furtividade":-1 } },
+  "veneno laxante":                { social:-1 },
+  "veneno urticante":              { social:-1 },
+  "veneno enfraquecedor menor":    { atrib:{ "Força":-1 }, periciasDoAtrib:true, dano:{ "Força":-2 } },
+  "veneno enfraquecedor":          { atrib:{ "Força":-2 }, periciasDoAtrib:true, dano:{ "Força":-4 } },
+  "veneno enfraquecedor superior": { atrib:{ "Força":-3, "Vigor":-2 }, periciasDoAtrib:true, dano:{ "Força":-6 } },
+  "sonifero":                      { chaves:{ LM:-1 }, atrib:{ "Percepção":-1 }, periciasDoAtrib:true },
+  "sonifero superior":             { chaves:{ LM:-2 }, atrib:{ "Percepção":-2 }, periciasDoAtrib:true },
+  "veneno debilitante":            { todos:-1 },   // com a condição Debilitado (-1), fica -2
+  "morte rubra":                   { todos:-2 },   // com a condição Debilitado (-1), fica -3
+  "veneno de embriagues":          { compostura:-2 },
+  "veneno de interrogatorio":      { compostura:-3 },
+  "veneno ocular menor":           { atrib:{ "Percepção":-2 }, pericias:{ "Procurar":-2, "Prontidão":-2 } },
+  "veneno de tontura":             { atrib:{ "Inteligência":-1 }, pericias:{ "Concentração":-1 } },
+  "veneno alucinogeno":            { atrib:{ "Inteligência":-2, "Percepção":-2 }, periciasDoAtrib:true },
+  "veneno ocular":                 { atrib:{ "Percepção":-4 }, pericias:{ "Procurar":-4, "Prontidão":-4 } }
+};
+/* atributo usado nos cálculos de dano (com a redução dos venenos enfraquecedores) */
+function attrDano(nome){ return Math.max(0, attrVal(nome) + (_danoAtrPen[nome] || 0)); }
 function bonusDasCondicoes(){
   const b = {};
   document.querySelectorAll(".cond-check").forEach(chk => {
@@ -5889,7 +5987,7 @@ document.addEventListener("click", (e) => {
   } else if(tipo === "attr"){
     const nome = rb.dataset.nome;
     const penalComp = (nome === "Força" || nome === "Agilidade") ? (window._compItensExcesso || 0) : 0;
-    abrirQuickRoll({ titulo: "Teste de " + nome, nDados: 2, modo: "teste", bonusRotulo: SIGLAS[nome] || nome + (_penalAtributosCond ? " e condições" : ""), bonus: () => attrVal(nome) - penalComp + _penalAtributosCond });
+    abrirQuickRoll({ titulo: "Teste de " + nome, nDados: 2, modo: "teste", bonusRotulo: (SIGLAS[nome] || nome) + ((_penalAtributosCond || _penalAtribEsp[nome]) ? " e penalidades" : ""), bonus: () => attrVal(nome) - penalComp + Math.max(-3, _penalAtributosCond + (_penalAtribEsp[nome] || 0)) });
   } else if(tipo === "hc"){
     const cod = rb.dataset.cod, nome = rb.dataset.nome;
     abrirQuickRoll({ titulo: nome, nDados: 2, modo: "teste", bonusRotulo: cod, bonus: () => habTotal(cod) });
@@ -6560,11 +6658,218 @@ migrarCardsItens();
 migrarCardsJutsu();
 migrarNomesUsar();
 montarVersatilidade();
-setTimeout(() => { try{ montarNpc(); }catch(e){ console.error(e); } }, 0);
+setTimeout(() => { try{ montarNpc(); }catch(e){ console.error(e); } try{ montarTrava(); }catch(e){ console.error(e); } }, 0);
 atualizarVenenosAtivos();
 refreshLinhagensUI();
 recalc();
 montarControlesMestre();
+
+/* ===== TRAVA DA FICHA =====
+   O mestre guarda um retrato mínimo (atributos, perícias, poderes, aptidões, NC).
+   Com a ficha travada, o jogador não baixa nada abaixo do retrato, não apaga o que
+   está nele, não mexe no NC e só gasta pontos novos até o orçamento do NC. */
+function nomeApt(tr){ const n = ((tr.querySelector(".apt-nome") || {}).value || "").trim(); const e = ((tr.querySelector(".apt-escolha") || {}).value || "").trim(); return n ? (e ? n + " (" + e + ")" : n) : ""; }
+function nomePoderRow(tr){ const i = tr.querySelector("td:first-child input"); return i ? (i.value || "").trim() : ""; }
+function retratoFicha(){
+  const r = { atributos:{}, pericias:{}, poderes:{}, aptidoes:[], nc: num((document.getElementById("in_nc") || {}).value), em: new Date().toISOString() };
+  document.querySelectorAll(".attr-val").forEach(i => { r.atributos[i.dataset.attr] = num(i.value); });
+  document.querySelectorAll(".per-row").forEach(row => { const i = row.querySelector(".pr-pontos"); if(i) r.pericias[row.dataset.peri] = num(i.value); });
+  document.querySelectorAll("#poderes_rows > tr").forEach(tr => { const n = nomePoderRow(tr); const nv = tr.querySelector(".pod-nivel"); if(n && nv) r.poderes[n] = Math.max(r.poderes[n] || 0, num(nv.value)); });
+  document.querySelectorAll("#apt_rows > tr").forEach(tr => { const n = nomeApt(tr); if(n) r.aptidoes.push(n); });
+  return r;
+}
+/* modos para o jogador:
+   livre (sem retrato): monta a ficha à vontade · finalizada: só leitura nessas partes ·
+   evoluindo (depois do Level Up): só adiciona, até o orçamento do NC, sem baixar o que foi finalizado */
+function modoFicha(){ if(FICHA_TIPO !== "pj") return "livre"; if(FICHA_TRAVADA) return "finalizada"; return FICHA_PISO ? "evoluindo" : "livre"; }
+function travaAtivaParaMim(){ return !_souMestre && modoFicha() === "evoluindo"; }
+function finalizadaParaMim(){ return !_souMestre && modoFicha() === "finalizada"; }
+/* marca as linhas que estão no retrato (o × some para o jogador) */
+function marcarLinhasDoPiso(){
+  const p = FICHA_PISO || {};
+  const aptRest = (p.aptidoes || []).slice();
+  document.querySelectorAll("#poderes_rows > tr").forEach(tr => { const n = nomePoderRow(tr); tr.classList.toggle("no-piso", !!(n && p.poderes && p.poderes[n] != null)); });
+  document.querySelectorAll("#apt_rows > tr").forEach(tr => { const n = nomeApt(tr); const i = aptRest.indexOf(n); if(n && i >= 0){ aptRest.splice(i, 1); tr.classList.add("no-piso"); } else tr.classList.remove("no-piso"); });
+}
+function travaBloqueiaRemocao(tr){
+  if(finalizadaParaMim() && tr && tr.closest("#poderes_rows, #apt_rows")){ avisoTrava("A ficha está finalizada. Para mudar, peça um Level Up ao mestre."); return true; }
+  if(travaAtivaParaMim() && tr && tr.classList.contains("no-piso")){ avisoTrava("Este item já foi finalizado e não pode ser removido."); return true; }
+  return false;
+}
+function avisoTrava(msg){
+  const st = document.getElementById("ft_status");
+  if(st){ st.textContent = "🔒 " + msg; clearTimeout(st._tt); st._tt = setTimeout(() => { st.textContent = ""; }, 5000); }
+  else alert(msg);
+}
+/* diferenças entre dois retratos (antes e depois) */
+function diffRetratos(p, a){
+  p = p || {}; const mud = [];
+  const cmp = (grupo, nome, antes, depois) => { if(antes === depois) return; mud.push({ grupo, nome, antes, depois, desce: depois < antes }); };
+  if(p.nc != null || a.nc != null) cmp("NC", "Nível da Campanha", num(p.nc), num(a.nc));
+  Object.keys(Object.assign({}, p.atributos, a.atributos)).forEach(k => cmp("Atributos", k, num((p.atributos || {})[k]), num((a.atributos || {})[k])));
+  Object.keys(Object.assign({}, p.pericias, a.pericias)).forEach(k => cmp("Perícias (pontos)", k.replace(/^\*+/, ""), num((p.pericias || {})[k]), num((a.pericias || {})[k])));
+  Object.keys(Object.assign({}, p.poderes, a.poderes)).forEach(k => {
+    const ant = (p.poderes || {})[k], dep = (a.poderes || {})[k];
+    if(ant == null) mud.push({ grupo:"Poderes", nome:k, antes:"—", depois:"Nv " + dep, desce:false });
+    else if(dep == null) mud.push({ grupo:"Poderes", nome:k, antes:"Nv " + ant, depois:"removido", desce:true });
+    else cmp("Poderes", k, ant, dep);
+  });
+  const aptA = (p.aptidoes || []).slice(), aptB = (a.aptidoes || []).slice();
+  aptB.forEach(n => { const i = aptA.indexOf(n); if(i >= 0) aptA.splice(i, 1); else mud.push({ grupo:"Aptidões", nome:n, antes:"—", depois:"nova", desce:false }); });
+  aptA.forEach(n => mud.push({ grupo:"Aptidões", nome:n, antes:"tinha", depois:"removida", desce:true }));
+  return mud;
+}
+/* compatível com o painel: diferenças que interessam agora */
+function diffTrava(){
+  if(modoFicha() === "finalizada"){
+    /* ficha finalizada: a última finalização (antes e depois) + qualquer coisa fora do retrato */
+    const fora = diffRetratos(FICHA_PISO, retratoFicha());
+    return fora.length ? fora.map(m => Object.assign(m, { desce: true })) : [];
+  }
+  return FICHA_PISO ? diffRetratos(FICHA_PISO, retratoFicha()) : [];
+}
+function aplicarModoFicha(){
+  const modo = modoFicha();
+  document.body.classList.toggle("ficha-finalizada", modo === "finalizada");
+  document.body.classList.toggle("ficha-evoluindo", modo === "evoluindo");
+  document.body.classList.toggle("ficha-travada", modo !== "livre");
+  document.body.classList.toggle("eh-mestre", !!_souMestre);
+  const naNuvem = NUVEM_ATIVA && typeof sb !== "undefined";
+  const nc = document.getElementById("in_nc"); if(nc) nc.readOnly = !_souMestre && modo !== "livre";
+  document.querySelectorAll(".attr-val, .pr-pontos, .pod-nivel, .soc-attr").forEach(i => { if(!_souMestre) i.readOnly = (modo === "finalizada"); });
+  const fin = document.getElementById("ft_finalizar"), selo = document.getElementById("ft_trava_selo");
+  const lvl = document.getElementById("ft_levelup"), pain = document.getElementById("ft_trava");
+  const pj = FICHA_TIPO === "pj";
+  if(fin) fin.style.display = (naNuvem && pj && modo !== "finalizada" && (_souDono || _souMestre)) ? "" : "none";
+  if(fin) fin.textContent = modo === "evoluindo" ? "Finalizar Level Up" : "Finalizar ficha";
+  if(selo){
+    selo.style.display = (naNuvem && pj && modo !== "livre") ? "" : "none";
+    selo.textContent = modo === "finalizada" ? "Ficha finalizada · NC " + num((FICHA_PISO || {}).nc) : "Level Up em andamento";
+    selo.title = modo === "finalizada" ? "Atributos, perícias, poderes e aptidões estão travados. Para evoluir, o mestre dá Level Up." : "Gaste os pontos novos e clique em Finalizar. Não dá para baixar nem remover o que já estava finalizado.";
+  }
+  if(lvl) lvl.style.display = (naNuvem && pj && _souMestre && modo === "finalizada") ? "" : "none";
+  if(pain){
+    const temHist = !!(FICHA_PISO || FICHA_PISO_ANT);
+    pain.style.display = (naNuvem && pj && _souMestre && temHist) ? "" : "none";
+    const fora = modo === "finalizada" ? diffTrava().length : 0;
+    pain.innerHTML = (modo === "evoluindo" ? "Alterações em andamento" : "Antes e depois") + (fora ? '<span class="alerta" title="Itens diferentes do que foi finalizado">' + fora + '</span>' : "");
+  }
+}
+function atualizarBotaoTrava(){ aplicarModoFicha(); }
+async function salvarTrava(campos){
+  const { error } = await sb.from("fichas").update(campos).eq("id", FICHA_ID);
+  if(error){ alert("Não foi possível salvar: " + error.message + (/travada|piso/.test(error.message) && /column/.test(error.message) ? " (rode o fichas_trava.sql)" : "")); return false; }
+  if("travada" in campos) FICHA_TRAVADA = campos.travada;
+  if("piso" in campos) FICHA_PISO = campos.piso;
+  if("piso_anterior" in campos) FICHA_PISO_ANT = campos.piso_anterior;
+  marcarLinhasDoPiso(); aplicarModoFicha(); return true;
+}
+function abrirPainelTrava(){
+  const modo = modoFicha();
+  let titulo, mud, intro;
+  if(modo === "evoluindo"){
+    titulo = "Level Up em andamento"; mud = diffRetratos(FICHA_PISO, retratoFicha());
+    intro = "O que o jogador já gastou desde o Level Up (ainda não finalizado).";
+  } else {
+    titulo = FICHA_PISO_ANT ? "Antes e depois da última finalização" : "Primeira finalização";
+    mud = diffRetratos(FICHA_PISO_ANT || {}, FICHA_PISO || {});
+    intro = (FICHA_PISO && FICHA_PISO.em ? "Finalizada em " + new Date(FICHA_PISO.em).toLocaleString("pt-BR") + ". " : "") +
+      (FICHA_PISO_ANT ? "Em verde, o que subiu ou entrou; em vermelho, o que baixou ou saiu." : "Tudo o que foi montado na criação da ficha.");
+    const fora = diffRetratos(FICHA_PISO, retratoFicha());
+    if(fora.length) intro += ' <b style="color:#a83226">Atenção: ' + fora.length + ' ' + (fora.length > 1 ? "itens estão diferentes" : "item está diferente") + ' do que foi finalizado (não deveria acontecer com a ficha travada): ' + escapeHtml(fora.map(m => m.nome + " " + m.antes + "→" + m.depois).join(", ")) + '.</b>';
+  }
+  const grupos = {};
+  mud.forEach(m => { (grupos[m.grupo] = grupos[m.grupo] || []).push(m); });
+  const ov = document.createElement("div"); ov.className = "trava-modal";
+  ov.innerHTML = '<div class="caixa" role="dialog" aria-label="' + titulo + '"><div class="cab"><span>' + titulo + '</span><button type="button" data-a="fechar" aria-label="Fechar">✕</button></div>' +
+    '<div class="corpo"><div class="np-info">' + intro + '</div>' +
+    (mud.length ? Object.keys(grupos).map(g => '<div class="grupo"><b>' + escapeHtml(g) + '</b>' + grupos[g].map(m =>
+      '<div class="mud ' + (m.desce ? "desce" : "sobe") + '"><span style="flex:1">' + escapeHtml(m.nome) + '</span><span>' + escapeHtml(String(m.antes)) + ' → ' + escapeHtml(String(m.depois)) + '</span></div>').join("") + '</div>').join("")
+      : '<div class="vazio">Nenhuma mudança.</div>') +
+    '</div><div class="rod"><button type="button" class="perigo" data-a="reabrir" title="Reabre sem subir o NC, com tudo liberado (para correções)">Reabrir para correção</button><button type="button" data-a="fechar">Fechar</button></div></div>';
+  ov.addEventListener("click", async (e) => {
+    const el = e.target.closest("[data-a]"); const acao = e.target === ov ? "fechar" : (el ? el.dataset.a : null); if(!acao) return;
+    if(acao === "fechar"){ ov.remove(); return; }
+    if(acao === "reabrir"){
+      if(!confirm("Reabrir a ficha para correção? O jogador poderá mudar e remover tudo até finalizar de novo.")) return;
+      if(await salvarTrava({ travada:false, piso:null })) ov.remove();
+    }
+  });
+  document.body.appendChild(ov);
+}
+function montarTrava(){
+  const fin = document.getElementById("ft_finalizar"), lvl = document.getElementById("ft_levelup"), pain = document.getElementById("ft_trava");
+  if(fin) fin.addEventListener("click", async () => {
+    recalc();
+    const o = _orcAtual || {};
+    const sobra = [];
+    if(o.atrGasto < o.atr) sobra.push((o.atr - o.atrGasto) + " de atributo");
+    if(o.perGasto < o.per) sobra.push((o.per - o.perGasto) + " de perícia");
+    if(o.podGasto < o.pod) sobra.push((o.pod - o.podGasto) + " de poder");
+    const estouro = (o.atrGasto > o.atr) || (o.perGasto > o.per) || (o.podGasto > o.pod);
+    if(estouro && !_souMestre){ alert("Há pontos gastos acima do orçamento do NC. Ajuste antes de finalizar."); return; }
+    const aviso = sobra.length ? "\n\nAinda sobram pontos: " + sobra.join(", ") + ". Eles só poderão ser gastos no próximo Level Up." : "";
+    if(!confirm("Finalizar a ficha? Atributos, perícias, poderes e aptidões ficam travados até o próximo Level Up." + aviso)) return;
+    if(typeof salvarEstado === "function") salvarEstado();   // grava a ficha junto com o retrato
+    await salvarTrava({ travada:true, piso: retratoFicha(), piso_anterior: FICHA_PISO || null });
+  });
+  if(lvl) lvl.addEventListener("click", async () => {
+    const nc = document.getElementById("in_nc"); const atual = num(nc.value);
+    if(!confirm("Dar Level Up? O NC da ficha passa de " + atual + " para " + (atual + 1) + " e o jogador poderá gastar os pontos novos. Ele finaliza quando terminar.")) return;
+    nc.readOnly = false; nc.value = atual + 1; nc.dispatchEvent(new Event("input", { bubbles:true }));
+    recalc(); agendarSalvar();
+    await salvarTrava({ travada:false });
+  });
+  if(pain) pain.addEventListener("click", abrirPainelTrava);
+  marcarLinhasDoPiso(); aplicarModoFicha();
+  window.__trava = { retratoFicha, marcarLinhasDoPiso, atualizarBotaoTrava, diffTrava, abrirPainelTrava, aplicarModoFicha, modoFicha };   // usado nos testes
+  /* guarda o valor anterior ao focar, para desfazer o que a trava não permite */
+  document.addEventListener("focusin", (e) => { const t = e.target; if(t.matches && t.matches(".attr-val, .pr-pontos, .pod-nivel")) t.dataset.antes = t.value; });
+  document.addEventListener("change", (e) => {
+    const t = e.target; if(!t.matches || !t.matches(".attr-val, .pr-pontos, .pod-nivel, .soc-attr")) return;
+    if(finalizadaParaMim()){ t.value = t.dataset.antes != null ? t.dataset.antes : t.value; t.dispatchEvent(new Event("input", { bubbles:true })); avisoTrava("A ficha está finalizada. Para mudar, peça um Level Up ao mestre."); return; }
+    if(!travaAtivaParaMim() || t.matches(".soc-attr")) return;
+    const p = FICHA_PISO; let minimo = 0, rot = "";
+    if(t.matches(".attr-val")){ minimo = num((p.atributos || {})[t.dataset.attr]); rot = t.dataset.attr; }
+    else if(t.matches(".pr-pontos")){ const row = t.closest(".per-row"); minimo = num((p.pericias || {})[row.dataset.peri]); rot = row.dataset.peri.replace(/^\*+/, ""); }
+    else { const tr = t.closest("tr"); const n = nomePoderRow(tr); minimo = num((p.poderes || {})[n]); rot = n; }
+    const volta = (v, msg) => { t.value = v; t.dispatchEvent(new Event("input", { bubbles:true })); avisoTrava(msg); };
+    if(num(t.value) < minimo){ volta(minimo, rot + " não pode ficar abaixo de " + minimo + " (já finalizado)."); return; }
+    recalc();
+    const o = _orcAtual || {};
+    const estourou = t.matches(".attr-val") ? o.atrGasto > o.atr : (t.matches(".pr-pontos") ? o.perGasto > o.per : o.podGasto > o.pod);
+    if(estourou && num(t.value) > num(t.dataset.antes)){ volta(t.dataset.antes || minimo, "Sem pontos sobrando no orçamento do NC."); }
+  }, true);
+  /* poder ou aptidão novos: bloqueados na ficha finalizada; no Level Up, só se couberem no orçamento */
+  ["poderes_rows","apt_rows"].forEach(id => {
+    const box = document.getElementById(id); if(!box) return;
+    new MutationObserver(muts => {
+      const novos = []; muts.forEach(m => m.addedNodes.forEach(n => { if(n.nodeType === 1 && n.tagName === "TR" && !n.classList.contains("vers-linha")) novos.push(n); }));
+      if(!novos.length) return;
+      if(finalizadaParaMim()){ novos.forEach(n => n.remove()); avisoTrava("A ficha está finalizada. Para mudar, peça um Level Up ao mestre."); return; }
+      if(!travaAtivaParaMim()) return;
+      setTimeout(() => {
+        recalc();
+        const o = _orcAtual || {};
+        if(o.podGasto > o.pod){ novos.forEach(n => n.remove()); recalc(); avisoTrava("Sem pontos de poder sobrando no orçamento do NC."); }
+        marcarLinhasDoPiso(); aplicarModoFicha();
+      }, 0);
+    }).observe(box, { childList:true });
+  });
+  document.addEventListener("input", () => { if(_souMestre && FICHA_PISO){ clearTimeout(montarTrava._t); montarTrava._t = setTimeout(aplicarModoFicha, 400); } });
+}
+
+/* ===== TESTES SOCIAIS: o nome de cada teste rola 2d8 + valor ===== */
+document.addEventListener("click", (e) => {
+  const nomeEl = e.target.closest(".social-item > span:first-child"); if(!nomeEl) return;
+  const item = nomeEl.closest(".social-item"), inp = item.querySelector("input");
+  const nome = nomeEl.textContent.trim();
+  abrirQuickRoll({ titulo: "Teste de " + nome, nDados: 2, modo: "teste", bonusRotulo: nome, bonus: () => num(inp ? inp.value : 0) });
+});
+document.addEventListener("keydown", (e) => {
+  if((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches(".social-item > span:first-child")){ e.preventDefault(); e.target.click(); }
+});
+document.querySelectorAll(".social-item > span:first-child").forEach(sp => { sp.setAttribute("role", "button"); sp.setAttribute("tabindex", "0"); sp.title = "Rolar teste de " + sp.textContent.trim(); });
 
 /* ===== FICHAS DE NPC: PdM, capanga e invocação ===== */
 const INV_ESPECIES = {
