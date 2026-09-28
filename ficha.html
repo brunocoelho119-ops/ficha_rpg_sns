@@ -959,9 +959,9 @@
   .jf-nvinfo{ font-size:10.5px; color:var(--gray-text); margin:-3px 0 6px; line-height:1.35; }
   .jf-nvinfo:empty{ display:none; }
 
-  /* abas e barra de status acompanham a rolagem (o palco é escalado, então é por script) */
+  /* só as abas acompanham a rolagem (o palco é escalado, então é por script); a barra de status fica no lugar */
   .topo-fixo{ position:relative; z-index:60; will-change:transform; }
-  .topo-fixo.fixo-ativo .tabs-nav, .topo-fixo.fixo-ativo .status-bar{ box-shadow:0 14px 34px rgba(4,8,16,0.55); }
+  .topo-fixo.fixo-ativo .tabs-nav{ box-shadow:0 14px 34px rgba(4,8,16,0.55); }
   /* cura (jutsus de Iryou etc.): só a aparência muda */
   .jf-cura-lbl{ display:inline-flex !important; align-items:center; gap:4px; flex:none !important; font-size:10.5px; font-weight:700; color:var(--gray-text); white-space:nowrap; cursor:pointer; }
   .jf-cura-lbl input{ width:14px !important; height:14px; margin:0; accent-color:#2f7a4a; flex:none !important; }
@@ -1083,13 +1083,14 @@
   <button class="tab-btn" data-tab="bd">Banco de Dados</button>
 </div>
 
+</div>
+
 <div class="status-bar" id="status_bar">
   <div class="st-item"><span class="st-lbl">Vida</span><input class="st-num campo-vida" type="text"><span class="st-sep">/</span><span class="st-tot" id="st_vida_total">0</span><span class="st-medidor vida" aria-hidden="true"><i id="med_vida"></i></span></div>
   <div class="st-item"><span class="st-lbl">Chakra</span><input class="st-num campo-chakra" type="text"><span class="st-sep">/</span><span class="st-tot" id="st_chakra_total">0</span><span class="st-medidor chakra" aria-hidden="true"><i id="med_chakra"></i></span></div>
   <div class="st-item st-munic"><span class="st-lbl">Munições</span><span class="st-municoes" id="st_municoes">—</span></div>
   <div class="st-item"><button class="st-ok" id="st_descanso" title="Descanso longo: restaura Vida e Chakra ao máximo">Descanso longo</button></div>
   <div class="st-item st-dano"><span class="st-lbl">Dano recebido</span><input class="st-dano-in" id="st_dano_in" type="text" placeholder="0"><button class="st-ok" id="st_dano_ok">OK</button></div>
-</div>
 </div>
 
 <div class="tab-content active" id="tab-ficha">
@@ -6765,7 +6766,7 @@ function montarCapanga(){
   });
 }
 
-/* ===== ABAS + STATUS FIXOS: acompanham a rolagem da página ===== */
+/* ===== ABAS FIXAS: acompanham a rolagem da página ===== */
 (function(){
   const fixo = document.getElementById("topo_fixo"), stage = document.getElementById("stage");
   if(!fixo || !stage) return;
