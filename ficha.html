@@ -1073,6 +1073,12 @@
   .trava-modal .rod button{ border-radius:9px; padding:9px 14px; font-weight:600; font-size:13px; cursor:pointer; font-family:var(--font-body); border:1px solid var(--border); background:#fff; color:var(--ink); }
   .trava-modal .rod button.primaria{ background:var(--bar-bg); color:#fff; border-color:var(--bar-bg); }
   .trava-modal .rod button.perigo{ color:#a83226; }
+
+  /* aptidões concedidas (grátis por clã, hijutsu ou outra aptidão) */
+  #apt_rows .apt-pts{ cursor:pointer; }
+  #apt_rows tr[data-concedida="1"] .apt-pts{ background:#dcefe1 !important; color:#2f7a4a; font-weight:800; }
+  #apt_rows .apt-selo{ display:inline-block; margin-top:2px; font-size:10px; font-weight:700; color:#2f7a4a; background:#dcefe1; border-radius:999px; padding:1px 8px; white-space:nowrap; }
+  #apt_rows tr.apt-pendente .apt-selo{ color:#6b5210; background:#f1e3bd; }
 </style>
   <!-- ===== NUVEM (Supabase) ===== -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1521,6 +1527,7 @@
     </div>
     <div class="modal-foot">
       <button class="modal-btn" id="seletor_cancelar">Cancelar</button>
+      <button class="modal-btn" id="seletor_concedida" style="display:none;" disabled title="Para aptidões que o clã, o hijutsu ou outra aptidão dão de graça: não gasta pontos e não exige os requisitos de compra">Adicionar como concedida (grátis)</button>
       <button class="modal-btn primary" id="seletor_ok" disabled>Adicionar</button>
     </div>
   </div>
@@ -4266,9 +4273,15 @@ function _recalcInterno(){
   let podGasto = 0;
   document.querySelectorAll("#poderes_rows .pod-nivel").forEach(i => podGasto += num(i.value));
   const gratis = num(c.aptidoesGratis) || 0;
-  document.querySelectorAll("#apt_rows tr").forEach((tr, i) => {
-    const p = (i < gratis) ? 0 : 2;
-    const el = tr.querySelector(".apt-pts"); if(el) el.value = p;
+  let _iApt = 0;
+  document.querySelectorAll("#apt_rows tr").forEach(tr => {
+    const el = tr.querySelector(".apt-pts");
+    if(tr.dataset.concedida === "1"){
+      if(el){ el.value = 0; el.title = "Concedida" + (tr.dataset.fonte ? " por " + tr.dataset.fonte : "") + ": não gasta pontos. Clique para tirar a marca."; }
+      return;
+    }
+    const p = (_iApt < gratis) ? 0 : 2; _iApt++;
+    if(el){ el.value = p; el.title = (p ? "Custa 2 pontos de poder." : "Uma das " + gratis + " aptidões gratuitas.") + " Clique se ela for concedida de graça por clã, hijutsu ou outra aptidão."; }
     podGasto += p;
   });
   const socGasto = socAttr("Yin") + socAttr("Yang");
@@ -4666,6 +4679,7 @@ function acharItem(nome){ return selItens.find(it => it.nome === nome); }
 function mostrarDesc(it){
   if(!it){ selDesc.innerHTML = '<span class="md-meta">Selecione um item para ver a descrição.</span>'; selOk.disabled = true; selEscolhido = null; return; }
   selEscolhido = it; selOk.disabled = !!(it._req && !it._req.ok);
+  const _bc = document.getElementById("seletor_concedida"); if(_bc) _bc.disabled = false;   // concedida ignora os requisitos de compra
   let meta = it.tipo || "";
   if(it.origem) meta += (meta ? " · " : "") + it.origem;
   if(it.poder) meta += (meta ? " · " : "") + it.poder;
@@ -4839,6 +4853,15 @@ function validarRequisitosFicha(){
   document.querySelectorAll("#apt_rows tr").forEach(tr => {
     const nome = ((tr.querySelector(".apt-nome")||{}).value || "").trim(); if(!nome){ marca(tr, [], ""); return; }
     const it = reqItemDoBD("aptidoes", nome);
+    if(tr.dataset.concedida === "1"){
+      marca(tr, [], nome);
+      const falt = it ? reqAvaliar(it, st).faltando : [];
+      tr.classList.toggle("apt-pendente", falt.length > 0);
+      const selo = tr.querySelector(".apt-selo");
+      if(selo) selo.title = falt.length ? "Concedida, mas o benefício só vale quando cumprir: " + falt.join("; ") + " (Básico p.155)" : "Concedida de graça";
+      return;
+    }
+    tr.classList.remove("apt-pendente");
     marca(tr, it ? reqAvaliar(it, st).faltando : [], nome);
   });
   const ncEl = document.getElementById("in_nc"); const NC = ncEl ? num(ncEl.value) : 0;
@@ -4865,7 +4888,10 @@ function validarRequisitosFicha(){
   const box = document.getElementById("req_avisos");
   if(box) box.innerHTML = avisos.length ? "⚠ Requisitos não cumpridos:<br>" + avisos.join("<br>") : "";
 }
-function abrirSeletor(titulo, itens, callback){
+let selOpcoes = {};
+function abrirSeletor(titulo, itens, callback, opcoes){
+  selOpcoes = opcoes || {};
+  const _bc = document.getElementById("seletor_concedida"); if(_bc){ _bc.style.display = selOpcoes.concedida ? "" : "none"; _bc.disabled = true; }
   selItens = itens.slice().sort((a,b) => {
     const na = (a.nivel === undefined || a.nivel === "") ? -1 : num(a.nivel);
     const nb = (b.nivel === undefined || b.nivel === "") ? -1 : num(b.nivel);
@@ -4896,6 +4922,14 @@ selLista.addEventListener("click", (e) => {
 });
 selLista.addEventListener("dblclick", (e) => { if(e.target.closest(".sel-item") && selEscolhido) confirmarSelecao(); });
 selOk.addEventListener("click", confirmarSelecao);
+document.getElementById("seletor_concedida").addEventListener("click", () => {
+  if(!selEscolhido) return;
+  const it = selEscolhido;
+  const fonte = prompt("Quem concede esta aptidão de graça? (ex.: clã, hijutsu, aptidão ou efeito)", sugestaoFonteConcedida());
+  if(fonte == null) return;
+  fecharSeletor();
+  adicionarAptidao(it, { concedida: true, fonte: fonte.trim() || "clã/hijutsu" });
+});
 selCancelar.addEventListener("click", fecharSeletor);
 overlay.addEventListener("click", (e) => { if(e.target === overlay) fecharSeletor(); });
 document.addEventListener("keydown", (e) => { if(e.key === "Escape" && overlay.classList.contains("open")) fecharSeletor(); });
@@ -4932,7 +4966,27 @@ function opcoesEscolha(aptNome){
   if(n === "usar arma") return DB.armas.map(a => a.nome);
   return null;   // sem lista definida: cai em campo de texto livre
 }
-function adicionarAptidao(it){
+/* sugestão de origem da aptidão concedida: o clã/hijutsu escolhido na ficha */
+function sugestaoFonteConcedida(){
+  const cla = document.getElementById("in_cla");
+  if(cla && cla.value && cla.selectedIndex >= 0) return (cla.options[cla.selectedIndex].text || "").trim();
+  return "";
+}
+/* aptidão concedida (grátis) por clã, hijutsu, aptidão ou efeito: não gasta pontos nem conta entre as 3 gratuitas */
+function marcarConcedida(tr, fonte){
+  tr.dataset.concedida = "1"; tr.dataset.fonte = fonte || "";
+  const td = tr.querySelector(".apt-nome") ? tr.querySelector(".apt-nome").parentElement : null;
+  if(td){
+    let selo = td.querySelector(".apt-selo");
+    if(!selo){ selo = document.createElement("span"); selo.className = "apt-selo"; td.appendChild(selo); }
+    selo.textContent = "Concedida" + (fonte ? " · " + fonte : "");
+  }
+}
+function desmarcarConcedida(tr){
+  delete tr.dataset.concedida; delete tr.dataset.fonte;
+  const selo = tr.querySelector(".apt-selo"); if(selo) selo.remove();
+}
+function adicionarAptidao(it, opcoes){
   const tbody = document.getElementById("apt_rows");
   const tr = document.createElement("tr");
   if(it.condicional) tr.dataset.cond = "1";
@@ -4948,6 +5002,7 @@ function adicionarAptidao(it){
     '<td><input class="apt-valor" value="'+escapeAttr(it.valor!=null?it.valor:"")+'"></td>' +
     escCell +
     '<td class="del-cell"><span class="del-row-btn" title="Remover linha">×</span></td>';
+  if(opcoes && opcoes.concedida) marcarConcedida(tr, opcoes.fonte);
   tbody.appendChild(tr);
   recalc();
   if(typeof atualizarSelectsPoderJutsu === "function") atualizarSelectsPoderJutsu();
@@ -5044,7 +5099,7 @@ document.querySelectorAll(".btn-add-row[data-catalogo]").forEach(btn => {
   btn.addEventListener("click", () => {
     const cat = btn.dataset.catalogo;
     if(cat === "poderes")  abrirSeletor("Escolher Poder", DB.poderes.filter(p => poderVisivel(p.nome)), adicionarPoder);
-    if(cat === "aptidoes") abrirSeletor("Escolher Aptidão", DB.aptidoes.map(a => Object.assign({}, a, {_grupo: grupoAptidao(a)})), adicionarAptidao);
+    if(cat === "aptidoes") abrirSeletor("Escolher Aptidão", DB.aptidoes.map(a => Object.assign({}, a, {_grupo: grupoAptidao(a)})), adicionarAptidao, { concedida: true });
     if(cat === "equipamentos") abrirSeletor("Escolher Equipamento", equipamentosParaSeletor(), adicionarEquipamento);
   });
 });
@@ -6860,6 +6915,22 @@ function montarTrava(){
   });
   document.addEventListener("input", () => { if(_souMestre && FICHA_PISO){ clearTimeout(montarTrava._t); montarTrava._t = setTimeout(aplicarModoFicha, 400); } });
 }
+
+/* ===== APTIDÃO CONCEDIDA: clique na coluna de pontos para marcar/desmarcar ===== */
+document.addEventListener("click", (e) => {
+  const pts = e.target.closest("#apt_rows .apt-pts"); if(!pts) return;
+  const tr = pts.closest("tr");
+  if(typeof finalizadaParaMim === "function" && finalizadaParaMim()){ avisoTrava("A ficha está finalizada. Para mudar, peça um Level Up ao mestre."); return; }
+  if(tr.dataset.concedida === "1"){
+    if(!confirm("Tirar a marca de concedida? A aptidão volta a contar entre as gratuitas ou a custar 2 pontos de poder.")) return;
+    desmarcarConcedida(tr);
+  } else {
+    const fonte = prompt("Esta aptidão é concedida de graça por quem? (ex.: clã, hijutsu, aptidão ou efeito)", sugestaoFonteConcedida());
+    if(fonte == null) return;
+    marcarConcedida(tr, fonte.trim() || "clã/hijutsu");
+  }
+  recalc(); agendarSalvar();
+});
 
 /* ===== TESTES SOCIAIS: o nome de cada teste rola 2d8 + valor ===== */
 document.addEventListener("click", (e) => {
