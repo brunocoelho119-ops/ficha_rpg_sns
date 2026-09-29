@@ -1079,6 +1079,35 @@
   #apt_rows tr[data-concedida="1"] .apt-pts{ background:#dcefe1 !important; color:#2f7a4a; font-weight:800; }
   #apt_rows .apt-selo{ display:inline-block; margin-top:2px; font-size:10px; font-weight:700; color:#2f7a4a; background:#dcefe1; border-radius:999px; padding:1px 8px; white-space:nowrap; }
   #apt_rows tr.apt-pendente .apt-selo{ color:#6b5210; background:#f1e3bd; }
+
+  /* botão de PDF nas abas */
+  .tabs-nav .tab-pdf{
+    display:inline-flex; align-items:center; gap:6px; margin-left:6px; padding:9px 14px; border-radius:10px; cursor:pointer;
+    background:transparent; color:var(--kinari); border:1px solid rgba(217,184,114,0.5); font-family:var(--font-body); font-weight:700; font-size:13px;
+  }
+  .tabs-nav .tab-pdf:hover{ background:var(--kinari); color:var(--ink); }
+
+  /* ===== PDF / impressão: todas as abas em sequência, em A4 ===== */
+  @page{ size:A4; margin:9mm; }
+  @media print{
+    html, body{ background:#fff !important; }
+    body::before, body::after{ display:none !important; }
+    *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+    .ficha-topbar, .topo-fixo, .qroll-overlay, .modal-overlay, .trava-modal, .btn-add-row, .itens-acoes,
+    .del-row-btn, .st-ok, .st-dano, .foto-btn, .token-img-wrap, .token-img-nota, .jutsu-del-btn, .jutsu-efeito-btn,
+    .jc-card-actions, .footer-logo, #tab-bd, .npc-painel .np-btn, .vers-painel select{ display:none !important; }
+    .scaler-outer{ height:auto !important; overflow:visible !important; }
+    #stage{ position:static !important; transform:none !important; left:auto !important; margin:0 auto; zoom:0.75; display:flex; flex-direction:column; gap:0; }
+    #stage > .status-bar{ order:0; box-shadow:none; margin-bottom:8px; }
+    .tab-content{ display:block !important; }
+    #tab-ficha{ order:1; } #tab-inventario{ order:2; break-before:page; } #tab-itens{ order:3; break-before:page; } #tab-jutsus{ order:4; break-before:page; }
+    .page{ box-shadow:none !important; border:1px solid #d9ccb0 !important; margin:0 !important; }
+    .bar, .jutsu-card, .item-card, .tabela-cartoes tr, .attr-badge, .social-box, .hr-row{ break-inside:avoid; }
+    input, select, textarea{ box-shadow:none !important; }
+    textarea{ overflow:visible !important; resize:none !important; }
+    body.tipo-capanga .capanga-view{ box-shadow:none; margin:0 auto; }
+    body.tipo-capanga .capanga-view .cv-acoes, body.tipo-capanga .capanga-view .cv-res{ display:none !important; }
+  }
 </style>
   <!-- ===== NUVEM (Supabase) ===== -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1128,6 +1157,9 @@
   <button class="tab-btn" data-tab="itens">Inventário</button>
   <button class="tab-btn" data-tab="jutsus">Jutsus</button>
   <button class="tab-btn" data-tab="bd">Banco de Dados</button>
+  <button type="button" class="tab-pdf" id="btn_pdf" title="Gera um PDF da ficha (na janela de impressão, escolha Salvar como PDF)">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"></path></svg>PDF
+  </button>
 </div>
 
 </div>
@@ -6931,6 +6963,24 @@ document.addEventListener("click", (e) => {
   }
   recalc(); agendarSalvar();
 });
+
+/* ===== PDF: usa a impressão do navegador (texto de verdade, sem biblioteca) ===== */
+(function(){
+  let tituloAntes = "", alturas = [];
+  window.addEventListener("beforeprint", () => {
+    tituloAntes = document.title;
+    const nome = ((document.getElementById("ft_nome_ficha") || {}).value || (document.querySelector(".nome-personagem input, #in_nome") || {}).value || "Ficha").trim();
+    document.title = nome + " - Ficha Shinobi no Sho";   // vira o nome do arquivo PDF
+    /* caixas de texto crescem para o conteúdo aparecer inteiro */
+    alturas = [];
+    document.querySelectorAll("#stage textarea").forEach(t => { alturas.push([t, t.style.height]); t.style.height = "auto"; t.style.height = (t.scrollHeight + 4) + "px"; });
+  });
+  window.addEventListener("afterprint", () => {
+    if(tituloAntes) document.title = tituloAntes;
+    alturas.forEach(([t, h]) => { t.style.height = h; });
+  });
+})();
+document.getElementById("btn_pdf").addEventListener("click", () => { recalc(); setTimeout(() => window.print(), 50); });
 
 /* ===== TESTES SOCIAIS: o nome de cada teste rola 2d8 + valor ===== */
 document.addEventListener("click", (e) => {
