@@ -198,6 +198,44 @@
   .painel-dados .form-rolagem button:hover{ background:var(--aizome-2); }
   .painel-dados .form-rolagem button.perigo{ background:transparent; color:var(--erro); border:1px solid #dcb3ab; }
   .painel-dados .secao-titulo{ font-size:12px; font-weight:700; color:var(--sumi-2); padding:12px 16px 4px; }
+  /* ===== Barra lateral da ficha (atalhos de rolagem do jogador) ===== */
+  #barra_ficha{
+    position:fixed; top:78px; bottom:14px; right:14px; width:270px; z-index:13;
+    background:var(--washi); color:var(--sumi); border-radius:var(--raio-g); box-shadow:var(--sombra);
+    border:1px solid var(--washi-borda); display:none; flex-direction:column; overflow:hidden;
+  }
+  #barra_ficha.aberta{ display:flex; }
+  body.barra-ficha-recolhida #barra_ficha{ width:44px; }
+  body.barra-ficha-recolhida #barra_ficha .bf-corpo, body.barra-ficha-recolhida #barra_ficha .bf-nome{ display:none; }
+  #barra_ficha .bf-cab{
+    padding:10px 8px 10px 12px; display:flex; align-items:center; gap:6px;
+    border-bottom:1px solid var(--washi-borda); flex-shrink:0;
+  }
+  #barra_ficha .bf-nome{ font-family:var(--font-display); font-weight:800; font-size:15px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #barra_ficha .bf-toggle{
+    background:transparent; border:none; color:var(--sumi-2); font-size:16px; cursor:pointer;
+    width:28px; height:28px; border-radius:50%; flex-shrink:0;
+  }
+  #barra_ficha .bf-toggle:hover{ background:var(--washi-2); color:var(--sumi); }
+  #barra_ficha .bf-corpo{ overflow-y:auto; padding:10px 12px 14px; flex:1; }
+  .bf-recursos{ display:flex; gap:8px; margin-bottom:10px; }
+  .bf-rec{ flex:1; background:var(--washi-2); border-radius:var(--raio-p); padding:7px 8px; text-align:center; }
+  .bf-rec .bf-rot{ font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--sumi-2); }
+  .bf-rec .bf-val{ font-family:var(--font-display); font-weight:800; font-size:17px; line-height:1.2; }
+  .bf-rec.vida .bf-val{ color:#a3312a; }
+  .bf-rec.chakra .bf-val{ color:#2c5f8a; }
+  .bf-defesa{ background:var(--washi-2); border-radius:var(--raio-p); padding:7px 9px; margin-bottom:12px; font-size:11.5px; }
+  .bf-defesa b{ font-family:var(--font-display); font-size:14px; }
+  .bf-defesa .bf-hcs{ display:flex; gap:6px; margin-top:5px; flex-wrap:wrap; }
+  .bf-sec{ font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--sumi-2); margin:12px 0 5px; }
+  .bf-btn{
+    display:block; width:100%; text-align:left; background:var(--washi-2); border:1px solid var(--washi-borda);
+    border-radius:var(--raio-p); padding:8px 10px; margin-bottom:5px; cursor:pointer;
+    font-family:var(--font-body); font-size:12.5px; color:var(--sumi); line-height:1.3;
+  }
+  .bf-btn:hover{ background:#fff; border-color:var(--aizome); }
+  .bf-btn .bf-bonus{ float:right; font-weight:700; color:var(--aizome); }
+  .bf-vazio{ font-size:11.5px; color:var(--sumi-2); font-style:italic; line-height:1.5; }
   .escala-cena{ display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:4px 14px 12px; border-bottom:1px solid var(--washi-borda); }
   .escala-cena label{ display:flex; flex-direction:column; gap:4px; font-size:11.5px; color:var(--sumi-2); font-weight:600; }
   .escala-cena input{
@@ -765,6 +803,14 @@
       <button type="button" id="mt_abrir_ficha">Abrir ficha</button>
       <button type="button" class="perigo icone" id="mt_apagar" title="Apagar token" aria-label="Apagar token">🗑</button>
     </div>
+  </div>
+
+  <div id="barra_ficha">
+    <div class="bf-cab">
+      <span class="bf-nome" id="bf_nome">Ficha</span>
+      <button type="button" class="bf-toggle" id="bf_toggle" title="Recolher/expandir" aria-label="Recolher ou expandir a barra">⇥</button>
+    </div>
+    <div class="bf-corpo" id="bf_corpo"></div>
   </div>
 
   <div class="painel-dados" id="painel_dados">
@@ -1970,6 +2016,7 @@ async function carregarTokens(){
   const { data, error } = await sb.from("tokens").select("*").eq("cena_id", cenaAtual.id);
   tokensAtuais = error ? [] : (data || []);
   desenhar();
+  if(typeof bfCarregarFicha === "function") bfCarregarFicha();
 }
 
 document.getElementById("btn_add_token").addEventListener("click", criarToken);
@@ -3588,6 +3635,129 @@ document.getElementById("btn_sair").addEventListener("click", async () => {
   if(canalCena) await sb.removeChannel(canalCena);
   location.href = "home.html";
 });
+
+/* ===================================================================
+   BARRA LATERAL DA FICHA
+   Acha o token do jogador na cena, lê a ficha vinculada e monta os
+   atalhos que ele marcou na aba "Mesa" da própria ficha.
+   As rolagens vão pro chat da sala, então todo mundo vê.
+   =================================================================== */
+let bfFicha = null;        // { id, nome, estado, db }
+let bfTokenId = null;
+
+function bfAcharMeuToken(){
+  if(!Array.isArray(tokensAtuais)) return null;
+  return tokensAtuais.find(t => t.ficha_id && t.dono_id === meuId) || null;
+}
+async function bfCarregarFicha(){
+  const t = bfAcharMeuToken();
+  const barra = document.getElementById("barra_ficha");
+  if(!t){ if(barra) barra.classList.remove("aberta"); bfFicha = null; bfTokenId = null; return; }
+  if(bfTokenId === t.id && bfFicha) { bfRender(); return; }   // já é a mesma ficha
+  bfTokenId = t.id;
+  try{
+    const { data, error } = await sb.from("fichas").select("id, nome, dados").eq("id", t.ficha_id).single();
+    if(error || !data){ bfFicha = null; if(barra) barra.classList.remove("aberta"); return; }
+    const d = data.dados || {};
+    bfFicha = { id: data.id, nome: data.nome || "Ficha", estado: d.estado || {}, db: d.db || {} };
+    bfRender();
+  }catch(e){ bfFicha = null; }
+}
+/* lê o resumo que a ficha publica em estado.resumoMesa */
+function bfResumo(){ return (bfFicha && bfFicha.estado && bfFicha.estado.resumoMesa) || {}; }
+
+function bfRender(){
+  const barra = document.getElementById("barra_ficha");
+  const corpo = document.getElementById("bf_corpo");
+  if(!barra || !corpo || !bfFicha) return;
+  barra.classList.add("aberta");
+  document.getElementById("bf_nome").textContent = bfFicha.nome;
+  const R = bfResumo();
+
+  const vidaAtual = R.vidaAtual || "—", vidaMax = R.vidaMax || "—";
+  const ckAtual = R.chakraAtual || "—", ckMax = R.chakraMax || "—";
+  const reacao = R.reacao || "—";
+
+  let html = "";
+  html += '<div class="bf-recursos">' +
+    '<div class="bf-rec vida"><div class="bf-rot">Vida</div><div class="bf-val">' + escapeHtml(vidaAtual) + '</div><div class="bf-rot">de ' + escapeHtml(vidaMax) + '</div></div>' +
+    '<div class="bf-rec chakra"><div class="bf-rot">Chakra</div><div class="bf-val">' + escapeHtml(ckAtual) + '</div><div class="bf-rot">de ' + escapeHtml(ckMax) + '</div></div>' +
+  '</div>';
+  html += '<div class="bf-defesa">Reação de Esquiva: <b>' + escapeHtml(reacao) + '</b></div>';
+
+  /* Habilidades de Combate: sempre à mão */
+  const hc = R.hc || {};
+  html += '<div class="bf-sec">Habilidades de Combate</div>';
+  [["CC","CC"],["CD","CD"],["ESQ","ESQ"],["LM","LM"]].forEach(([rot, k]) => {
+    const v = Number(hc[k] || 0);
+    html += '<button type="button" class="bf-btn" data-rolar="' + v + '" data-rot="' + rot + '">' +
+            rot + '<span class="bf-bonus">+' + v + '</span></button>';
+  });
+
+  /* atalhos marcados pelo jogador na aba Mesa da ficha */
+  const atalhos = (bfFicha.db && bfFicha.db.mesaAtalhos) ? Object.keys(bfFicha.db.mesaAtalhos) : [];
+  const porTipo = { jutsu: [], arma: [], pericia: [], attr: [] };
+  atalhos.forEach(k => {
+    const i = k.indexOf(":"); if(i < 0) return;
+    const tipo = k.slice(0, i), nome = k.slice(i+1);
+    if(porTipo[tipo]) porTipo[tipo].push(nome);
+  });
+  const secoes = [
+    ["Jutsus", porTipo.jutsu, "jutsu"],
+    ["Ataques", porTipo.arma, "arma"],
+    ["Perícias", porTipo.pericia, "pericia"],
+    ["Atributos", porTipo.attr, "attr"]
+  ];
+  let temAlgum = false;
+  secoes.forEach(([titulo, lista, tipo]) => {
+    if(!lista.length) return;
+    temAlgum = true;
+    html += '<div class="bf-sec">' + titulo + '</div>';
+    lista.forEach(nome => {
+      let bonus = 0, extra = "";
+      if(tipo === "attr") bonus = Number((R.atributos || {})[nome] || 0);
+      else if(tipo === "pericia") bonus = Number((R.pericias || {})[nome] || 0);
+      else if(tipo === "arma"){
+        const modo = ((R.armas || {})[nome] || {}).modo || "";
+        bonus = Number(hc[modo] || 0);         /* arma CC usa CC, arma CD usa CD */
+        extra = modo ? ' <span class="bf-bonus">' + modo + ' +' + bonus + '</span>' : "";
+      }
+      else if(tipo === "jutsu"){
+        bonus = Number(hc.CD || 0);            /* jutsu ofensivo testa por CD */
+        const custo = ((R.jutsus || {})[nome] || {}).custo;
+        extra = '<span class="bf-bonus">CD +' + bonus + (custo ? ' · ' + custo + 'ck' : '') + '</span>';
+      }
+      const marcador = extra || (bonus ? '<span class="bf-bonus">+' + bonus + '</span>' : '');
+      html += '<button type="button" class="bf-btn" data-rolar="' + bonus + '" data-rot="' + escapeHtml(nome) + '">' +
+              escapeHtml(nome) + marcador + '</button>';
+    });
+  });
+  if(!temAlgum){
+    html += '<div class="bf-sec">Seus atalhos</div>' +
+            '<div class="bf-vazio">Abra sua ficha, vá na aba <b>Mesa</b> e marque os jutsus, ataques e perícias que você quer aqui à mão.</div>';
+  }
+  corpo.innerHTML = html;
+}
+/* clicar num atalho rola 2d8 + bônus no chat da sala */
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest("#barra_ficha .bf-btn");
+  if(!b) return;
+  const bonus = parseInt(b.dataset.rolar || "0", 10) || 0;
+  const formula = bonus ? ("2d8+" + bonus) : "2d8";
+  if(typeof rolarFormula === "function") rolarFormula(formula);
+});
+document.getElementById("bf_toggle").addEventListener("click", () => {
+  document.body.classList.toggle("barra-ficha-recolhida");
+  const rec = document.body.classList.contains("barra-ficha-recolhida");
+  document.getElementById("bf_toggle").textContent = rec ? "⇤" : "⇥";
+  try{ localStorage.setItem("mesa_barra_recolhida", rec ? "1" : "0"); }catch(err){}
+});
+(function(){
+  try{ if(localStorage.getItem("mesa_barra_recolhida") === "1"){
+    document.body.classList.add("barra-ficha-recolhida");
+    document.getElementById("bf_toggle").textContent = "⇤";
+  } }catch(err){}
+})();
 
 iniciar();
 </script>

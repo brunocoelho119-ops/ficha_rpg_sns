@@ -158,6 +158,16 @@
   .estado-vit.warn{ color:#8a6d1a; background:#fdf3d6; }
   .estado-vit.danger{ color:#a3312a; background:#fbe1de; }
   .estado-vit.dead{ color:#fff; background:#3a2020; }
+  .mesa-intro{ font-size:12.5px; color:var(--gray-text); line-height:1.5; padding:12px 14px; border:1px solid var(--border); border-top:none; border-radius:0 0 var(--radius-sm) var(--radius-sm); background:var(--bg); margin-bottom:14px; }
+  .mesa-grupo{ margin-bottom:14px; }
+  .mesa-grupo-tit{ font-family:var(--font-display); font-weight:700; font-size:14px; text-transform:uppercase; letter-spacing:.5px; padding:8px 12px; background:var(--bar-bg); color:#fff; border-radius:var(--radius-sm) var(--radius-sm) 0 0; }
+  .mesa-grupo-box{ border:1px solid var(--border); border-top:none; border-radius:0 0 var(--radius-sm) var(--radius-sm); background:var(--bg); padding:8px 12px; display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr)); gap:4px; }
+  .mesa-item{ display:flex; align-items:center; gap:8px; font-size:12.5px; padding:6px 8px; border-radius:7px; cursor:pointer; }
+  .mesa-item:hover{ background:var(--gray-light); }
+  .mesa-item.on{ background:#eef4ec; font-weight:600; }
+  .mesa-item input{ flex-shrink:0; }
+  .mesa-item .mi-tag{ font-size:10px; color:var(--gray-text); font-weight:400; margin-left:auto; }
+  .mesa-vazio{ font-size:12px; color:var(--gray-text); font-style:italic; padding:6px 8px; }
   .cond-box{ display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:6px; border:1px solid var(--border); border-top:none; border-radius:0 0 var(--radius-sm) var(--radius-sm); box-shadow:var(--shadow-sm); padding:12px; background:var(--bg); }
   .cond-chip{ display:flex; align-items:flex-start; gap:6px; font-size:11.5px; padding:5px 7px; border-radius:7px; cursor:pointer; }
   .cond-chip:hover{ background:var(--gray-light); }
@@ -1156,6 +1166,7 @@
   <button class="tab-btn" data-tab="inventario">Skills</button>
   <button class="tab-btn" data-tab="itens">Inventário</button>
   <button class="tab-btn" data-tab="jutsus">Jutsus</button>
+  <button class="tab-btn" data-tab="mesa">Mesa</button>
   <button class="tab-btn" data-tab="bd">Banco de Dados</button>
   <button type="button" class="tab-pdf" id="btn_pdf" title="Gera um PDF da ficha (na janela de impressão, escolha Salvar como PDF)">
     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"></path></svg>PDF
@@ -1488,6 +1499,23 @@
   <div class="bar" style="border-radius:999px; font-size:20px; padding:10px;">Jutsus</div>
   <div class="jutsu-grid" id="jutsu_grid"></div>
   <button class="btn-add-row" id="btn_add_jutsu" style="margin-top:16px;">+ Adicionar Jutsu</button>
+  <div class="footer-logo" style="margin-top:14px;">Shinobi no Sho</div>
+</div>
+</div>
+
+<!-- ================= ABA MESA (o que aparece na barra lateral da mesa) ================= -->
+<div class="tab-content" id="tab-mesa">
+<div class="page" id="page_mesa">
+  <div class="bar bar-icon">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="20"/></svg>
+    Atalhos da Mesa
+  </div>
+  <div class="mesa-intro">
+    Marque o que você quer ver na barra lateral da mesa. A ideia é deixar à mão só o que você usa toda rodada —
+    assim dá pra rolar ataque e defesa sem sair do mapa. Vida, Chakra, Reação de Esquiva e as Habilidades de Combate
+    aparecem sempre, não precisam ser marcadas.
+  </div>
+  <div id="mesa_listas"></div>
   <div class="footer-logo" style="margin-top:14px;">Shinobi no Sho</div>
 </div>
 </div>
@@ -4304,6 +4332,9 @@ function _recalcInterno(){
   let perGasto = 0; document.querySelectorAll(".pr-pontos").forEach(i => perGasto += num(i.value));
   let podGasto = 0;
   document.querySelectorAll("#poderes_rows .pod-nivel").forEach(i => podGasto += num(i.value));
+  /* Kekkei Genkai elemental: cada elemento formador vem com 1 nível grátis (ex.: Mokuton dá Doton e Suiton nv1).
+     Esse nível não consome pontos de poder — o jogador só paga os níveis acima do primeiro. */
+  podGasto -= niveisGratisPorKekkeiGenkai();
   const gratis = num(c.aptidoesGratis) || 0;
   let _iApt = 0;
   document.querySelectorAll("#apt_rows tr").forEach(tr => {
@@ -4972,6 +5003,132 @@ function celInput(val){
   inp.type = "text"; if(val != null) inp.value = val;
   td.appendChild(inp); return td;
 }
+/* Kekkei Genkai elemental -> elementos formadores que vêm com 1 nível GRÁTIS.
+   Regra: "O personagem recebe gratuitamente 1 nível em X (e Y)" — presente em todos os KG elementais.
+   Fontes: Mokuton (Básico p.176); Bakuton, Jiton II, Jinton, Kibaku Nendo, Mateki,
+   Ranton, Shakuton, Shouton, Jingokuon (Livro de Hijutsus Vol.2). */
+const KG_ELEMENTOS_GRATIS = {
+  "mokuton": ["doton","suiton"],
+  "bakuton": ["doton","raiton"],
+  "jinton": ["doton","fuuton","katon"],
+  "ranton": ["raiton","suiton"],
+  "shakuton": ["katon","fuuton"],
+  "shouton": ["doton"],
+  "jiton": ["fuuton","doton"],
+  "kibaku nendo": ["doton"],
+  "mateki": ["doton","katon"],
+  "jingokuon": ["fuuton"],
+  "hyouton": ["suiton","fuuton"],
+  "youton": ["katon","doton"],
+  "futton": ["katon","suiton"],
+  "meiton": ["raiton","katon"]
+};
+/* devolve quantos níveis de poder são gratuitos por causa de um Kekkei Genkai elemental na ficha */
+function niveisGratisPorKekkeiGenkai(){
+  const linhas = Array.from(document.querySelectorAll("#poderes_rows > tr"));
+  const nivelDe = {};
+  linhas.forEach(tr => {
+    const nome = normNome(nomePoderRow(tr) || "");
+    const nv = num((tr.querySelector(".pod-nivel")||{}).value);
+    if(nome) nivelDe[nome] = Math.max(nivelDe[nome] || 0, nv);
+  });
+  let gratis = 0;
+  const jaContado = {};
+  Object.keys(nivelDe).forEach(nome => {
+    /* o nome na ficha pode vir como "Mokuton (Elemento Madeira)" — basta começar pela chave */
+    const chave = Object.keys(KG_ELEMENTOS_GRATIS).find(k => nome.indexOf(k) === 0);
+    if(!chave) return;
+    if(num(nivelDe[nome]) <= 0) return;   /* o KG precisa estar de fato comprado */
+    KG_ELEMENTOS_GRATIS[chave].forEach(elem => {
+      if(jaContado[elem]) return;         /* se 2 KGs dão o mesmo elemento, ele só é grátis 1 vez */
+      const compradoComo = Object.keys(nivelDe).find(n => n.indexOf(elem) === 0);
+      if(compradoComo && nivelDe[compradoComo] >= 1){
+        gratis += 1;                      /* só o 1º nível é grátis; os demais o jogador paga */
+        jaContado[elem] = true;
+      }
+    });
+  });
+  return gratis;
+}
+
+/* ===== ABA MESA: escolhe o que vai pra barra lateral do mapa =====
+   Guarda só uma lista de chaves em DB.mesaAtalhos; a mesa lê isso e monta os botões. */
+function mesaAtalhosSalvos(){
+  if(!DB.mesaAtalhos || typeof DB.mesaAtalhos !== "object") DB.mesaAtalhos = {};
+  return DB.mesaAtalhos;
+}
+function montarAbaMesa(){
+  const raiz = document.getElementById("mesa_listas");
+  if(!raiz) return;
+  const sel = mesaAtalhosSalvos();
+  const grupos = [];
+
+  /* jutsus (cartões da aba Jutsus) */
+  const jutsus = [];
+  document.querySelectorAll("#jutsu_grid .jutsu-card").forEach(card => {
+    const nome = ((card.querySelector(".jf-nome") || {}).value || "").trim();
+    if(!nome) return;
+    const poder = ((card.querySelector(".jutsu-poder") || {}).value || "").trim();
+    jutsus.push({ chave: "jutsu:" + nome, rotulo: nome, tag: poder });
+  });
+  grupos.push({ titulo: "Jutsus", itens: jutsus, vazio: "Nenhum jutsu com nome preenchido na aba Jutsus." });
+
+  /* ataques armados / desarmado */
+  const armas = [];
+  document.querySelectorAll("#calc_armado_rows > tr").forEach(tr => {
+    const nome = ((tr.querySelector("td input") || {}).value || "").trim();
+    if(!nome) return;
+    const modo = tr.dataset.modo || tr.dataset.uso || "";
+    armas.push({ chave: "arma:" + nome, rotulo: nome, tag: modo });
+  });
+  grupos.push({ titulo: "Ataques (armas e desarmado)", itens: armas, vazio: "Nenhuma arma no inventário ainda." });
+
+  /* perícias com pontos investidos (as que o jogador realmente usa) */
+  const pericias = [];
+  document.querySelectorAll(".per-row").forEach(row => {
+    const nome = (row.dataset.peri || "").replace(/^\*+/, "");
+    const pts = num((row.querySelector(".pr-pontos") || {}).value);
+    if(!nome || pts <= 0) return;
+    pericias.push({ chave: "pericia:" + nome, rotulo: nome, tag: pts + " pts" });
+  });
+  grupos.push({ titulo: "Perícias (só as que você investiu pontos)", itens: pericias, vazio: "Nenhuma perícia com pontos investidos." });
+
+  /* atributos: sempre disponíveis pra teste */
+  const attrs = Object.keys(ATTR_VALUES);
+  grupos.push({
+    titulo: "Testes de Atributo",
+    itens: attrs.map(a => ({ chave: "attr:" + a, rotulo: a, tag: "" })),
+    vazio: ""
+  });
+
+  raiz.innerHTML = grupos.map(g => {
+    const corpo = g.itens.length
+      ? g.itens.map(it =>
+          '<label class="mesa-item' + (sel[it.chave] ? " on" : "") + '" data-chave="' + escapeAttr(it.chave) + '">' +
+            '<input type="checkbox" class="mesa-chk" data-chave="' + escapeAttr(it.chave) + '"' + (sel[it.chave] ? " checked" : "") + '>' +
+            '<span>' + escapeHtml(it.rotulo) + '</span>' +
+            (it.tag ? '<span class="mi-tag">' + escapeHtml(it.tag) + '</span>' : '') +
+          '</label>').join("")
+      : '<div class="mesa-vazio">' + escapeHtml(g.vazio) + '</div>';
+    return '<div class="mesa-grupo"><div class="mesa-grupo-tit">' + escapeHtml(g.titulo) + '</div><div class="mesa-grupo-box">' + corpo + '</div></div>';
+  }).join("");
+
+  raiz.querySelectorAll(".mesa-chk").forEach(chk => {
+    chk.addEventListener("change", () => {
+      const s = mesaAtalhosSalvos();
+      if(chk.checked) s[chk.dataset.chave] = true; else delete s[chk.dataset.chave];
+      chk.closest(".mesa-item").classList.toggle("on", chk.checked);
+      persist();
+      if(typeof agendarSalvar === "function") agendarSalvar();
+    });
+  });
+}
+/* remonta a lista sempre que a aba Mesa é aberta (pega jutsus/armas novos) */
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest('.tab-btn[data-tab="mesa"]');
+  if(b) setTimeout(montarAbaMesa, 30);
+});
+
 function adicionarPoder(it){
   const tbody = document.getElementById("poderes_rows");
   const tr = document.createElement("tr");
@@ -6666,6 +6823,39 @@ function salvarEstado(){
       autoOver: over,
       containers: {}
     };
+    /* resumo enxuto pra barra lateral da mesa ler sem depender da ordem dos campos */
+    try{
+      const v = (id) => { const el = document.getElementById(id); return el ? el.value : ""; };
+      const hc = {};
+      document.querySelectorAll(".hc-row").forEach(r => {
+        const cod = r.dataset.cod; const t = r.querySelector(".hc-total");
+        if(cod && t) hc[cod] = num(t.textContent);
+      });
+      const peri = {};
+      document.querySelectorAll(".per-row").forEach(r => {
+        const nome = (r.dataset.peri || "").replace(/^\*+/, "");
+        const t = r.querySelector(".pr-total");
+        if(nome && t) peri[nome] = num(t.value);
+      });
+      const attr = {};
+      document.querySelectorAll(".attr-val").forEach(el => { if(el.dataset.attr) attr[el.dataset.attr] = num(el.value); });
+      const jutsus = {};
+      document.querySelectorAll("#calc_jutsu_rows > tr").forEach(tr => {
+        const n = ((tr.querySelector(".cj-jutsu") || {}).value || "").trim();
+        if(n) jutsus[n] = { custo: num((tr.querySelector(".cj-custo")||{}).value) };
+      });
+      const armas = {};
+      document.querySelectorAll("#calc_armado_rows > tr").forEach(tr => {
+        const n = ((tr.querySelector("td input") || {}).value || "").trim();
+        if(n) armas[n] = { modo: tr.dataset.modo || tr.dataset.uso || "" };
+      });
+      estado.resumoMesa = {
+        vidaAtual: v("in_vit_atual"), vidaMax: v("in_vit_total"),
+        chakraAtual: v("in_chakra_atual"), chakraMax: v("in_chakra_total"),
+        reacao: v("in_reacao"), hc: hc, pericias: peri, atributos: attr,
+        jutsus: jutsus, armas: armas
+      };
+    }catch(e){}
     DINAMICOS.forEach(id => { estado.containers[id] = serializarContainer(id); });
     /* campos das fichas de NPC (painel de PdM/invocação e cartão de capanga) */
     const npc = {};
