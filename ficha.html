@@ -4349,7 +4349,9 @@ function _recalcInterno(){
   document.querySelectorAll("#poderes_rows .pod-nivel").forEach(i => podGasto += num(i.value));
   /* Kekkei Genkai elemental: cada elemento formador vem com 1 nível grátis (ex.: Mokuton dá Doton e Suiton nv1).
      Esse nível não consome pontos de poder — o jogador só paga os níveis acima do primeiro. */
-  podGasto -= niveisGratisPorKekkeiGenkai();
+  const _gratisKG = niveisGratisPorKekkeiGenkai();
+  podGasto -= _gratisKG;
+  const _podSoPoderes = podGasto;          /* parcela dos poderes, já sem os níveis grátis de Kekkei Genkai */
   rotularElementosGratis();
   const gratis = num(c.aptidoesGratis) || 0;
   let _iApt = 0;
@@ -4367,11 +4369,13 @@ function _recalcInterno(){
 
   setCounter("pt_atr", atrGasto, orc.atr, "mín " + orc.min + " · máx " + orc.max);
   setCounter("pt_per", perGasto, orc.per, "máx " + orc.limitePP + "/perícia");
-  setCounter("pt_pod", podGasto, orc.pod, "máx " + orc.limitePP + "/poder · " + c.aptidoesGratis + " aptidões grátis");
+  setCounter("pt_pod", podGasto, orc.pod, "poderes " + _podSoPoderes + " + aptidões " + (podGasto - _podSoPoderes) + " · máx " + orc.limitePP + "/poder · " + c.aptidoesGratis + " aptidões grátis");
+  const _detalhePts = "Poderes: " + _podSoPoderes + (_gratisKG ? " (já sem " + _gratisKG + " nível(is) grátis de Kekkei Genkai)" : "") + "  +  Aptidões pagas: " + (podGasto - _podSoPoderes) + "  =  " + podGasto;
+  const _elPt = document.getElementById("pt_pod"); if(_elPt) _elPt.title = _detalhePts;
   setCounter("pt_soc", socGasto, orc.soc, "máx " + orc.limitePP);
   _orcAtual = { atr: orc.atr, atrGasto, per: orc.per, perGasto, pod: orc.pod, podGasto };
   const pp = document.getElementById("in_pontos_poder"); if(pp) pp.value = orc.pod;
-  const ppg = document.getElementById("in_pontos_poder_gastos"); if(ppg) ppg.value = podGasto;
+  const ppg = document.getElementById("in_pontos_poder_gastos"); if(ppg){ ppg.value = podGasto; ppg.title = _detalhePts; }
 
   /* ---- Calculadora de Dano (Básico p.85) ---- */
   /* Jutsu: Dano Base = Dureza = Nível usado + ½ Espírito (arred. p/ cima); Dano Elemental = bônus do elemento */
