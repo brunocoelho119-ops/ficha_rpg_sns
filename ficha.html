@@ -1086,6 +1086,7 @@
 
   /* aptidões concedidas (grátis por clã, hijutsu ou outra aptidão) */
   #apt_rows .apt-pts{ cursor:pointer; }
+  #poderes_rows tr[data-kg-gratis] .pod-nivel{ background:#dcefe1 !important; color:#2f7a4a; font-weight:800; }
   #apt_rows tr[data-concedida="1"] .apt-pts{ background:#dcefe1 !important; color:#2f7a4a; font-weight:800; }
   #apt_rows .apt-selo{ display:inline-block; margin-top:2px; font-size:10px; font-weight:700; color:#2f7a4a; background:#dcefe1; border-radius:999px; padding:1px 8px; white-space:nowrap; }
   #apt_rows tr.apt-pendente .apt-selo{ color:#6b5210; background:#f1e3bd; }
@@ -3215,14 +3216,28 @@ document.querySelectorAll(".btn-add-row[data-add]:not([data-catalogo])").forEach
 /* Aptidões: tabela em coluna única, preenchida pelo seletor (começa vazia).
    Colunas: Pts. Gastos | Nome | Descrição/Benefícios | Bônus em | Valor */
 
+/* linha de elemento grátis nunca fica abaixo do nível 1 enquanto o Kekkei Genkai estiver na ficha (confere ao sair do campo) */
+document.addEventListener("change", (e) => {
+  const i = e.target; if(!i.classList || !i.classList.contains("pod-nivel")) return;
+  const tr = i.closest("#poderes_rows > tr"); if(!tr) return;
+  if(tr.dataset.kgGratis && linhaDoPoder(tr.dataset.kgGratis) && num(i.value) < 1){ i.value = "1"; recalc(); }
+});
+
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("del-row-btn")){
     const tr = e.target.closest("tr");
     if(typeof travaBloqueiaRemocao === "function" && travaBloqueiaRemocao(tr)) return;
     const jid = tr.dataset.jid;
     const eraPoder = tr.closest("#poderes_rows");
+    /* elemento que veio de graça com um Kekkei Genkai: só sai junto com ele */
+    if(eraPoder && tr.dataset.kgGratis && linhaDoPoder(tr.dataset.kgGratis)){
+      const kgNome = nomePoderRow(linhaDoPoder(tr.dataset.kgGratis));
+      avisoKG(nomePoderRow(tr) + " vem de graça com " + kgNome + ". Remova o " + kgNome + " para tirá-lo.");
+      return;
+    }
     tr.remove();
     if (jid) document.querySelectorAll('tr[data-jid="'+jid+'"]').forEach(r => r.remove());
+    if (eraPoder) sincronizarElementosKekkeiGenkai();
     if (eraPoder && typeof montarVersatilidade === "function") montarVersatilidade();
     if (eraPoder && typeof atualizarSelectsPoderJutsu === "function") atualizarSelectsPoderJutsu();
     recalc();
@@ -4335,6 +4350,7 @@ function _recalcInterno(){
   /* Kekkei Genkai elemental: cada elemento formador vem com 1 nível grátis (ex.: Mokuton dá Doton e Suiton nv1).
      Esse nível não consome pontos de poder — o jogador só paga os níveis acima do primeiro. */
   podGasto -= niveisGratisPorKekkeiGenkai();
+  rotularElementosGratis();
   const gratis = num(c.aptidoesGratis) || 0;
   let _iApt = 0;
   document.querySelectorAll("#apt_rows tr").forEach(tr => {
@@ -5005,8 +5021,9 @@ function celInput(val){
 }
 /* Kekkei Genkai elemental -> elementos formadores que vêm com 1 nível GRÁTIS.
    Regra: "O personagem recebe gratuitamente 1 nível em X (e Y)" — presente em todos os KG elementais.
-   Fontes: Mokuton (Básico p.176); Bakuton, Jiton II, Jinton, Kibaku Nendo, Mateki,
-   Ranton, Shakuton, Shouton, Jingokuon (Livro de Hijutsus Vol.2). */
+   Fontes: Mokuton (Básico p.176); Hyouton, Jiton e Yonbi Youton (Hijutsus Vol.1); Bakuton, Jiton II, Jinton,
+   Kibaku Nendo, Youton, Futton, Ranton, Shakuton, Shouton e Ototon/Jingokuon (Hijutsus Vol.2).
+   Conferido no texto de cada poder. Meiton e Mateki NÃO têm essa regra no livro. */
 const KG_ELEMENTOS_GRATIS = {
   "mokuton": ["doton","suiton"],
   "bakuton": ["doton","raiton"],
@@ -5016,12 +5033,11 @@ const KG_ELEMENTOS_GRATIS = {
   "shouton": ["doton"],
   "jiton": ["fuuton","doton"],
   "kibaku nendo": ["doton"],
-  "mateki": ["doton","katon"],
-  "jingokuon": ["fuuton"],
+  "ototon": ["fuuton"],           /* concedido pelo estilo Jingokuon (Poder Restrito: Ototon) */
   "hyouton": ["suiton","fuuton"],
   "youton": ["katon","doton"],
-  "futton": ["katon","suiton"],
-  "meiton": ["raiton","katon"]
+  "yonbi youton": ["doton","katon"],
+  "futton": ["katon","suiton"]
 };
 /* devolve quantos níveis de poder são gratuitos por causa de um Kekkei Genkai elemental na ficha */
 function niveisGratisPorKekkeiGenkai(){
@@ -5129,7 +5145,8 @@ document.addEventListener("click", (e) => {
   if(b) setTimeout(montarAbaMesa, 30);
 });
 
-function adicionarPoder(it){
+/* monta a linha de um poder e a insere na tabela (sem recalcular) */
+function criarLinhaPoder(it){
   const tbody = document.getElementById("poderes_rows");
   const tr = document.createElement("tr");
   const cNomeP = celInput(it.nome); cNomeP.querySelector("input").className = "pod-nome col-nome"; cNomeP.className = "td-nome"; tr.appendChild(cNomeP);
@@ -5140,6 +5157,71 @@ function adicionarPoder(it){
   tdDel.innerHTML = '<span class="del-row-btn" title="Remover linha">×</span>';
   tr.appendChild(tdDel);
   tbody.appendChild(tr);
+  return tr;
+}
+
+/* ===== Kekkei Genkai elemental: ao escolher, já puxa os elementos formadores em nível 1 (grátis) =====
+   Ex.: Mokuton (nv1) traz Doton nv1 e Suiton nv1, e o conjunto custa 1 ponto, não 3.
+   Subir o Mokuton custa 1 ponto por nível; subir Doton/Suiton acima do 1º também (o 1º é de graça). */
+const ELEMENTOS_BASICOS = ["doton","suiton","fuuton","katon","raiton"];
+function kgChaveDoPoder(nomePoder){
+  const n = normNome(nomePoder || "");
+  return Object.keys(KG_ELEMENTOS_GRATIS).find(k => n.indexOf(k) === 0) || null;
+}
+function linhasDePoder(){ return Array.from(document.querySelectorAll("#poderes_rows > tr")); }
+function linhaDoPoder(chave){ return linhasDePoder().find(tr => normNome(nomePoderRow(tr)).indexOf(chave) === 0) || null; }
+function itemDePoderNoBD(chave){ return (DB.poderes || []).find(p => normNome(p.nome).indexOf(chave) === 0) || null; }
+function elementoDaLinha(tr){ const n = normNome(nomePoderRow(tr)); return ELEMENTOS_BASICOS.find(e => n.indexOf(e) === 0) || null; }
+
+function puxarElementosDoKekkeiGenkai(trKG){
+  const chave = kgChaveDoPoder(nomePoderRow(trKG));
+  if(!chave) return;
+  const nvKG = trKG.querySelector(".pod-nivel");
+  if(nvKG && num(nvKG.value) < 1) nvKG.value = "1";             /* escolher o KG já é, no mínimo, nível 1 */
+  KG_ELEMENTOS_GRATIS[chave].forEach(elem => {
+    let tr = linhaDoPoder(elem);
+    if(!tr){
+      tr = criarLinhaPoder(itemDePoderNoBD(elem) || { nome: elem.charAt(0).toUpperCase() + elem.slice(1) });
+      tr.querySelector(".pod-nivel").value = "1";
+      tr.dataset.kgGratis = chave;                              /* marca só as linhas que a ficha criou */
+    } else {
+      const nv = tr.querySelector(".pod-nivel");
+      if(num(nv.value) < 1) nv.value = "1";                     /* já tinha o elemento: garante o nível 1 */
+    }
+  });
+}
+/* ao remover um poder: some o elemento que veio de graça com um Kekkei Genkai que já não está na ficha */
+function sincronizarElementosKekkeiGenkai(){
+  linhasDePoder().forEach(tr => {
+    const origem = tr.dataset.kgGratis; if(!origem) return;
+    if(linhaDoPoder(origem)) return;                            /* o KG de origem continua na ficha */
+    const elem = elementoDaLinha(tr);
+    const outro = Object.keys(KG_ELEMENTOS_GRATIS).find(k => k !== origem && linhaDoPoder(k) && KG_ELEMENTOS_GRATIS[k].indexOf(elem) >= 0);
+    if(outro){ tr.dataset.kgGratis = outro; return; }           /* outro KG também concede esse elemento */
+    const nv = num((tr.querySelector(".pod-nivel") || {}).value);
+    if(nv <= 1) tr.remove();                                    /* nunca foi evoluído: sai junto */
+    else delete tr.dataset.kgGratis;                            /* foi evoluído: fica, e passa a custar normal */
+  });
+}
+/* dica nos níveis grátis */
+function rotularElementosGratis(){
+  linhasDePoder().forEach(tr => {
+    const i = tr.querySelector(".pod-nivel"); if(!i) return;
+    const origem = tr.dataset.kgGratis;
+    if(origem && linhaDoPoder(origem)){
+      i.title = "O 1º nível vem de graça com " + nomePoderRow(linhaDoPoder(origem)) + ". Só os níveis acima do 1º custam pontos.";
+    } else if(i.title && i.title.indexOf("vem de graça com") >= 0){ i.title = ""; }
+  });
+}
+function avisoKG(msg){
+  const st = document.getElementById("ft_status");
+  if(st && st.offsetParent !== null){ st.textContent = "ℹ️ " + msg; clearTimeout(st._tt); st._tt = setTimeout(() => { st.textContent = ""; }, 5000); }
+  else alert(msg);
+}
+
+function adicionarPoder(it){
+  const tr = criarLinhaPoder(it);
+  if(kgChaveDoPoder(it.nome)) puxarElementosDoKekkeiGenkai(tr);
   montarVersatilidade();
   atualizarSelectsPoderJutsu();
   recalc();
